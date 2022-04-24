@@ -5,8 +5,7 @@ Contribution welcome!
 ## How to prepare
 
 * You will need a [GitHub account](https://github.com/signup/free)
-<!-- ChangeMe: replace //multi-module-template/ in the urls below with the name of the repo-->
-* Submit an [issue ticket](https://github.com/creek-service/multi-module-template/issues/new) for your issue if the is no one yet.
+* Submit an [issue ticket](https://github.com/creek-service/creek-json-schema/issues/new) for your issue if the is no one yet.
     * Describe the issue and include steps to reproduce if it's a bug.
     * Ensure to mention the earliest version that you know is affected.
 * If you are able and want to fix this, [fork the repository on GitHub](https://docs.github.com/en/get-started/quickstart/fork-a-repo)

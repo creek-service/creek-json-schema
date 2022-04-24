@@ -14,9 +14,20 @@
  * limitations under the License.
  */
 
-package org.creek.api.example;
+package org.creek.internal.json.schema.annotation;
 
-public interface Example {
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
-    boolean getTrue();
+import org.creek.api.json.schema.annotation.Example;
+import org.junit.jupiter.api.Test;
+
+class ExampleImplTest {
+
+    private final Example example = new ExampleImpl();
+
+    @Test
+    void shouldReturnTrue() {
+        assertThat(example.getTrue(), is(true));
+    }
 }
