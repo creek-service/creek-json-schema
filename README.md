@@ -6,3 +6,7 @@
 # Creek JSON Schema
 
 Annotations and code for generating JSON schemas from JVM classes.
+
+## Modules in this repo
+
+* [generator](generator): a command line tool used to generate JSON schemas from code.

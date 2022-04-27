@@ -2,7 +2,7 @@
   org.junitpioneer,org.hamcrest,guava.testlib,creek.test.util,creek.test.hamcrest,creek.test.conformity
 
 --add-reads
-  creek.json.schema.annotation=org.junitpioneer,org.hamcrest,guava.testlib,creek.test.util,creek.test.hamcrest,creek.test.conformity
+  creek.json.schema.generator=org.junitpioneer,org.hamcrest,guava.testlib,creek.test.util,creek.test.hamcrest,creek.test.conformity
 
 --add-opens
   org.junitpioneer/org.junitpioneer.jupiter=org.junit.platform.commons
