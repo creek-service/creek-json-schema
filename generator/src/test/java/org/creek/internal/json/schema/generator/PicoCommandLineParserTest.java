@@ -19,6 +19,8 @@ package org.creek.internal.json.schema.generator;
 import static org.creek.internal.json.schema.generator.PicoCommandLineParser.parse;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.startsWith;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Optional;
 import org.creek.api.json.schema.generator.GeneratorOptions;
@@ -36,6 +38,18 @@ class PicoCommandLineParserTest {
 
         // Then:
         assertThat(result, is(Optional.empty()));
+    }
+
+    @Test
+    void shouldThrowOnInvalidArgs() {
+        // Given:
+        final String[] args = {"--unknown"};
+
+        // When:
+        final Exception e = assertThrows(RuntimeException.class, () -> parse(args));
+
+        // Then:
+        assertThat(e.getMessage(), startsWith("Unknown option: '--unknown'"));
     }
 
     @Test
