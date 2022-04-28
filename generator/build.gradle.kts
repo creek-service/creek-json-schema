@@ -21,6 +21,7 @@ plugins {
 
 val creekVersion : String by extra
 val picoCliVersion : String by extra
+val log4jVersion : String by extra
 
 dependencies {
     implementation("org.creek:creek-base-annotation:$creekVersion")
@@ -28,4 +29,16 @@ dependencies {
     implementation("org.creek:creek-base-schema:$creekVersion")
 
     implementation("info.picocli:picocli:$picoCliVersion")
+
+    implementation("org.apache.logging.log4j:log4j-api:$log4jVersion")
+    runtimeOnly("org.apache.logging.log4j:log4j-slf4j18-impl:$log4jVersion")
+}
+
+application {
+    mainModule.set("creek.json.schema.generator")
+    mainClass.set("org.creek.api.json.schema.generator.JsonSchemaGenerator")
+}
+
+tasks.test {
+    dependsOn("installDist")
 }
