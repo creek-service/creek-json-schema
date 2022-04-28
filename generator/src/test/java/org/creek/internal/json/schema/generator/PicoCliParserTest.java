@@ -45,6 +45,18 @@ class PicoCliParserTest {
     }
 
     @Test
+    void shouldReturnEmptyOnVersion() {
+        // Given:
+        final String[] args = {"--version"};
+
+        // When:
+        final Optional<?> result = parse(args);
+
+        // Then:
+        assertThat(result, is(Optional.empty()));
+    }
+
+    @Test
     void shouldThrowOnInvalidArgs() {
         // Given:
         final String[] args = minimalArgs("--unknown");

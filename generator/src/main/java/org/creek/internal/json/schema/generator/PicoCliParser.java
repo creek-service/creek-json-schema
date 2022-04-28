@@ -17,12 +17,14 @@
 package org.creek.internal.json.schema.generator;
 
 import static java.lang.System.lineSeparator;
+import static org.creek.api.base.type.JarVersion.jarVersion;
 
 import java.nio.file.Path;
 import java.util.Optional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.creek.api.json.schema.generator.GeneratorOptions;
+import org.creek.api.json.schema.generator.JsonSchemaGenerator;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -40,8 +42,15 @@ public final class PicoCliParser {
         try {
             parser.parseArgs(args);
 
-            if (options.usageHelpRequested) {
+            if (parser.isUsageHelpRequested()) {
                 LOGGER.info(parser.getUsageMessage());
+                return Optional.empty();
+            }
+
+            if (parser.isVersionHelpRequested()) {
+                LOGGER.info(
+                        "JsonSchemaGenerator: "
+                                + jarVersion(JsonSchemaGenerator.class).orElse("unknown"));
                 return Optional.empty();
             }
 
@@ -52,14 +61,8 @@ public final class PicoCliParser {
     }
 
     @SuppressWarnings({"unused", "OptionalUsedAsFieldOrParameterType"})
-    @Command(name = "JsonSchemaGenerator")
+    @Command(name = "JsonSchemaGenerator", mixinStandardHelpOptions = true)
     private static class Options implements GeneratorOptions {
-        @Option(
-                names = {"-h", "--help"},
-                usageHelp = true,
-                description = "display this help message")
-        private boolean usageHelpRequested;
-
         @Option(
                 names = {"-e", "--echo-only"},
                 hidden = true)

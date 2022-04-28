@@ -16,6 +16,7 @@
 
 package org.creek.api.json.schema.generator;
 
+import static org.creek.api.base.type.JarVersion.jarVersion;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -38,6 +39,8 @@ public final class JsonSchemaGenerator {
     }
 
     public static void generate(final GeneratorOptions options) {
+        LOGGER.info(
+                "JsonSchemaGenerator: " + jarVersion(JsonSchemaGenerator.class).orElse("unknown"));
         if (options.echoOnly()) {
             LOGGER.info(options);
         }
