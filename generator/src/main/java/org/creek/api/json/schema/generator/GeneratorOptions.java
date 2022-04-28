@@ -16,46 +16,24 @@
 
 package org.creek.api.json.schema.generator;
 
-public final class GeneratorOptions {
 
-    private final boolean echoOnly;
+import java.nio.file.Path;
+import java.util.Optional;
 
-    public static Builder generatorOptions() {
-        return new Builder();
-    }
+/** Options to control the {@link JsonSchemaGenerator}. */
+public interface GeneratorOptions {
 
-    private GeneratorOptions(final boolean echoOnly) {
-        this.echoOnly = echoOnly;
-    }
+    /**
+     * @return If set, the generator will parse and echo its arguments and exit. Useful for testing.
+     */
+    boolean echoOnly();
 
-    public boolean echoOnly() {
-        return echoOnly;
-    }
+    /** @return The directory to output schema files to. */
+    Path outputDirectory();
 
-    @Override
-    public String toString() {
-        return "--echoOnly=" + echoOnly;
-    }
-
-    public static final class Builder {
-
-        private boolean echoOnly = false;
-
-        private Builder() {}
-
-        /**
-         * If set, the generator will echo its arguments and exit. Useful for debugging.
-         *
-         * @return self.
-         */
-        public Builder echoOnly() {
-            echoOnly = true;
-            return this;
-        }
-
-        /** @return the built options */
-        public GeneratorOptions build() {
-            return new GeneratorOptions(echoOnly);
-        }
-    }
+    /**
+     * @return Optional package name to limit the types to generate a schema for. Only types under
+     *     the supplied package will be processed.
+     */
+    Optional<String> packageName();
 }

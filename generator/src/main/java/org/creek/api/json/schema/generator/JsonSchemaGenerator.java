@@ -17,26 +17,29 @@
 package org.creek.api.json.schema.generator;
 
 
-import org.creek.internal.json.schema.generator.PicoCommandLineParser;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.creek.internal.json.schema.generator.PicoCliParser;
 
 /** Entry point for generating JSON schemas. */
 public final class JsonSchemaGenerator {
+
+    private static final Logger LOGGER = LogManager.getLogger(JsonSchemaGenerator.class);
 
     private JsonSchemaGenerator() {}
 
     public static void main(final String... args) {
         try {
-            PicoCommandLineParser.parse(args).ifPresent(JsonSchemaGenerator::generate);
+            PicoCliParser.parse(args).ifPresent(JsonSchemaGenerator::generate);
         } catch (final Exception e) {
-            System.err.println(e.getMessage());
-            e.printStackTrace(System.err);
+            LOGGER.fatal(e.getMessage(), e);
             System.exit(1);
         }
     }
 
     public static void generate(final GeneratorOptions options) {
         if (options.echoOnly()) {
-            System.out.println(options);
+            LOGGER.info(options);
         }
     }
 }
