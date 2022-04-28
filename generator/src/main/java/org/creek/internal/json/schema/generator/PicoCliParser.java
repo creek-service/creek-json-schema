@@ -51,7 +51,7 @@ public final class PicoCliParser {
         }
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "OptionalUsedAsFieldOrParameterType"})
     @Command(name = "JsonSchemaGenerator")
     private static class Options implements GeneratorOptions {
         @Option(

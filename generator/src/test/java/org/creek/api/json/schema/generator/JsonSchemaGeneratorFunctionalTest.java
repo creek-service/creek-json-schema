@@ -25,9 +25,12 @@ import static org.hamcrest.Matchers.startsWith;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -101,6 +104,9 @@ class JsonSchemaGeneratorFunctionalTest {
                                 "--module",
                                 "creek.json.schema.generator/org.creek.api.json.schema.generator.JsonSchemaGenerator"));
 
+        // If running with Jacoco coverage, find the java agent argument and pass to child process:
+        findConvergeAgentCmdLineArg().ifPresent(arg -> cmd.add(1, arg));
+
         cmd.addAll(List.of(args));
 
         try {
@@ -125,5 +131,13 @@ class JsonSchemaGeneratorFunctionalTest {
         final List<String> args = new ArrayList<>(List.of("--output=some/path"));
         args.addAll(List.of(additional));
         return args.toArray(String[]::new);
+    }
+
+    private static Optional<String> findConvergeAgentCmdLineArg() {
+        final RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
+        return runtimeMXBean.getInputArguments().stream()
+                .filter(arg -> arg.startsWith("-javaagent"))
+                .filter(arg -> arg.contains("org.jacoco.agent"))
+                .reduce((first, second) -> first);
     }
 }

@@ -38,7 +38,7 @@ class PicoCliParserTest {
         final String[] args = {"--help"};
 
         // When:
-        final Optional<GeneratorOptions> result = parse(args);
+        final Optional<?> result = parse(args);
 
         // Then:
         assertThat(result, is(Optional.empty()));
