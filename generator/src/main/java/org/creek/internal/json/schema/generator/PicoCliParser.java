@@ -17,12 +17,12 @@
 package org.creek.internal.json.schema.generator;
 
 import static java.lang.System.lineSeparator;
-import static org.creek.api.base.type.JarVersion.jarVersion;
 
 import java.nio.file.Path;
 import java.util.Optional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.creek.api.base.type.JarVersion;
 import org.creek.api.json.schema.generator.GeneratorOptions;
 import org.creek.api.json.schema.generator.JsonSchemaGenerator;
 import picocli.CommandLine;
@@ -50,7 +50,8 @@ public final class PicoCliParser {
             if (parser.isVersionHelpRequested()) {
                 LOGGER.info(
                         "JsonSchemaGenerator: "
-                                + jarVersion(JsonSchemaGenerator.class).orElse("unknown"));
+                                + JarVersion.jarVersion(JsonSchemaGenerator.class)
+                                        .orElse("unknown"));
                 return Optional.empty();
             }
 
