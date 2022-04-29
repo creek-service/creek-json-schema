@@ -20,6 +20,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.startsWith;
 
 import java.io.BufferedReader;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.creek.api.base.type.Suppliers;
 import org.creek.api.test.util.TestPaths;
@@ -44,6 +46,9 @@ class JsonSchemaGeneratorFunctionalTest {
             TestPaths.moduleRoot("generator")
                     .resolve("build/install/generator/lib")
                     .toAbsolutePath();
+
+    private static final Pattern VERSION_PATTERN =
+            Pattern.compile(".*JsonSchemaGenerator: \\d+\\.\\d+\\.\\d+.*", Pattern.DOTALL);
 
     private Supplier<String> stdErr;
     private Supplier<String> stdOut;
@@ -59,8 +64,23 @@ class JsonSchemaGeneratorFunctionalTest {
         // Then:
         assertThat(stdErr.get(), is(""));
         assertThat(stdOut.get(), startsWith("Usage: JsonSchemaGenerator"));
-        assertThat(stdOut.get(), containsString("-h, --help   display this help message"));
+        assertThat(
+                stdOut.get(), containsString("-h, --help      Show this help message and exit."));
         assertThat(stdOut.get(), containsString("-o, --output=<outputDirectory>"));
+        assertThat(exitCode, is(0));
+    }
+
+    @Test
+    void shouldOutputVersion() {
+        // Given:
+        final String[] args = {"-V"};
+
+        // When:
+        final int exitCode = runExecutor(args);
+
+        // Then:
+        assertThat(stdErr.get(), is(""));
+        assertThat(stdOut.get(), matchesPattern(VERSION_PATTERN));
         assertThat(exitCode, is(0));
     }
 
@@ -74,6 +94,7 @@ class JsonSchemaGeneratorFunctionalTest {
 
         // Then:
         assertThat(stdErr.get(), is(""));
+        assertThat(stdOut.get(), matchesPattern(VERSION_PATTERN));
         assertThat(stdOut.get(), containsString("--output=some/path"));
         assertThat(stdOut.get(), containsString("--package=<Not Set>"));
         assertThat(exitCode, is(0));
