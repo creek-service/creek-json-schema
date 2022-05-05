@@ -19,14 +19,14 @@ plugins {
     application
 }
 
-val creekVersion : String by extra
+val creekBaseVersion : String by extra
 val picoCliVersion : String by extra
 val log4jVersion : String by extra
 
 dependencies {
-    implementation("org.creek:creek-base-annotation:$creekVersion")
-    implementation("org.creek:creek-base-type:$creekVersion")
-    implementation("org.creek:creek-base-schema:$creekVersion")
+    implementation("org.creekservice:creek-base-annotation:$creekBaseVersion")
+    implementation("org.creekservice:creek-base-type:$creekBaseVersion")
+    implementation("org.creekservice:creek-base-schema:$creekBaseVersion")
 
     implementation("info.picocli:picocli:$picoCliVersion")
 
@@ -36,7 +36,7 @@ dependencies {
 
 application {
     mainModule.set("creek.json.schema.generator")
-    mainClass.set("org.creek.api.json.schema.generator.JsonSchemaGenerator")
+    mainClass.set("org.creekservice.api.json.schema.generator.JsonSchemaGenerator")
 }
 
 tasks.test {

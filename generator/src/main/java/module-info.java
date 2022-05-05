@@ -4,10 +4,9 @@ module creek.json.schema.generator {
     requires creek.base.schema;
     requires info.picocli;
     requires org.apache.logging.log4j;
-    requires java.management;
 
-    exports org.creek.api.json.schema.generator;
+    exports org.creekservice.api.json.schema.generator;
 
-    opens org.creek.internal.json.schema.generator to
+    opens org.creekservice.internal.json.schema.generator to
             info.picocli;
 }

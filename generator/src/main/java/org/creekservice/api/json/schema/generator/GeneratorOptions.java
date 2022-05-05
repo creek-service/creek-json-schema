@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.creek.api.json.schema.generator;
+package org.creekservice.api.json.schema.generator;
 
 
 import java.nio.file.Path;

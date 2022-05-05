@@ -11,7 +11,7 @@ However, it can be run directly as a command line tool:
 ```bash
   java \ 
     --module-path <lib-path> \
-    --module creek.json.schema.generator/org.creek.api.json.schema.generator.JsonSchemaGenerator \
+    --module creek.json.schema.generator/org.creekservice.api.json.schema.generator.JsonSchemaGenerator \
     --output=some/path
 ```
 
@@ -20,4 +20,4 @@ However, it can be run directly as a command line tool:
 ...or you can interact programmatically with the main [JsonSchemaGenerator][2] class.
 
 [1]: https://github.com/creek-service/creek-json-schema-gradle-plugin
-[2]: src/main/java/org/creek/api/json/schema/generator/JsonSchemaGenerator.java
+[2]: src/main/java/org/creekservice/api/json/schema/generator/JsonSchemaGenerator.java

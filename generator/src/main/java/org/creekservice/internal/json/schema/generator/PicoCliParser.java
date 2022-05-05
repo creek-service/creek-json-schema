@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.creek.internal.json.schema.generator;
+package org.creekservice.internal.json.schema.generator;
 
 import static java.lang.System.lineSeparator;
 
@@ -22,9 +22,9 @@ import java.nio.file.Path;
 import java.util.Optional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.creek.api.base.type.JarVersion;
-import org.creek.api.json.schema.generator.GeneratorOptions;
-import org.creek.api.json.schema.generator.JsonSchemaGenerator;
+import org.creekservice.api.base.type.JarVersion;
+import org.creekservice.api.json.schema.generator.GeneratorOptions;
+import org.creekservice.api.json.schema.generator.JsonSchemaGenerator;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;

@@ -4,6 +4,12 @@
 # https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
 
 version: 2
+registries:
+  creek-github-packages:
+    type: maven-repository
+    url: https://maven.pkg.github.com/creek-service/*
+    username: "Creek-Bot-Token"
+    password: "\u0067hp_LtyvXrQZen3WlKenUhv21Mg6NG38jn0AO2YH"
 updates:
   - package-ecosystem: github-actions
     directory: /
@@ -11,5 +17,7 @@ updates:
       interval: weekly
   - package-ecosystem: gradle
     directory: /
+    registries:
+      - creek-github-packages
     schedule:
       interval: weekly
