@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.creek.internal.json.schema.generator;
+package org.creekservice.internal.json.schema.generator;
 
 import static java.lang.System.lineSeparator;
-import static org.creek.internal.json.schema.generator.PicoCliParser.parse;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
@@ -27,7 +26,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import org.creek.api.json.schema.generator.GeneratorOptions;
+import org.creekservice.api.json.schema.generator.GeneratorOptions;
 import org.junit.jupiter.api.Test;
 
 class PicoCliParserTest {
@@ -38,7 +37,7 @@ class PicoCliParserTest {
         final String[] args = {"--help"};
 
         // When:
-        final Optional<?> result = parse(args);
+        final Optional<?> result = PicoCliParser.parse(args);
 
         // Then:
         assertThat(result, is(Optional.empty()));
@@ -50,7 +49,7 @@ class PicoCliParserTest {
         final String[] args = {"--version"};
 
         // When:
-        final Optional<?> result = parse(args);
+        final Optional<?> result = PicoCliParser.parse(args);
 
         // Then:
         assertThat(result, is(Optional.empty()));
@@ -62,7 +61,7 @@ class PicoCliParserTest {
         final String[] args = minimalArgs("--unknown");
 
         // When:
-        final Exception e = assertThrows(RuntimeException.class, () -> parse(args));
+        final Exception e = assertThrows(RuntimeException.class, () -> PicoCliParser.parse(args));
 
         // Then:
         assertThat(e.getMessage(), startsWith("Unknown option: '--unknown'"));
@@ -74,7 +73,7 @@ class PicoCliParserTest {
         final String[] args = minimalArgs();
 
         // When:
-        final Optional<GeneratorOptions> result = parse(args);
+        final Optional<GeneratorOptions> result = PicoCliParser.parse(args);
 
         // Then:
         assertThat(
@@ -89,7 +88,7 @@ class PicoCliParserTest {
         final String[] args = minimalArgs("--echo-only");
 
         // When:
-        final Optional<GeneratorOptions> result = parse(args);
+        final Optional<GeneratorOptions> result = PicoCliParser.parse(args);
 
         // Then:
         assertThat(result.map(GeneratorOptions::echoOnly), is(Optional.of(true)));
@@ -101,7 +100,7 @@ class PicoCliParserTest {
         final String[] args = minimalArgs("--package=some.package.name");
 
         // When:
-        final Optional<GeneratorOptions> result = parse(args);
+        final Optional<GeneratorOptions> result = PicoCliParser.parse(args);
 
         // Then:
         assertThat(
@@ -115,7 +114,7 @@ class PicoCliParserTest {
         final String[] args = minimalArgs();
 
         // When:
-        final Optional<GeneratorOptions> result = parse(args);
+        final Optional<GeneratorOptions> result = PicoCliParser.parse(args);
 
         // Then:
         assertThat(

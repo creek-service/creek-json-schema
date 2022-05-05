@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.creek;
+package org.creekservice;
 
 
-import org.creek.api.test.conformity.ConformityTester;
+import org.creekservice.api.test.conformity.ConformityTester;
 import org.junit.jupiter.api.Test;
 
 class ModuleTest {
