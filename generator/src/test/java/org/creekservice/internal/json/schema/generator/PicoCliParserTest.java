@@ -119,11 +119,15 @@ class PicoCliParserTest {
         // Then:
         assertThat(
                 result.map(Object::toString),
-                is(Optional.of("--output=some/path" + lineSeparator() + "--package=<Not Set>")));
+                is(
+                        Optional.of(
+                                "--output-directory=some/path"
+                                        + lineSeparator()
+                                        + "--package=<Not Set>")));
     }
 
     private static String[] minimalArgs(final String... additional) {
-        final List<String> args = new ArrayList<>(List.of("--output=some/path"));
+        final List<String> args = new ArrayList<>(List.of("--output-directory=some/path"));
         args.addAll(List.of(additional));
         return args.toArray(String[]::new);
     }

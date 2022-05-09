@@ -12,7 +12,7 @@ However, it can be run directly as a command line tool:
   java \ 
     --module-path <lib-path> \
     --module creek.json.schema.generator/org.creekservice.api.json.schema.generator.JsonSchemaGenerator \
-    --output=some/path
+    --output-directory=some/path
 ```
 
 (Run with `--help` for an up-to-date list of arguments)
