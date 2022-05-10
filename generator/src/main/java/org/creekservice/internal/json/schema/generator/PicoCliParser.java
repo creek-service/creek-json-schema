@@ -70,7 +70,7 @@ public final class PicoCliParser {
         private boolean echoOnly;
 
         @Option(
-                names = {"-o", "--output"},
+                names = {"-o", "--output-directory"},
                 required = true,
                 description = "The directory the schemas will be written to.")
         private Path outputDirectory;
@@ -99,7 +99,7 @@ public final class PicoCliParser {
 
         @Override
         public String toString() {
-            return "--output="
+            return "--output-directory="
                     + outputDirectory
                     + lineSeparator()
                     + "--package="

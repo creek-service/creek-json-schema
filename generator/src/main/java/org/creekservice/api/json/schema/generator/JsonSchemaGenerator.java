@@ -17,6 +17,8 @@
 package org.creekservice.api.json.schema.generator;
 
 
+import java.lang.management.ManagementFactory;
+import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.creekservice.api.base.type.JarVersion;
@@ -43,7 +45,25 @@ public final class JsonSchemaGenerator {
             LOGGER.info(
                     "JsonSchemaGenerator: "
                             + JarVersion.jarVersion(JsonSchemaGenerator.class).orElse("unknown"));
+            LOGGER.info(classPath());
+            LOGGER.info(modulePath());
             LOGGER.info(options);
         }
+    }
+
+    private static String classPath() {
+        return ManagementFactory.getRuntimeMXBean().getInputArguments().stream()
+                .filter(
+                        arg ->
+                                arg.startsWith("--class-path")
+                                        || arg.startsWith("-classpath")
+                                        || arg.startsWith("-cp"))
+                .collect(Collectors.joining(" "));
+    }
+
+    private static String modulePath() {
+        return ManagementFactory.getRuntimeMXBean().getInputArguments().stream()
+                .filter(arg -> arg.startsWith("--module-path") || arg.startsWith("-p"))
+                .collect(Collectors.joining(" "));
     }
 }

@@ -64,7 +64,7 @@ class JsonSchemaGeneratorFunctionalTest {
         assertThat(stdOut.get(), startsWith("Usage: JsonSchemaGenerator"));
         assertThat(
                 stdOut.get(), containsString("-h, --help      Show this help message and exit."));
-        assertThat(stdOut.get(), containsString("-o, --output=<outputDirectory>"));
+        assertThat(stdOut.get(), containsString("-o, --output-directory=<outputDirectory>"));
         assertThat(exitCode, is(0));
     }
 
@@ -93,7 +93,8 @@ class JsonSchemaGeneratorFunctionalTest {
         // Then:
         assertThat(stdErr.get(), is(""));
         assertThat(stdOut.get(), matchesPattern(VERSION_PATTERN));
-        assertThat(stdOut.get(), containsString("--output=some/path"));
+        assertThat(stdOut.get(), containsString("--module-path=" + LIB_DIR));
+        assertThat(stdOut.get(), containsString("--output-directory=some/path"));
         assertThat(stdOut.get(), containsString("--package=<Not Set>"));
         assertThat(exitCode, is(0));
     }
@@ -146,7 +147,7 @@ class JsonSchemaGeneratorFunctionalTest {
     }
 
     private static String[] minimalArgs(final String... additional) {
-        final List<String> args = new ArrayList<>(List.of("--output=some/path"));
+        final List<String> args = new ArrayList<>(List.of("--output-directory=some/path"));
         args.addAll(List.of(additional));
         return args.toArray(String[]::new);
     }
