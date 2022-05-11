@@ -78,8 +78,8 @@ class PolymorphicTypesTest {
                         "PolymorphicType{"
                                 + "type=interface org.creekservice.internal.json.schema.generator.PolymorphicTypesTest$AnotherInterface, "
                                 + "subTypes=["
-                                + "class org.creekservice.internal.json.schema.generator.PolymorphicTypesTest$StaticNestedClass"
                                 + "interface org.creekservice.internal.json.schema.generator.PolymorphicTypesTest$AnotherInterface, "
+                                + "class org.creekservice.internal.json.schema.generator.PolymorphicTypesTest$StaticNestedClass"
                                 + "]}"));
     }
 

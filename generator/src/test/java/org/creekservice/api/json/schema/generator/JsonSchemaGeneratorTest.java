@@ -98,7 +98,6 @@ class JsonSchemaGeneratorTest {
         // Then:
         assertThat(stdErr.get(), is(""));
         assertThat(stdOut.get(), matchesPattern(VERSION_PATTERN));
-        assertThat(stdOut.get(), containsString("--module-path=" + LIB_DIR));
         assertThat(stdOut.get(), containsString("--output-directory=some/path"));
         assertThat(stdOut.get(), containsString("--allowed-modules=<ANY>"));
         assertThat(stdOut.get(), containsString("--allowed-base-type-packages=[some.*.package]"));
