@@ -1,0 +1,36 @@
+---
+# timestamp=1652261637068
+$schema: http://json-schema.org/draft-07/schema#
+title: Polymorphic Model
+oneOf:
+- $ref: '#/definitions/SubType1'
+- $ref: '#/definitions/SubType2'
+definitions:
+  SubType1:
+    type: object
+    additionalProperties: false
+    properties:
+      '@type':
+        type: string
+        enum:
+        - type_1
+        default: type_1
+      prop1:
+        type: string
+    title: type_1
+    required:
+    - '@type'
+  SubType2:
+    type: object
+    additionalProperties: false
+    properties:
+      '@type':
+        type: string
+        enum:
+        - type_2
+        default: type_2
+      prop2:
+        type: string
+    title: type_2
+    required:
+    - '@type'

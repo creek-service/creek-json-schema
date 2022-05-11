@@ -22,6 +22,9 @@ plugins {
 val creekBaseVersion : String by extra
 val picoCliVersion : String by extra
 val log4jVersion : String by extra
+val jacksonVersion : String by extra
+val jsonSchemaVersion : String by extra
+val classGraphVersion : String by extra
 
 dependencies {
     implementation("org.creekservice:creek-base-annotation:$creekBaseVersion")
@@ -29,9 +32,14 @@ dependencies {
     implementation("org.creekservice:creek-base-schema:$creekBaseVersion")
 
     implementation("info.picocli:picocli:$picoCliVersion")
-
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$jacksonVersion")
+    implementation("com.kjetland:mbknor-jackson-jsonschema_2.13:$jsonSchemaVersion")
+    implementation("io.github.classgraph:classgraph:$classGraphVersion")
     implementation("org.apache.logging.log4j:log4j-api:$log4jVersion")
-    runtimeOnly("org.apache.logging.log4j:log4j-slf4j18-impl:$log4jVersion")
+    runtimeOnly("org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion")
+
+    testImplementation(project(":test-types"))
 }
 
 application {
@@ -41,4 +49,5 @@ application {
 
 tasks.test {
     dependsOn("installDist")
+    dependsOn(":test-types:jar")
 }

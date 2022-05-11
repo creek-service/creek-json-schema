@@ -14,7 +14,6 @@ project.version = scmVersion.version
 allprojects {
     apply(plugin = "idea")
     apply(plugin = "java")
-    apply(plugin = "jacoco")
     apply(plugin = "checkstyle")
     apply(plugin = "com.diffplug.spotless")
     apply(plugin = "com.github.spotbugs")
@@ -46,6 +45,10 @@ subprojects {
     apply(plugin = "maven-publish")
     apply(plugin = "org.javamodularity.moduleplugin")
 
+    if (!name.startsWith("test-")) {
+        apply(plugin = "jacoco")
+    }
+
     project.version = project.parent?.version!!
 
     extra.apply {
@@ -53,6 +56,9 @@ subprojects {
         set("creekTestVersion", "0.2.0-SNAPSHOT")
         set("spotBugsVersion", "4.6.0")         // https://mvnrepository.com/artifact/com.github.spotbugs/spotbugs-annotations
         set("picoCliVersion", "4.6.3")          // https://mvnrepository.com/artifact/info.picocli/picocli
+        set("jacksonVersion", "2.13.2")         // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations
+        set("jsonSchemaVersion", "1.0.39")      // https://mvnrepository.com/artifact/com.kjetland/mbknor-jackson-jsonschema
+        set("classGraphVersion", "4.8.143")     // https://mvnrepository.com/artifact/io.github.classgraph/classgraph
 
         set("log4jVersion", "2.17.2")           // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
         set("guavaVersion", "31.1-jre")         // https://mvnrepository.com/artifact/com.google.guava/guava
@@ -82,7 +88,6 @@ subprojects {
         testImplementation("com.google.guava:guava-testlib:$guavaVersion")
         testImplementation("org.apache.logging.log4j:log4j-api:$log4jVersion")
         testImplementation("org.apache.logging.log4j:log4j-core:$log4jVersion")
-        testRuntimeOnly("org.apache.logging.log4j:log4j-slf4j18-impl:$log4jVersion")
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
     }
 
@@ -146,24 +151,26 @@ subprojects {
         dependsOn("checkstyleMain", "checkstyleTest", "spotbugsMain", "spotbugsTest")
     }
 
-    publishing {
-        repositories {
-            maven {
-                name = "GitHubPackages"
-                url = uri("https://maven.pkg.github.com/creek-service/${rootProject.name}")
-                credentials {
-                    username = System.getenv("GITHUB_ACTOR")
-                    password = System.getenv("GITHUB_TOKEN")
+    if (!project.name.startsWith("test-")) {
+        publishing {
+            repositories {
+                maven {
+                    name = "GitHubPackages"
+                    url = uri("https://maven.pkg.github.com/creek-service/${rootProject.name}")
+                    credentials {
+                        username = System.getenv("GITHUB_ACTOR")
+                        password = System.getenv("GITHUB_TOKEN")
+                    }
                 }
             }
-        }
-        publications {
-            create<MavenPublication>("maven") {
-                from(components["java"])
-                artifactId = "${rootProject.name}-${project.name}"
+            publications {
+                create<MavenPublication>("maven") {
+                    from(components["java"])
+                    artifactId = "${rootProject.name}-${project.name}"
 
-                pom {
-                    url.set("https://github.com/creek-service/${rootProject.name}.git")
+                    pom {
+                        url.set("https://github.com/creek-service/${rootProject.name}.git")
+                    }
                 }
             }
         }
