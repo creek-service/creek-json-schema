@@ -105,10 +105,7 @@ class JsonSchemaGeneratorTest {
     @Test
     void shouldRunFromClassPath() {
         // Given:
-        final String[] javaArgs = {
-                "-cp", LIB_DIR+ "/*",
-                JsonSchemaGenerator.class.getName()
-        };
+        final String[] javaArgs = {"-cp", LIB_DIR + "/*", JsonSchemaGenerator.class.getName()};
 
         // When:
         final int exitCode = runExecutor(javaArgs, minimalArgs("--echo-only"));
@@ -125,12 +122,12 @@ class JsonSchemaGeneratorTest {
     void shouldEchoModulePath() {
         // Given:
         final String[] javaArgs = {
-                "-p",
-                "/another/path",
-                "--module-path",
-                LIB_DIR.toString(),
-                "--module",
-                "creek.json.schema.generator/org.creekservice.api.json.schema.generator.JsonSchemaGenerator"
+            "-p",
+            "/another/path",
+            "--module-path",
+            LIB_DIR.toString(),
+            "--module",
+            "creek.json.schema.generator/org.creekservice.api.json.schema.generator.JsonSchemaGenerator"
         };
 
         // When:
@@ -161,10 +158,10 @@ class JsonSchemaGeneratorTest {
 
     private int runExecutor(final String[] cmdArgs) {
         final String[] javaArgs = {
-                "--module-path",
-                LIB_DIR.toString(),
-                "--module",
-                "creek.json.schema.generator/org.creekservice.api.json.schema.generator.JsonSchemaGenerator"
+            "--module-path",
+            LIB_DIR.toString(),
+            "--module",
+            "creek.json.schema.generator/org.creekservice.api.json.schema.generator.JsonSchemaGenerator"
         };
         return runExecutor(javaArgs, cmdArgs);
     }

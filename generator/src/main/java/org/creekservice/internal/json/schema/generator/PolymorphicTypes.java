@@ -62,8 +62,7 @@ final class PolymorphicTypes {
         private final Class<T> type;
         private final Set<Class<? extends T>> subTypes;
 
-        PolymorphicType(
-                final Class<T> type, final Collection<Class<? extends T>> subTypes) {
+        PolymorphicType(final Class<T> type, final Collection<Class<? extends T>> subTypes) {
             this.type = requireNonNull(type, "type");
             this.subTypes = Set.copyOf(requireNonNull(subTypes, "subTypes"));
         }
