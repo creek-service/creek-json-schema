@@ -19,6 +19,7 @@ package org.creekservice.api.json.schema.generator;
 import static java.lang.System.lineSeparator;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.creekservice.api.test.util.coverage.CodeCoverage.codeCoverageCmdLineArg;
+import static org.creekservice.api.test.util.debug.RemoteDebug.remoteDebugArguments;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesPattern;
@@ -39,11 +40,15 @@ import java.util.stream.Stream;
 import org.creekservice.api.test.util.TestPaths;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 class JsonSchemaGeneratorFunctionalTest {
+
+    // Change this to true locally to debug using attach-me plugin:
+    private static final boolean DEBUG = false;
 
     private static final Path LIB_DIR =
             TestPaths.moduleRoot("generator")
@@ -99,26 +104,18 @@ class JsonSchemaGeneratorFunctionalTest {
                 is(expectedSchema));
     }
 
+    @Test
+    void shouldNotCheckInWithDebuggingEnabled() {
+        assertThat("Do not check in with debugging enabled", !DEBUG);
+    }
+
     // Run me to dump out updated schemas:
     public static void main(final String... args) {
         generateSchemas(TestPaths.moduleRoot("generator").resolve(EXPECTED_SCHEMA_DIR));
     }
 
     private static void generateSchemas(final Path outputDir) {
-        final List<String> cmd =
-                new ArrayList<>(
-                        List.of(
-                                "java",
-                                "--module-path",
-                                LIB_DIR + System.getProperty("path.separator") + TEST_TYPES_LIB_DIR,
-                                "--add-modules",
-                                "creek.json.schema.test.types",
-                                "--module",
-                                "creek.json.schema.generator/org.creekservice.api.json.schema.generator.JsonSchemaGenerator",
-                                "--output-directory=" + outputDir.toAbsolutePath(),
-                                "--allowed-module=creek.json.schema.test.types"));
-
-        codeCoverageCmdLineArg().ifPresent(arg -> cmd.add(1, arg));
+        final List<String> cmd = buildCommand(outputDir);
 
         try {
             final Process executor = new ProcessBuilder().command(cmd).start();
@@ -135,6 +132,26 @@ class JsonSchemaGeneratorFunctionalTest {
         } catch (final Exception e) {
             throw new AssertionError("Error executing: " + cmd, e);
         }
+    }
+
+    private static List<String> buildCommand(final Path outputDir) {
+        final List<String> cmd = new ArrayList<>(List.of("java"));
+
+        if (DEBUG) {
+            cmd.addAll(remoteDebugArguments());
+        }
+        codeCoverageCmdLineArg().ifPresent(cmd::add);
+        cmd.addAll(
+                List.of(
+                        "--module-path",
+                        LIB_DIR + System.getProperty("path.separator") + TEST_TYPES_LIB_DIR,
+                        "--add-modules",
+                        "creek.json.schema.test.types",
+                        "--module",
+                        "creek.json.schema.generator/org.creekservice.api.json.schema.generator.JsonSchemaGenerator",
+                        "--output-directory=" + outputDir.toAbsolutePath(),
+                        "--allowed-module=creek.json.schema.test.types"));
+        return cmd;
     }
 
     public static Stream<Path> expectedSchema() {

@@ -35,6 +35,7 @@ import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ClassInfoList;
 import io.github.classgraph.ScanResult;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -94,7 +95,11 @@ final class PolymorphicTypes {
 
         @Override
         public String toString() {
-            return "PolymorphicType{" + "type=" + type + ", subTypes=" + subTypes + '}';
+            final List<Class<?>> sortedSubTypes =
+                    subTypes.stream()
+                            .sorted(Comparator.comparing(Class::getName))
+                            .collect(Collectors.toUnmodifiableList());
+            return "PolymorphicType{" + "type=" + type + ", subTypes=" + sortedSubTypes + '}';
         }
     }
 

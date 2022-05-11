@@ -36,8 +36,9 @@ public final class SchemaWriter {
     }
 
     public void write(final JsonSchema<?> schema) {
+        final Class<?> type = schema.type();
         try {
-            final Path fileName = schemaFileName(schema.type());
+            final Path fileName = schemaFileName(type);
             final Path path = outputDir.resolve(fileName);
 
             final Path parent = path.getParent();
@@ -47,9 +48,13 @@ public final class SchemaWriter {
 
             Files.write(path, schema.text().getBytes(StandardCharsets.UTF_8));
 
-            LOGGER.info("Wrote {}'s schema to {}", schema.type().getCanonicalName(), path);
+            final String name =
+                    type.getCanonicalName() == null
+                            ? type.getSimpleName()
+                            : type.getCanonicalName();
+            LOGGER.info("Wrote {}'s schema to {}", name, path);
         } catch (final Exception e) {
-            throw new GenerateSchemaException("Failed to write schema for " + schema.type(), e);
+            throw new GenerateSchemaException("Failed to write schema for " + type, e);
         }
     }
 
