@@ -22,6 +22,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesPattern;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.startsWith;
 
 import java.io.BufferedReader;
@@ -102,6 +103,48 @@ class JsonSchemaGeneratorTest {
     }
 
     @Test
+    void shouldRunFromClassPath() {
+        // Given:
+        final String[] javaArgs = {
+                "-cp", LIB_DIR+ "/*",
+                JsonSchemaGenerator.class.getName()
+        };
+
+        // When:
+        final int exitCode = runExecutor(javaArgs, minimalArgs("--echo-only"));
+
+        // Then:
+        assertThat(stdErr.get(), is(""));
+        assertThat(stdOut.get(), matchesPattern(VERSION_PATTERN));
+        assertThat(stdOut.get(), containsString("--class-path=" + LIB_DIR));
+        assertThat(stdOut.get(), not(containsString("--module-path")));
+        assertThat(exitCode, is(0));
+    }
+
+    @Test
+    void shouldEchoModulePath() {
+        // Given:
+        final String[] javaArgs = {
+                "-p",
+                "/another/path",
+                "--module-path",
+                LIB_DIR.toString(),
+                "--module",
+                "creek.json.schema.generator/org.creekservice.api.json.schema.generator.JsonSchemaGenerator"
+        };
+
+        // When:
+        final int exitCode = runExecutor(javaArgs, minimalArgs("--echo-only"));
+
+        // Then:
+        assertThat(stdErr.get(), is(""));
+        assertThat(stdOut.get(), containsString("--module-path=" + LIB_DIR));
+        assertThat(stdOut.get(), containsString("--module-path=/another/path"));
+        assertThat(stdOut.get(), not(containsString("--class-path")));
+        assertThat(exitCode, is(0));
+    }
+
+    @Test
     void shouldReportIssuesWithArguments() {
         // Given:
         final String[] args = minimalArgs("--unknown");
@@ -116,8 +159,18 @@ class JsonSchemaGeneratorTest {
         assertThat(exitCode, is(1));
     }
 
-    private int runExecutor(final String[] args) {
-        final List<String> cmd = buildCommand(args);
+    private int runExecutor(final String[] cmdArgs) {
+        final String[] javaArgs = {
+                "--module-path",
+                LIB_DIR.toString(),
+                "--module",
+                "creek.json.schema.generator/org.creekservice.api.json.schema.generator.JsonSchemaGenerator"
+        };
+        return runExecutor(javaArgs, cmdArgs);
+    }
+
+    private int runExecutor(final String[] javaArgs, final String[] cmdArgs) {
+        final List<String> cmd = buildCommand(javaArgs, cmdArgs);
 
         try {
             final Process executor = new ProcessBuilder().command(cmd).start();
@@ -131,19 +184,11 @@ class JsonSchemaGeneratorTest {
         }
     }
 
-    private static List<String> buildCommand(final String[] args) {
-        final List<String> cmd =
-                new ArrayList<>(
-                        List.of(
-                                "java",
-                                "--module-path",
-                                LIB_DIR.toString(),
-                                "--module",
-                                "creek.json.schema.generator/org.creekservice.api.json.schema.generator.JsonSchemaGenerator"));
-
-        codeCoverageCmdLineArg().ifPresent(arg -> cmd.add(1, arg));
-
-        cmd.addAll(List.of(args));
+    private static List<String> buildCommand(final String[] javaArgs, final String[] cmdArgs) {
+        final List<String> cmd = new ArrayList<>(List.of("java"));
+        codeCoverageCmdLineArg().ifPresent(cmd::add);
+        cmd.addAll(List.of(javaArgs));
+        cmd.addAll(List.of(cmdArgs));
         return cmd;
     }
 

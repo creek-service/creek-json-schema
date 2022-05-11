@@ -27,6 +27,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.testing.EqualsTester;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Collection;
 import java.util.List;
@@ -41,6 +42,30 @@ class PolymorphicTypesTest {
 
     private static final String PACKAGE = PolymorphicTypesTest.class.getPackageName();
     private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    @Test
+    void shouldImplementHashCodeAndEquals() {
+        new EqualsTester()
+                .addEqualityGroup(new PolymorphicType<>(AnotherInterface.class, List.of(AnotherInterface.class, StaticNestedClass.class)),
+                        new PolymorphicType<>(AnotherInterface.class, List.of(AnotherInterface.class, StaticNestedClass.class)))
+                .addEqualityGroup(new PolymorphicType<>(SomeInterface.class, List.of(AnotherInterface.class, StaticNestedClass.class)))
+                .addEqualityGroup(new PolymorphicType<>(AnotherInterface.class, List.of(StaticNestedClass.class)))
+                .testEquals();
+    }
+
+    @Test
+    void shouldImplementToStringForEasierDebugging() {
+        // Given:
+        final PolymorphicType<AnotherInterface> polyType = new PolymorphicType<>(AnotherInterface.class, List.of(AnotherInterface.class, StaticNestedClass.class));
+
+        // Then:
+        assertThat(polyType.toString(), is("PolymorphicType{" +
+                "type=interface org.creekservice.internal.json.schema.generator.PolymorphicTypesTest$AnotherInterface, " +
+                "subTypes=[" +
+                "interface org.creekservice.internal.json.schema.generator.PolymorphicTypesTest$AnotherInterface, " +
+                "class org.creekservice.internal.json.schema.generator.PolymorphicTypesTest$StaticNestedClass" +
+                "]}"));
+    }
 
     @Test
     void shouldNotBlowUpOnNoPolymorphicTypes() {
@@ -105,8 +130,7 @@ class PolymorphicTypesTest {
         assertThat(
                 result,
                 contains(
-                        PolymorphicType.of(
-                                BaseModel.class, Set.of(BaseModelOne.class, BaseModelTwo.class))));
+                        new PolymorphicType<>(BaseModel.class, Set.of(BaseModelOne.class, BaseModelTwo.class))));
     }
 
     @Test
@@ -143,7 +167,7 @@ class PolymorphicTypesTest {
         final Collection<PolymorphicType<?>> result = findPolymorphicTypes(WithNestedClass.class);
 
         // Then:
-        assertThat(result, contains(PolymorphicType.of(Nested.class, Set.of(NestedOne.class))));
+        assertThat(result, contains(new PolymorphicType<>(Nested.class, Set.of(NestedOne.class))));
     }
 
     @Test
@@ -174,8 +198,8 @@ class PolymorphicTypesTest {
         assertThat(
                 result,
                 containsInAnyOrder(
-                        PolymorphicType.of(Nested.class, Set.of(NestedOne.class)),
-                        PolymorphicType.of(Deep.class, Set.of(DeepOne.class))));
+                        new PolymorphicType<>(Nested.class, Set.of(NestedOne.class)),
+                        new PolymorphicType<>(Deep.class, Set.of(DeepOne.class))));
     }
 
     @Test
@@ -202,7 +226,7 @@ class PolymorphicTypesTest {
 
         // Then:
         assertThat(
-                result, contains(PolymorphicType.of(Recursive.class, Set.of(RecursiveOne.class))));
+                result, contains(new PolymorphicType<>(Recursive.class, Set.of(RecursiveOne.class))));
     }
 
     @Test
@@ -224,7 +248,7 @@ class PolymorphicTypesTest {
         // Then:
         assertThat(
                 result,
-                contains(PolymorphicType.of(ElementType.class, Set.of(ElementTypeOne.class))));
+                contains(new PolymorphicType<>(ElementType.class, Set.of(ElementTypeOne.class))));
     }
 
     @Test
@@ -247,7 +271,7 @@ class PolymorphicTypesTest {
         // Then:
         assertThat(
                 result,
-                contains(PolymorphicType.of(ElementType.class, Set.of(ElementTypeOne.class))));
+                contains(new PolymorphicType<>(ElementType.class, Set.of(ElementTypeOne.class))));
     }
 
     @Test
@@ -269,7 +293,7 @@ class PolymorphicTypesTest {
         // Then:
         assertThat(
                 result,
-                contains(PolymorphicType.of(GenericType.class, Set.of(GenericTypeOne.class))));
+                contains(new PolymorphicType<>(GenericType.class, Set.of(GenericTypeOne.class))));
     }
 
     @Test
@@ -292,7 +316,7 @@ class PolymorphicTypesTest {
         assertThat(
                 result,
                 containsInAnyOrder(
-                        PolymorphicType.of(ElementType.class, Set.of(ElementTypeOne.class))));
+                        new PolymorphicType<>(ElementType.class, Set.of(ElementTypeOne.class))));
     }
 
     @Test
@@ -319,8 +343,8 @@ class PolymorphicTypesTest {
         assertThat(
                 result,
                 containsInAnyOrder(
-                        PolymorphicType.of(KeyType.class, Set.of(KeyTypeOne.class)),
-                        PolymorphicType.of(ValueType.class, Set.of(ValueTypeOne.class))));
+                        new PolymorphicType<>(KeyType.class, Set.of(KeyTypeOne.class)),
+                        new PolymorphicType<>(ValueType.class, Set.of(ValueTypeOne.class))));
     }
 
     @Test
@@ -342,7 +366,7 @@ class PolymorphicTypesTest {
         // Then:
         assertThat(
                 result,
-                containsInAnyOrder(PolymorphicType.of(Required.class, Set.of(RequiredOne.class))));
+                containsInAnyOrder(new PolymorphicType<>(Required.class, Set.of(RequiredOne.class))));
     }
 
     private Collection<PolymorphicType<?>> findPolymorphicTypes(final Class<?> type) {
@@ -357,9 +381,7 @@ class PolymorphicTypesTest {
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
     public interface SomeInterface {
         PolymorphicType<SomeInterface> EXPECTED =
-                PolymorphicType.of(
-                        SomeInterface.class,
-                        Set.of(StaticNestedClass.class, AnotherInterface.class, NestedClass.class));
+                new PolymorphicType<>(SomeInterface.class, Set.of(StaticNestedClass.class, AnotherInterface.class, NestedClass.class));
     }
 
     @SuppressWarnings("InnerClassMayBeStatic")

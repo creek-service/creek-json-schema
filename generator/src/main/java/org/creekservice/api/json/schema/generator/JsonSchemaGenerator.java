@@ -91,13 +91,8 @@ public final class JsonSchemaGenerator {
     }
 
     private static String classPath() {
-        return ManagementFactory.getRuntimeMXBean().getInputArguments().stream()
-                .filter(
-                        arg ->
-                                arg.startsWith("--class-path")
-                                        || arg.startsWith("-classpath")
-                                        || arg.startsWith("-cp"))
-                .collect(Collectors.joining(" "));
+        final String classPath = ManagementFactory.getRuntimeMXBean().getClassPath();
+        return classPath.isEmpty() ? "" : "--class-path=" + classPath;
     }
 
     private static String modulePath() {

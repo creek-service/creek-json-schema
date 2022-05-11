@@ -62,12 +62,7 @@ final class PolymorphicTypes {
         private final Class<T> type;
         private final Set<Class<? extends T>> subTypes;
 
-        static <T> PolymorphicType<T> of(
-                final Class<T> type, final Collection<Class<? extends T>> subTypes) {
-            return new PolymorphicType<>(type, subTypes);
-        }
-
-        private PolymorphicType(
+        PolymorphicType(
                 final Class<T> type, final Collection<Class<? extends T>> subTypes) {
             this.type = requireNonNull(type, "type");
             this.subTypes = Set.copyOf(requireNonNull(subTypes, "subTypes"));
@@ -153,13 +148,13 @@ final class PolymorphicTypes {
             return;
         }
 
-        final PolymorphicType<T> poly = PolymorphicType.of(type, implementationsOf(type));
+        final PolymorphicType<T> poly = new PolymorphicType<>(type, implementationsOf(type));
         found.put(type, poly);
 
         // Visit subtypes:
         for (final Class<? extends T> subType : poly.subTypes()) {
             // Optimisation: subtypes already found for parent, which is super set of sub type:
-            found.put(subType, PolymorphicType.of(subType, Set.of()));
+            found.put(subType, new PolymorphicType<>(subType, Set.of()));
 
             visitType(subType);
         }
