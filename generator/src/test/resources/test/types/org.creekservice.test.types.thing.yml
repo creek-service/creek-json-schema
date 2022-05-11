@@ -1,0 +1,36 @@
+---
+# timestamp=1652261637008
+$schema: http://json-schema.org/draft-07/schema#
+title: Thing
+oneOf:
+- $ref: '#/definitions/SmallThing'
+- $ref: '#/definitions/BigThing'
+definitions:
+  SmallThing:
+    type: object
+    additionalProperties: false
+    properties:
+      '@type':
+        type: string
+        enum:
+        - small
+        default: small
+      prop2:
+        type: string
+    title: small
+    required:
+    - '@type'
+  BigThing:
+    type: object
+    additionalProperties: false
+    properties:
+      '@type':
+        type: string
+        enum:
+        - big
+        default: big
+      prop1:
+        type: string
+    title: big
+    required:
+    - '@type'

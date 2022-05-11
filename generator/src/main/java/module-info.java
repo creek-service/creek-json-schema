@@ -5,9 +5,18 @@ module creek.json.schema.generator {
     requires info.picocli;
     requires org.apache.logging.log4j;
     requires java.management;
+    requires com.fasterxml.jackson.annotation;
+    requires com.fasterxml.jackson.databind;
+    requires com.fasterxml.jackson.dataformat.yaml;
+    requires com.fasterxml.jackson.datatype.jdk8;
+    requires mbknor.jackson.jsonschema;
+    requires io.github.classgraph;
+    requires scala.library;
 
     exports org.creekservice.api.json.schema.generator;
 
-    opens org.creekservice.internal.json.schema.generator to
+    opens org.creekservice.internal.json.schema.generator.cli to
             info.picocli;
+    opens org.creekservice.internal.json.schema.generator.mixin to
+            com.fasterxml.jackson.databind;
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.creekservice.internal.json.schema.generator;
+package org.creekservice.internal.json.schema.generator.cli;
 
 import static java.lang.System.lineSeparator;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -26,6 +26,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.creekservice.api.json.schema.generator.GeneratorOptions;
 import org.junit.jupiter.api.Test;
 
@@ -95,23 +96,54 @@ class PicoCliParserTest {
     }
 
     @Test
-    void shouldParsePackage() {
+    void shouldParseAllowedModule() {
         // Given:
-        final String[] args = minimalArgs("--package=some.package.name");
+        final String[] args = minimalArgs("--allowed-module=some.module", "-m=another.module");
 
         // When:
         final Optional<GeneratorOptions> result = PicoCliParser.parse(args);
 
         // Then:
         assertThat(
-                result.flatMap(GeneratorOptions::packageName),
-                is(Optional.of("some.package.name")));
+                result.map(GeneratorOptions::allowedModules),
+                is(Optional.of(Set.of("some.module", "another.module"))));
+    }
+
+    @Test
+    void shouldParseAllowedBaseTypePackage() {
+        // Given:
+        final String[] args =
+                minimalArgs(
+                        "--allowed-base-type-package=some.package.name", "-btp=another.package");
+
+        // When:
+        final Optional<GeneratorOptions> result = PicoCliParser.parse(args);
+
+        // Then:
+        assertThat(
+                result.map(GeneratorOptions::allowedBaseTypePackages),
+                is(Optional.of(Set.of("some.package.name", "another.package"))));
+    }
+
+    @Test
+    void shouldParseAllowedSubTypePackage() {
+        // Given:
+        final String[] args =
+                minimalArgs("--allowed-sub-type-package=some.package.name", "-stp=another.package");
+
+        // When:
+        final Optional<GeneratorOptions> result = PicoCliParser.parse(args);
+
+        // Then:
+        assertThat(
+                result.map(GeneratorOptions::allowedSubTypePackages),
+                is(Optional.of(Set.of("some.package.name", "another.package"))));
     }
 
     @Test
     void shouldImplementToStringOnReturnedOptions() {
         // Given:
-        final String[] args = minimalArgs();
+        final String[] args = minimalArgs("-m=some.module");
 
         // When:
         final Optional<GeneratorOptions> result = PicoCliParser.parse(args);
@@ -123,7 +155,11 @@ class PicoCliParserTest {
                         Optional.of(
                                 "--output-directory=some/path"
                                         + lineSeparator()
-                                        + "--package=<Not Set>")));
+                                        + "--allowed-modules=[some.module]"
+                                        + lineSeparator()
+                                        + "--allowed-base-type-packages=<ANY>"
+                                        + lineSeparator()
+                                        + "--allowed-sub-type-packages=<ANY>")));
     }
 
     private static String[] minimalArgs(final String... additional) {

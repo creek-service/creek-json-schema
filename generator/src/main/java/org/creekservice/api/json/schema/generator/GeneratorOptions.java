@@ -18,7 +18,7 @@ package org.creekservice.api.json.schema.generator;
 
 
 import java.nio.file.Path;
-import java.util.Optional;
+import java.util.Set;
 
 /** Options to control the {@link JsonSchemaGenerator}. */
 public interface GeneratorOptions {
@@ -26,14 +26,58 @@ public interface GeneratorOptions {
     /**
      * @return If set, the generator will parse and echo its arguments and exit. Useful for testing.
      */
-    boolean echoOnly();
+    default boolean echoOnly() {
+        return false;
+    }
 
     /** @return The directory to output schema files to. */
     Path outputDirectory();
 
     /**
-     * @return Optional package name to limit the types to generate a schema for. Only types under
-     *     the supplied package will be processed.
+     * Allowed modules.
+     *
+     * <p>By default, schemas are generated for all types annotated with {@link
+     * org.creekservice.api.base.annotation.schema.GeneratesSchema}. Specifying one or more allowed
+     * modules restricts the returned types that belong to one of the supplied modules.
+     *
+     * <p>To use this feature the generator must be run from the module path, i.e. under JPMS.
+     *
+     * <p>Allowed module names can include the glob wildcard {@code *} character.
+     *
+     * @return allowed modules. If empty, all modules are allowed.
      */
-    Optional<String> packageName();
+    default Set<String> allowedModules() {
+        return Set.of();
+    }
+
+    /**
+     * Allowed packages for base types.
+     *
+     * <p>By default, schemas are generated for all types annotated with {@link
+     * org.creekservice.api.base.annotation.schema.GeneratesSchema}. Specifying one or more allowed
+     * base type packages restricts the returned types to only those under the supplied packages.
+     *
+     * <p>Allowed package names can include the glob wildcard {@code *} character.
+     *
+     * @return allowed base type packages. If empty, all packages are allowed.
+     */
+    default Set<String> allowedBaseTypePackages() {
+        return Set.of();
+    }
+
+    /**
+     * Allowed packages for subtypes.
+     *
+     * <p>By default, all subtypes are used when generating the schema for a type annotated with
+     * {@code @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)}. Specifying one or more allowed subtype
+     * packages restricts the subtypes included in the schema to only those under the supplied
+     * packages.
+     *
+     * <p>Allowed package names can include the glob wildcard {@code *} character.
+     *
+     * @return allowed subtype packages. If empty, all packages are allowed.
+     */
+    default Set<String> allowedSubTypePackages() {
+        return Set.of();
+    }
 }

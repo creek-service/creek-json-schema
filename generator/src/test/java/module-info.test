@@ -1,8 +1,8 @@
 --add-modules
-  org.junitpioneer,org.hamcrest,guava.testlib,creek.test.util,creek.test.hamcrest,creek.test.conformity
+  org.junitpioneer,org.hamcrest,guava.testlib,creek.test.util,creek.test.hamcrest,creek.test.conformity,creek.json.schema.test.types
 
 --add-reads
-  creek.json.schema.generator=org.junitpioneer,org.hamcrest,guava.testlib,creek.test.util,creek.test.hamcrest,creek.test.conformity
+  creek.json.schema.generator=org.junitpioneer,org.hamcrest,guava.testlib,creek.test.util,creek.test.hamcrest,creek.test.conformity,creek.json.schema.test.types
 
 --add-opens
   org.junitpioneer/org.junitpioneer.jupiter=org.junit.platform.commons
@@ -12,3 +12,6 @@
 
 --add-opens
   java.base/java.util=org.junitpioneer
+
+--add-opens
+  creek.json.schema.generator/org.creekservice.internal.json.schema.generator=com.fasterxml.jackson.databind

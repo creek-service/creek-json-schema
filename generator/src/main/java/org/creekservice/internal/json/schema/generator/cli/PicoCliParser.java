@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.creekservice.internal.json.schema.generator;
+package org.creekservice.internal.json.schema.generator.cli;
 
 import static java.lang.System.lineSeparator;
 
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.creekservice.api.base.type.JarVersion;
@@ -61,7 +62,7 @@ public final class PicoCliParser {
         }
     }
 
-    @SuppressWarnings({"unused", "OptionalUsedAsFieldOrParameterType"})
+    @SuppressWarnings("unused")
     @Command(name = "JsonSchemaGenerator", mixinStandardHelpOptions = true)
     private static class Options implements GeneratorOptions {
         @Option(
@@ -76,11 +77,33 @@ public final class PicoCliParser {
         private Path outputDirectory;
 
         @Option(
-                names = {"-p", "--package"},
-                description =
-                        "an optional package name to limit the types to generate a schema for. "
-                                + "Only types under the supplied package will be processed.")
-        private Optional<String> packageName;
+                names = {"-m", "--allowed-module"},
+                description = {
+                    "an optional module name to limit the base types to generate schemas for.",
+                    "Only types under the supplied modules will be processed.",
+                    "Specify multiple modules with multiple --allowed-modules args."
+                })
+        private final Set<String> allowedModules = Set.of();
+
+        @Option(
+                names = {"-btp", "--allowed-base-type-package"},
+                description = {
+                    "an optional package name to limit the base types to generate schemas for.",
+                    "Only types under the supplied packages will be processed.",
+                    "Package names can include the '*' wildcard.",
+                    "Specify multiple packages with multiple --allowed-base-package args."
+                })
+        private final Set<String> allowedBaseTypePackages = Set.of();
+
+        @Option(
+                names = {"-stp", "--allowed-sub-type-package"},
+                description = {
+                    "an optional package name to limit the subtypes included in generate schemas.",
+                    "Only subtypes under the supplied packages will be included.",
+                    "Package names can include the '*' wildcard.",
+                    "Specify multiple packages with multiple --allowed-sub-package args."
+                })
+        private final Set<String> allowedSubTypePackages = Set.of();
 
         @Override
         public boolean echoOnly() {
@@ -93,8 +116,18 @@ public final class PicoCliParser {
         }
 
         @Override
-        public Optional<String> packageName() {
-            return packageName;
+        public Set<String> allowedModules() {
+            return Set.copyOf(allowedModules);
+        }
+
+        @Override
+        public Set<String> allowedBaseTypePackages() {
+            return Set.copyOf(allowedBaseTypePackages);
+        }
+
+        @Override
+        public Set<String> allowedSubTypePackages() {
+            return Set.copyOf(allowedSubTypePackages);
         }
 
         @Override
@@ -102,8 +135,18 @@ public final class PicoCliParser {
             return "--output-directory="
                     + outputDirectory
                     + lineSeparator()
-                    + "--package="
-                    + packageName.orElse("<Not Set>");
+                    + "--allowed-modules="
+                    + formatAllowed(allowedModules)
+                    + lineSeparator()
+                    + "--allowed-base-type-packages="
+                    + formatAllowed(allowedBaseTypePackages)
+                    + lineSeparator()
+                    + "--allowed-sub-type-packages="
+                    + formatAllowed(allowedSubTypePackages);
+        }
+
+        private static String formatAllowed(final Set<String> allowed) {
+            return allowed.isEmpty() ? "<ANY>" : allowed.toString();
         }
     }
 

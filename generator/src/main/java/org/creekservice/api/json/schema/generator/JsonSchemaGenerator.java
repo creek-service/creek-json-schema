@@ -18,19 +18,35 @@ package org.creekservice.api.json.schema.generator;
 
 
 import java.lang.management.ManagementFactory;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.creekservice.api.base.schema.GeneratesSchemas;
 import org.creekservice.api.base.type.JarVersion;
-import org.creekservice.internal.json.schema.generator.PicoCliParser;
+import org.creekservice.internal.json.schema.generator.SchemaGenerator;
+import org.creekservice.internal.json.schema.generator.SchemaWriter;
+import org.creekservice.internal.json.schema.generator.cli.PicoCliParser;
 
-/** Entry point for generating JSON schemas. */
+/**
+ * Entry point for generating JSON schemas from types annotated with {@link
+ * org.creekservice.api.base.annotation.schema.GeneratesSchema}.
+ */
 public final class JsonSchemaGenerator {
 
     private static final Logger LOGGER = LogManager.getLogger(JsonSchemaGenerator.class);
 
     private JsonSchemaGenerator() {}
 
+    /**
+     * Generates JSON schemas for types annotated with the {@code
+     * org.creekservice.api.base.annotation.schema.GeneratesSchema} annotation.
+     *
+     * <p>See {@link org.creekservice.internal.json.schema.generator.cli.PicoCliParser} for details
+     * of supported command line parameters.
+     *
+     * @param args the command line parameters.
+     */
     public static void main(final String... args) {
         try {
             PicoCliParser.parse(args).ifPresent(JsonSchemaGenerator::generate);
@@ -40,25 +56,43 @@ public final class JsonSchemaGenerator {
         }
     }
 
+    /**
+     * Generates JSON schemas for types annotated with the {@code
+     * org.creekservice.api.base.annotation.schema.GeneratesSchema} annotation.
+     *
+     * @param options the options used to customise the what, how and where schemas are generated.
+     */
     public static void generate(final GeneratorOptions options) {
         if (options.echoOnly()) {
-            LOGGER.info(
-                    "JsonSchemaGenerator: "
-                            + JarVersion.jarVersion(JsonSchemaGenerator.class).orElse("unknown"));
-            LOGGER.info(classPath());
-            LOGGER.info(modulePath());
-            LOGGER.info(options);
+            echo(options);
+            return;
         }
+
+        final Set<Class<?>> types =
+                GeneratesSchemas.scanner()
+                        .withAllowedPackages(options.allowedBaseTypePackages())
+                        .withAllowedModules(options.allowedModules())
+                        .scan();
+
+        final SchemaGenerator generator = new SchemaGenerator(options.allowedSubTypePackages());
+        final SchemaWriter writer = new SchemaWriter(options.outputDirectory());
+        generator.registerSubTypes(types);
+        types.stream().map(generator::generateSchema).forEach(writer::write);
+        LOGGER.info("Wrote {} schemas", types.size());
+    }
+
+    private static void echo(final GeneratorOptions options) {
+        LOGGER.info(
+                "JsonSchemaGenerator: "
+                        + JarVersion.jarVersion(JsonSchemaGenerator.class).orElse("unknown"));
+        LOGGER.info(classPath());
+        LOGGER.info(modulePath());
+        LOGGER.info(options);
     }
 
     private static String classPath() {
-        return ManagementFactory.getRuntimeMXBean().getInputArguments().stream()
-                .filter(
-                        arg ->
-                                arg.startsWith("--class-path")
-                                        || arg.startsWith("-classpath")
-                                        || arg.startsWith("-cp"))
-                .collect(Collectors.joining(" "));
+        final String classPath = ManagementFactory.getRuntimeMXBean().getClassPath();
+        return classPath.isEmpty() ? "" : "--class-path=" + classPath;
     }
 
     private static String modulePath() {
