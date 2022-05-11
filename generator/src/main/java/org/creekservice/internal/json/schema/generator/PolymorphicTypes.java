@@ -94,7 +94,9 @@ final class PolymorphicTypes {
 
         @Override
         public String toString() {
-            return "PolymorphicType{" + "type=" + type + ", subTypes=" + subTypes + '}';
+            final List<Class<?>> sortedSubTypes =
+                    subTypes.stream().sorted().collect(Collectors.toUnmodifiableList());
+            return "PolymorphicType{" + "type=" + type + ", subTypes=" + sortedSubTypes + '}';
         }
     }
 

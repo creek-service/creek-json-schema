@@ -18,6 +18,7 @@ package org.creekservice.api.json.schema.generator;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.creekservice.api.test.util.coverage.CodeCoverage.codeCoverageCmdLineArg;
+import static org.creekservice.api.test.util.debug.RemoteDebug.remoteDebugArguments;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
@@ -40,6 +41,9 @@ import org.creekservice.api.test.util.TestPaths;
 import org.junit.jupiter.api.Test;
 
 class JsonSchemaGeneratorTest {
+
+    // Change this to true locally to debug using attach me plugin:
+    private static final boolean DEBUG = false;
 
     private static final Path LIB_DIR =
             TestPaths.moduleRoot("generator")
@@ -156,6 +160,11 @@ class JsonSchemaGeneratorTest {
         assertThat(exitCode, is(1));
     }
 
+    @Test
+    void shouldNotCheckInWithDebuggingEnabled() {
+        assertThat("Do not check in with debugging enabled", !DEBUG);
+    }
+
     private int runExecutor(final String[] cmdArgs) {
         final String[] javaArgs = {
             "--module-path",
@@ -183,6 +192,9 @@ class JsonSchemaGeneratorTest {
 
     private static List<String> buildCommand(final String[] javaArgs, final String[] cmdArgs) {
         final List<String> cmd = new ArrayList<>(List.of("java"));
+        if (DEBUG) {
+            cmd.addAll(remoteDebugArguments());
+        }
         codeCoverageCmdLineArg().ifPresent(cmd::add);
         cmd.addAll(List.of(javaArgs));
         cmd.addAll(List.of(cmdArgs));
