@@ -440,21 +440,30 @@ properties:
     type: string
 ```
 
-## Java Modules
+## Type Scanning
 
-The generator can be run as a Java Module.
+The generator scans the class path to: 
 
-When running under JPMS, Java Platform Module System, the search for `@GeneratesSchema` annotated types can be limited
-to one or more specific modules. (See the `--alllowed-module` command line argument and/or the `GeneratorOptions.
-allowedModules()` method). This can speed up the generation of schemas and avoid writing schemas for annotated types
-in dependencies.
+1. find types that require a schema generated, i.e. those annotated with `@GeneratesSchema`.
+2. find subtypes of any polymorphic types it encounters that do not define an explicit set of subtypes, i.e. types
+   annotated with `@JsonTypeInfo`, but not `@JsonSubTypes`.
 
-When not running under JPMS the `--allowed-base-type-package` command line argument and/or the `GeneratorOptions.
-allowedBaseTypePackages()` methods can be used to speed up the search of the class path and to avoid generating
-schemas for annotated types found in dependencies.
+By default, scans include the full class and module paths.  Such scans can be relatively slow *and* can result in 
+unwanted schema generation, e.g. generating schema files for types found in dependencies.
 
-When running under JPMS, it is also necessary to `export` all model types to `com.fasterxml.jackson.databind`. This is
-required to allow [Jackson][4] to work its magic and walk the object model:
+Type scanning can be restricted by JPMS module name and/or Java package name. Both module and package names can include
+the glob wildcard {@code *} character.
+
+Type scanning, i.e. scanning for `@GeneratesSchema`, can be restricted using the `--type-scanning-allowed-module`
+and `--type-scanning-allowed-package` command line parameters. Subtype scanning can be restricted using 
+the `--subtype-scanning-allowed-module` and `--subtype-scanning-allowed-package` command line parameters. All of these
+parameters can be specified multiple times on the command line to add multiple allowed module or package names.
+
+### Running under JPMS
+
+When running under JPMS, Java Platform Modular System, it is necessary to `export` all packages contained 
+`@GeneratesSchema` annotated types to `com.fasterxml.jackson.databind`. This is required to allow [Jackson][4] to work 
+its magic and walk the object model. For example:
 
 ```java
 module acme.model {

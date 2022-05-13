@@ -150,7 +150,8 @@ class JsonSchemaGeneratorFunctionalTest {
                         "--module",
                         "creek.json.schema.generator/org.creekservice.api.json.schema.generator.JsonSchemaGenerator",
                         "--output-directory=" + outputDir.toAbsolutePath(),
-                        "--allowed-module=creek.json.schema.test.types"));
+                        "--type-scanning-allowed-module=creek.json.schema.test.types",
+                        "--subtype-scanning-allowed-module=creek.json.schema.test.types"));
         return cmd;
     }
 

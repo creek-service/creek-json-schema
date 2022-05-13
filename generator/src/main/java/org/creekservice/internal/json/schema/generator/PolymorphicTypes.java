@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.creekservice.api.json.schema.generator.GeneratorOptions.TypeScanningSpec;
 
 /**
  * Helper for finding subtypes of any polymorphic type annotated with {@code @JsonTypeInfo(use =
@@ -53,9 +54,9 @@ final class PolymorphicTypes {
 
     static Collection<PolymorphicType<?>> findPolymorphicTypes(
             final Collection<Class<?>> types,
-            final Collection<String> allowedPackages,
+            final TypeScanningSpec subtypeScanning,
             final ObjectMapper objectMapper) {
-        return new PolymorphicTypes(allowedPackages, objectMapper).findPolymorphicTypes(types);
+        return new PolymorphicTypes(subtypeScanning, objectMapper).findPolymorphicTypes(types);
     }
 
     static final class PolymorphicType<T> {
@@ -104,13 +105,13 @@ final class PolymorphicTypes {
     }
 
     private final ObjectMapper objectMapper;
-    private final Set<String> allowedPackages;
+    private final TypeScanningSpec subtypeScanning;
     private final Map<Class<?>, PolymorphicType<?>> found = new HashMap<>();
 
     private PolymorphicTypes(
-            final Collection<String> allowedPackages, final ObjectMapper objectMapper) {
+            final TypeScanningSpec subtypeScanning, final ObjectMapper objectMapper) {
         this.objectMapper = requireNonNull(objectMapper, "objectMapper");
-        this.allowedPackages = Set.copyOf(requireNonNull(allowedPackages, "allowedPackages"));
+        this.subtypeScanning = requireNonNull(subtypeScanning, "subtypeScanning");
     }
 
     private Collection<PolymorphicType<?>> findPolymorphicTypes(final Collection<Class<?>> types) {
@@ -182,7 +183,8 @@ final class PolymorphicTypes {
                 new ClassGraph()
                         .ignoreClassVisibility()
                         .enableClassInfo()
-                        .acceptPackages(allowedPackages.toArray(String[]::new))
+                        .acceptModules(subtypeScanning.moduleWhiteList().toArray(String[]::new))
+                        .acceptPackages(subtypeScanning.packageWhiteList().toArray(String[]::new))
                         .scan()) {
 
             final ClassInfoList found =

@@ -90,7 +90,7 @@ class JsonSchemaGeneratorTest {
     @Test
     void shouldEchoArguments() {
         // Given:
-        final String[] args = minimalArgs("--echo-only", "-btp=some.*.package");
+        final String[] args = minimalArgs("--echo-only", "-p=some.*.package");
 
         // When:
         final int exitCode = runExecutor(args);
@@ -99,9 +99,11 @@ class JsonSchemaGeneratorTest {
         assertThat(stdErr.get(), is(""));
         assertThat(stdOut.get(), matchesPattern(VERSION_PATTERN));
         assertThat(stdOut.get(), containsString("--output-directory=some/path"));
-        assertThat(stdOut.get(), containsString("--allowed-modules=<ANY>"));
-        assertThat(stdOut.get(), containsString("--allowed-base-type-packages=[some.*.package]"));
-        assertThat(stdOut.get(), containsString("--allowed-sub-type-packages=<ANY>"));
+        assertThat(stdOut.get(), containsString("--type-scanning-allowed-modules=<ANY>"));
+        assertThat(
+                stdOut.get(), containsString("--type-scanning-allowed-packages=[some.*.package]"));
+        assertThat(stdOut.get(), containsString("--subtype-scanning-allowed-modules=<ANY>"));
+        assertThat(stdOut.get(), containsString("--subtype-scanning-allowed-packages=<ANY>"));
         assertThat(exitCode, is(0));
     }
 

@@ -31,10 +31,10 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.kjetland.jackson.jsonSchema.JsonSchemaGenerator;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.Set;
 import java.util.stream.Stream;
 import org.creekservice.api.base.annotation.VisibleForTesting;
 import org.creekservice.api.base.type.temporal.Clock;
+import org.creekservice.api.json.schema.generator.GeneratorOptions.TypeScanningSpec;
 
 public final class SchemaGenerator {
 
@@ -47,21 +47,18 @@ public final class SchemaGenerator {
                     .build();
 
     private final JsonSchemaGenerator generator;
-    private final Set<String> allowedPackages;
+    private final TypeScanningSpec subtypeScanning;
     private final Clock clock;
 
-    /**
-     * @param allowedPackages if non-empty, searches for subtypes are limited to the supplied
-     *     packages.
-     */
-    public SchemaGenerator(final Collection<String> allowedPackages) {
-        this(allowedPackages, Instant::now);
+    /** @param subtypeScanning config for subtype scanning. */
+    public SchemaGenerator(final TypeScanningSpec subtypeScanning) {
+        this(subtypeScanning, Instant::now);
     }
 
     @VisibleForTesting
-    SchemaGenerator(final Collection<String> allowedPackages, final Clock clock) {
-        this.allowedPackages = Set.copyOf(requireNonNull(allowedPackages, "packageName"));
-        this.generator = JsonSchemaGeneratorFactory.createGenerator(mapper, allowedPackages);
+    SchemaGenerator(final TypeScanningSpec subtypeScanning, final Clock clock) {
+        this.subtypeScanning = requireNonNull(subtypeScanning, "subtypeScanning");
+        this.generator = JsonSchemaGeneratorFactory.createGenerator(mapper, subtypeScanning);
         this.clock = requireNonNull(clock, "clock");
     }
 
@@ -73,7 +70,7 @@ public final class SchemaGenerator {
      *     #generateSchema}.
      */
     public void registerSubTypes(final Collection<Class<?>> types) {
-        PolymorphicTypes.findPolymorphicTypes(types, allowedPackages, mapper).stream()
+        PolymorphicTypes.findPolymorphicTypes(types, subtypeScanning, mapper).stream()
                 .flatMap(this::namedTypes)
                 .forEach(mapper::registerSubtypes);
     }

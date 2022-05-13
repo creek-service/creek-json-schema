@@ -70,11 +70,11 @@ public final class JsonSchemaGenerator {
 
         final Set<Class<?>> types =
                 GeneratesSchemas.scanner()
-                        .withAllowedPackages(options.allowedBaseTypePackages())
-                        .withAllowedModules(options.allowedModules())
+                        .withAllowedModules(options.typeScanning().moduleWhiteList())
+                        .withAllowedPackages(options.typeScanning().packageWhiteList())
                         .scan();
 
-        final SchemaGenerator generator = new SchemaGenerator(options.allowedSubTypePackages());
+        final SchemaGenerator generator = new SchemaGenerator(options.subTypeScanning());
         final SchemaWriter writer = new SchemaWriter(options.outputDirectory());
         generator.registerSubTypes(types);
         types.stream().map(generator::generateSchema).forEach(writer::write);

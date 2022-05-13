@@ -16,6 +16,7 @@
 
 package org.creekservice.internal.json.schema.generator;
 
+import static org.creekservice.api.json.schema.generator.GeneratorOptions.TypeScanningSpec;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kjetland.jackson.jsonSchema.JsonSchemaConfig;
@@ -29,7 +30,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -40,11 +40,11 @@ final class JsonSchemaGeneratorFactory {
     private JsonSchemaGeneratorFactory() {}
 
     static JsonSchemaGenerator createGenerator(
-            final ObjectMapper mapper, final Collection<String> allowedPackages) {
-        return new JsonSchemaGenerator(mapper, createConfig(allowedPackages));
+            final ObjectMapper mapper, final TypeScanningSpec subtypeScanning) {
+        return new JsonSchemaGenerator(mapper, createConfig(subtypeScanning));
     }
 
-    private static JsonSchemaConfig createConfig(final Collection<String> allowedPackages) {
+    private static JsonSchemaConfig createConfig(final TypeScanningSpec subtypeScanning) {
         final JsonSchemaConfig vanilla =
                 JsonSchemaConfig.vanillaJsonSchemaDraft4()
                         .withJsonSchemaDraft(JsonSchemaDraft.DRAFT_07);
@@ -65,18 +65,19 @@ final class JsonSchemaGeneratorFactory {
                         Set.of(),
                         classTypeReMapping(),
                         Map.of(),
-                        subTypeResolver(allowedPackages),
+                        subTypeResolver(subtypeScanning),
                         vanilla.failOnUnknownProperties(),
                         null)
                 .withJsonSchemaDraft(JsonSchemaDraft.DRAFT_07);
     }
 
-    private static SubclassesResolver subTypeResolver(final Collection<String> allowedPackages) {
+    private static SubclassesResolver subTypeResolver(final TypeScanningSpec subtypeScanning) {
         final ClassGraph classGraph =
                 new ClassGraph()
                         .ignoreClassVisibility()
                         .enableClassInfo()
-                        .acceptPackages(allowedPackages.toArray(String[]::new));
+                        .acceptModules(subtypeScanning.moduleWhiteList().toArray(String[]::new))
+                        .acceptPackages(subtypeScanning.packageWhiteList().toArray(String[]::new));
 
         return new SubclassesResolverImpl().withClassGraph(classGraph);
     }
