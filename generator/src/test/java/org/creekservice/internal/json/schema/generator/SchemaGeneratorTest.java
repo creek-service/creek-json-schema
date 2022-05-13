@@ -23,6 +23,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.startsWith;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -44,20 +45,32 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import org.creekservice.api.json.schema.generator.GeneratorOptions.TypeScanningSpec;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 @SuppressFBWarnings()
 @SuppressWarnings("unused")
 class SchemaGeneratorTest {
 
     private Instant now = Instant.now();
     private SchemaGenerator generator;
+    @Mock private TypeScanningSpec subtypeScanning;
 
     @BeforeEach
     void setUp() {
-        generator =
-                new SchemaGenerator(Set.of(SchemaGeneratorTest.class.getPackageName()), () -> now);
+        when(subtypeScanning.moduleWhiteList()).thenReturn(Set.of("creek.json.schema.generator"));
+        when(subtypeScanning.packageWhiteList())
+                .thenReturn(Set.of(SchemaGeneratorTest.class.getPackageName()));
+
+        generator = new SchemaGenerator(subtypeScanning, () -> now);
     }
 
     @Test
@@ -266,7 +279,7 @@ class SchemaGeneratorTest {
     }
 
     @Test
-    void shouldIncludeImplicitSubTypesIfInPackageAndUsingIdTypeName() {
+    void shouldIncludeImplicitSubTypesIfIncludedAndUsingIdTypeName() {
         // Given:
         @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
         class BaseType {}
@@ -293,9 +306,9 @@ class SchemaGeneratorTest {
     }
 
     @Test
-    void shouldNotIncludeImplicitSubTypesIfInDifferentPackage() {
+    void shouldNotIncludeImplicitSubTypesIfInDifferentModule() {
         // Given:
-        generator = new SchemaGenerator(Set.of("different.package"), () -> now);
+        when(subtypeScanning.moduleWhiteList()).thenReturn(Set.of("different.module"));
 
         @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
         class BaseType {}
@@ -312,8 +325,30 @@ class SchemaGeneratorTest {
     }
 
     @Test
-    void shouldIncludeExplicitSubTypes() {
+    void shouldNotIncludeImplicitSubTypesIfInDifferentPackage() {
         // Given:
+        when(subtypeScanning.packageWhiteList()).thenReturn(Set.of("different.package"));
+
+        @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
+        class BaseType {}
+
+        class SubType1 extends BaseType {}
+
+        generator.registerSubTypes(List.of(BaseType.class));
+
+        // When:
+        final JsonSchema<BaseType> result = generator.generateSchema(BaseType.class);
+
+        // Then:
+        assertThat(result.text(), not(containsString("oneOf")));
+    }
+
+    @Test
+    void shouldIncludeExplicitSubTypesRegardlessOfFilters() {
+        // Given:
+        when(subtypeScanning.moduleWhiteList()).thenReturn(Set.of("different.module"));
+        when(subtypeScanning.packageWhiteList()).thenReturn(Set.of("different.package"));
+
         @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
         @JsonSubTypes({
             @Type(value = Model.SubType2.class, name = "sub1"),
@@ -346,7 +381,7 @@ class SchemaGeneratorTest {
     }
 
     @Test
-    void shouldIncludeImplicitSubTypesIfInPackageAndNotUsingIdTypeName() {
+    void shouldIncludeImplicitSubTypesIfIncludedAndNotUsingIdTypeName() {
         // Given:
         @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
         class BaseType {}

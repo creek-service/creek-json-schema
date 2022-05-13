@@ -22,6 +22,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -33,15 +34,21 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.creekservice.api.json.schema.generator.GeneratorOptions.TypeScanningSpec;
 import org.creekservice.internal.json.schema.generator.PolymorphicTypes.PolymorphicType;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 @SuppressFBWarnings()
 @SuppressWarnings("unused")
 class PolymorphicTypesTest {
 
     private static final String PACKAGE = PolymorphicTypesTest.class.getPackageName();
     private static final ObjectMapper MAPPER = new ObjectMapper();
+    @Mock private TypeScanningSpec subtypeScanning;
 
     @Test
     void shouldImplementHashCodeAndEquals() {
@@ -220,11 +227,40 @@ class PolymorphicTypesTest {
     }
 
     @Test
-    void shouldFindSubTypesByPackage() {
-        assertThat(findPolymorphicTypes(SomeInterface.class, "com.not.here"), is(empty()));
-        assertThat(
-                findPolymorphicTypes(SomeInterface.class, "org.creekservice.internal"),
-                is(not(empty())));
+    void shouldExcludeSubtypesNotInModuleWhiteList() {
+        // Given:
+        when(subtypeScanning.moduleWhiteList()).thenReturn(Set.of("not.this.module"));
+
+        // Then:
+        assertThat(findPolymorphicTypes(SomeInterface.class), is(empty()));
+    }
+
+    @Test
+    void shouldIncludeSubtypesInModuleWhiteList() {
+        // Given:
+        when(subtypeScanning.moduleWhiteList()).thenReturn(Set.of("creek.json.schema.generator"));
+
+        // Then:
+        assertThat(findPolymorphicTypes(SomeInterface.class), is(not(empty())));
+    }
+
+    @Test
+    void shouldExcludeSubtypesNotInPackageWhiteList() {
+        // Given:
+        when(subtypeScanning.packageWhiteList()).thenReturn(Set.of("com.not.here"));
+
+        // Then:
+        assertThat(findPolymorphicTypes(SomeInterface.class), is(empty()));
+    }
+
+    @Test
+    void shouldIncludeSubtypesInPackageWhiteList() {
+        // Given:
+        when(subtypeScanning.packageWhiteList())
+                .thenReturn(Set.of(SomeInterface.class.getPackageName()));
+
+        // Then:
+        assertThat(findPolymorphicTypes(SomeInterface.class), is(not(empty())));
     }
 
     @Test
@@ -389,12 +425,7 @@ class PolymorphicTypesTest {
     }
 
     private Collection<PolymorphicType<?>> findPolymorphicTypes(final Class<?> type) {
-        return findPolymorphicTypes(type, PACKAGE);
-    }
-
-    private Collection<PolymorphicType<?>> findPolymorphicTypes(
-            final Class<?> type, final String packageName) {
-        return PolymorphicTypes.findPolymorphicTypes(List.of(type), Set.of(packageName), MAPPER);
+        return PolymorphicTypes.findPolymorphicTypes(List.of(type), subtypeScanning, MAPPER);
     }
 
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)

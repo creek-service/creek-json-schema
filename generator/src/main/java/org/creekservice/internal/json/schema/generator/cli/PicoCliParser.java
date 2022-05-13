@@ -17,14 +17,17 @@
 package org.creekservice.internal.json.schema.generator.cli;
 
 import static java.lang.System.lineSeparator;
+import static java.util.Objects.requireNonNull;
 
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.creekservice.api.base.type.JarVersion;
 import org.creekservice.api.json.schema.generator.GeneratorOptions;
+import org.creekservice.api.json.schema.generator.GeneratorOptions.TypeScanningSpec;
 import org.creekservice.api.json.schema.generator.JsonSchemaGenerator;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -62,6 +65,30 @@ public final class PicoCliParser {
         }
     }
 
+    private static final class TypeScanning implements TypeScanningSpec {
+
+        private final Set<String> moduleWhiteList;
+        private final Set<String> packageWhiteList;
+
+        TypeScanning(
+                final Collection<String> moduleWhiteList,
+                final Collection<String> packageWhiteList) {
+            this.moduleWhiteList = Set.copyOf(requireNonNull(moduleWhiteList, "moduleWhiteList"));
+            this.packageWhiteList =
+                    Set.copyOf(requireNonNull(packageWhiteList, "packageWhiteList"));
+        }
+
+        @Override
+        public Set<String> moduleWhiteList() {
+            return moduleWhiteList;
+        }
+
+        @Override
+        public Set<String> packageWhiteList() {
+            return packageWhiteList;
+        }
+    }
+
     @SuppressWarnings("unused")
     @Command(name = "JsonSchemaGenerator", mixinStandardHelpOptions = true)
     private static class Options implements GeneratorOptions {
@@ -77,33 +104,55 @@ public final class PicoCliParser {
         private Path outputDirectory;
 
         @Option(
-                names = {"-m", "--allowed-module"},
+                names = {"-m", "--type-scanning-allowed-module"},
                 description = {
-                    "an optional module name to limit the base types to generate schemas for.",
-                    "Only types under the supplied modules will be processed.",
-                    "Specify multiple modules with multiple --allowed-modules args."
+                    "Optional module name(s) to limit scanning for @GeneratesSchema annotated types.",
+                    "Only types under the supplied modules will be scanned.",
+                    "Module names can include the '*' wildcard.",
+                    "Specify multiple modules with multiple --type-scanning-allowed-module args."
                 })
-        private final Set<String> allowedModules = Set.of();
+        private final Set<String> typeScanningModuleWhiteList = Set.of();
 
         @Option(
-                names = {"-btp", "--allowed-base-type-package"},
+                names = {"-p", "--type-scanning-allowed-package"},
                 description = {
-                    "an optional package name to limit the base types to generate schemas for.",
+                    "Optional package name(s) to limit scanning for @GeneratesSchema annotated types.",
                     "Only types under the supplied packages will be processed.",
                     "Package names can include the '*' wildcard.",
-                    "Specify multiple packages with multiple --allowed-base-package args."
+                    "Specify multiple packages with multiple --type-scanning-allowed-package args."
                 })
-        private final Set<String> allowedBaseTypePackages = Set.of();
+        private final Set<String> typeScanningPackageWhiteList = Set.of();
 
         @Option(
-                names = {"-stp", "--allowed-sub-type-package"},
+                names = {"-sm", "--subtype-scanning-allowed-module"},
                 description = {
-                    "an optional package name to limit the subtypes included in generate schemas.",
+                    "Optional module name(s) to limit scanning for subtypes of polymorphic types.",
+                    "Only subtypes under the supplied modules will be scanned.",
+                    "Module names can include the '*' wildcard.",
+                    "Specify multiple modules with multiple --subtype-scanning-allowed-module args."
+                })
+        private final Set<String> subtypeScanningModuleWhiteList = Set.of();
+
+        @Option(
+                names = {"-sp", "--subtype-scanning-allowed-package"},
+                description = {
+                    "Optional package name(s) to limit scanning for subtypes of polymorphic types.",
                     "Only subtypes under the supplied packages will be included.",
                     "Package names can include the '*' wildcard.",
-                    "Specify multiple packages with multiple --allowed-sub-package args."
+                    "Specify multiple packages with multiple --subtype-scanning-allowed-package args."
                 })
-        private final Set<String> allowedSubTypePackages = Set.of();
+        private final Set<String> subtypeScanningPackageWhiteList = Set.of();
+
+        @Override
+        public TypeScanningSpec typeScanning() {
+            return new TypeScanning(typeScanningModuleWhiteList, typeScanningPackageWhiteList);
+        }
+
+        @Override
+        public TypeScanningSpec subTypeScanning() {
+            return new TypeScanning(
+                    subtypeScanningModuleWhiteList, subtypeScanningPackageWhiteList);
+        }
 
         @Override
         public boolean echoOnly() {
@@ -116,33 +165,21 @@ public final class PicoCliParser {
         }
 
         @Override
-        public Set<String> allowedModules() {
-            return Set.copyOf(allowedModules);
-        }
-
-        @Override
-        public Set<String> allowedBaseTypePackages() {
-            return Set.copyOf(allowedBaseTypePackages);
-        }
-
-        @Override
-        public Set<String> allowedSubTypePackages() {
-            return Set.copyOf(allowedSubTypePackages);
-        }
-
-        @Override
         public String toString() {
             return "--output-directory="
                     + outputDirectory
                     + lineSeparator()
-                    + "--allowed-modules="
-                    + formatAllowed(allowedModules)
+                    + "--type-scanning-allowed-modules="
+                    + formatAllowed(typeScanningModuleWhiteList)
                     + lineSeparator()
-                    + "--allowed-base-type-packages="
-                    + formatAllowed(allowedBaseTypePackages)
+                    + "--type-scanning-allowed-packages="
+                    + formatAllowed(typeScanningPackageWhiteList)
                     + lineSeparator()
-                    + "--allowed-sub-type-packages="
-                    + formatAllowed(allowedSubTypePackages);
+                    + "--subtype-scanning-allowed-modules="
+                    + formatAllowed(subtypeScanningModuleWhiteList)
+                    + lineSeparator()
+                    + "--subtype-scanning-allowed-packages="
+                    + formatAllowed(subtypeScanningPackageWhiteList);
         }
 
         private static String formatAllowed(final Set<String> allowed) {

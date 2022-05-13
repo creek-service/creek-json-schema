@@ -23,6 +23,61 @@ import java.util.Set;
 /** Options to control the {@link JsonSchemaGenerator}. */
 public interface GeneratorOptions {
 
+    interface TypeScanningSpec {
+        /**
+         * The list of module names used to limit type scanning to only the specified modules.
+         *
+         * <p>Allowed module names can include the glob wildcard {@code *} character.
+         *
+         * <p>Default: empty, meaning all modules will be scanned.
+         */
+        default Set<String> moduleWhiteList() {
+            return Set.of();
+        }
+
+        /**
+         * The list of package name used to limit type scanning to only the specified packages.
+         *
+         * <p>Allowed package names can include the glob wildcard {@code *} character.
+         *
+         * <p>Default: empty, meaning all packages will be scanned.
+         */
+        default Set<String> packageWhiteList() {
+            return Set.of();
+        }
+    }
+
+    /**
+     * Configure type scanning for finding types to generate schema for, i.e. types annotated with
+     * {@link org.creekservice.api.base.annotation.schema.GeneratesSchema}.
+     *
+     * <p>By default, the full class and model path are scanned for types to generate schemas for
+     * i.e. types annotated with {@link
+     * org.creekservice.api.base.annotation.schema.GeneratesSchema}. Scan time can be reduced and
+     * unwanted types excluded, e.g. types in dependencies, by configuring the subtype scanning.
+     *
+     * @return the type scanning config
+     */
+    default TypeScanningSpec typeScanning() {
+        return new TypeScanningSpec() {};
+    }
+
+    /**
+     * Configure type scanning for finding subtypes, i.e. subtypes of polymorphic types that are
+     * part of base types.
+     *
+     * <p>By default, the full class and model path are scanned for subtypes when generating the
+     * schema for polymorphic types that do not define an explicit set of subtypes, i.e. types
+     * annotated with {@code @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)}, but not with
+     * {@code @JsonSubTypes}. Scan time can be reduced and unwanted subtypes excluded by configuring
+     * the subtype scanning.
+     *
+     * @return the type scanning config
+     */
+    default TypeScanningSpec subTypeScanning() {
+        return new TypeScanningSpec() {};
+    }
+
     /**
      * @return If set, the generator will parse and echo its arguments and exit. Useful for testing.
      */
@@ -32,52 +87,4 @@ public interface GeneratorOptions {
 
     /** @return The directory to output schema files to. */
     Path outputDirectory();
-
-    /**
-     * Allowed modules.
-     *
-     * <p>By default, schemas are generated for all types annotated with {@link
-     * org.creekservice.api.base.annotation.schema.GeneratesSchema}. Specifying one or more allowed
-     * modules restricts the returned types that belong to one of the supplied modules.
-     *
-     * <p>To use this feature the generator must be run from the module path, i.e. under JPMS.
-     *
-     * <p>Allowed module names can include the glob wildcard {@code *} character.
-     *
-     * @return allowed modules. If empty, all modules are allowed.
-     */
-    default Set<String> allowedModules() {
-        return Set.of();
-    }
-
-    /**
-     * Allowed packages for base types.
-     *
-     * <p>By default, schemas are generated for all types annotated with {@link
-     * org.creekservice.api.base.annotation.schema.GeneratesSchema}. Specifying one or more allowed
-     * base type packages restricts the returned types to only those under the supplied packages.
-     *
-     * <p>Allowed package names can include the glob wildcard {@code *} character.
-     *
-     * @return allowed base type packages. If empty, all packages are allowed.
-     */
-    default Set<String> allowedBaseTypePackages() {
-        return Set.of();
-    }
-
-    /**
-     * Allowed packages for subtypes.
-     *
-     * <p>By default, all subtypes are used when generating the schema for a type annotated with
-     * {@code @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)}. Specifying one or more allowed subtype
-     * packages restricts the subtypes included in the schema to only those under the supplied
-     * packages.
-     *
-     * <p>Allowed package names can include the glob wildcard {@code *} character.
-     *
-     * @return allowed subtype packages. If empty, all packages are allowed.
-     */
-    default Set<String> allowedSubTypePackages() {
-        return Set.of();
-    }
 }

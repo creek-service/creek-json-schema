@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.creekservice.api.json.schema.generator.GeneratorOptions;
+import org.creekservice.api.json.schema.generator.GeneratorOptions.TypeScanningSpec;
 import org.junit.jupiter.api.Test;
 
 class PicoCliParserTest {
@@ -96,47 +97,67 @@ class PicoCliParserTest {
     }
 
     @Test
-    void shouldParseAllowedModule() {
+    void shouldParseTypeScanningAllowedModule() {
         // Given:
-        final String[] args = minimalArgs("--allowed-module=some.module", "-m=another.module");
+        final String[] args =
+                minimalArgs("--type-scanning-allowed-module=some.module", "-m=another.module");
 
         // When:
         final Optional<GeneratorOptions> result = PicoCliParser.parse(args);
 
         // Then:
         assertThat(
-                result.map(GeneratorOptions::allowedModules),
+                result.map(GeneratorOptions::typeScanning).map(TypeScanningSpec::moduleWhiteList),
                 is(Optional.of(Set.of("some.module", "another.module"))));
     }
 
     @Test
-    void shouldParseAllowedBaseTypePackage() {
+    void shouldParseTypeScanningAllowedPackage() {
         // Given:
         final String[] args =
                 minimalArgs(
-                        "--allowed-base-type-package=some.package.name", "-btp=another.package");
+                        "--type-scanning-allowed-package=some.package.name", "-p=another.package");
 
         // When:
         final Optional<GeneratorOptions> result = PicoCliParser.parse(args);
 
         // Then:
         assertThat(
-                result.map(GeneratorOptions::allowedBaseTypePackages),
+                result.map(GeneratorOptions::typeScanning).map(TypeScanningSpec::packageWhiteList),
                 is(Optional.of(Set.of("some.package.name", "another.package"))));
     }
 
     @Test
-    void shouldParseAllowedSubTypePackage() {
+    void shouldParseSubtypeScanningAllowedModule() {
         // Given:
         final String[] args =
-                minimalArgs("--allowed-sub-type-package=some.package.name", "-stp=another.package");
+                minimalArgs("--subtype-scanning-allowed-module=some.module", "-sm=another.module");
 
         // When:
         final Optional<GeneratorOptions> result = PicoCliParser.parse(args);
 
         // Then:
         assertThat(
-                result.map(GeneratorOptions::allowedSubTypePackages),
+                result.map(GeneratorOptions::subTypeScanning)
+                        .map(TypeScanningSpec::moduleWhiteList),
+                is(Optional.of(Set.of("some.module", "another.module"))));
+    }
+
+    @Test
+    void shouldParseSubtypeScanningAllowedPackage() {
+        // Given:
+        final String[] args =
+                minimalArgs(
+                        "--subtype-scanning-allowed-package=some.package.name",
+                        "-sp=another.package");
+
+        // When:
+        final Optional<GeneratorOptions> result = PicoCliParser.parse(args);
+
+        // Then:
+        assertThat(
+                result.map(GeneratorOptions::subTypeScanning)
+                        .map(TypeScanningSpec::packageWhiteList),
                 is(Optional.of(Set.of("some.package.name", "another.package"))));
     }
 
@@ -155,11 +176,13 @@ class PicoCliParserTest {
                         Optional.of(
                                 "--output-directory=some/path"
                                         + lineSeparator()
-                                        + "--allowed-modules=[some.module]"
+                                        + "--type-scanning-allowed-modules=[some.module]"
                                         + lineSeparator()
-                                        + "--allowed-base-type-packages=<ANY>"
+                                        + "--type-scanning-allowed-packages=<ANY>"
                                         + lineSeparator()
-                                        + "--allowed-sub-type-packages=<ANY>")));
+                                        + "--subtype-scanning-allowed-modules=<ANY>"
+                                        + lineSeparator()
+                                        + "--subtype-scanning-allowed-packages=<ANY>")));
     }
 
     private static String[] minimalArgs(final String... additional) {

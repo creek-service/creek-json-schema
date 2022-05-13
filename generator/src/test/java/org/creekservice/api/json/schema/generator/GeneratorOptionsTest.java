@@ -38,17 +38,22 @@ class GeneratorOptionsTest {
     }
 
     @Test
-    void shouldDefaultToNotFilteringByModule() {
-        assertThat(options.allowedModules(), is(empty()));
+    void shouldDefaultToNotFilteringTypeScanningModules() {
+        assertThat(options.typeScanning().moduleWhiteList(), is(empty()));
     }
 
     @Test
-    void shouldDefaultToNotFilteringBaseTypePackages() {
-        assertThat(options.allowedBaseTypePackages(), is(empty()));
+    void shouldDefaultToNotFilteringTypeScanningPackages() {
+        assertThat(options.typeScanning().packageWhiteList(), is(empty()));
     }
 
     @Test
-    void shouldDefaultToNotFilteringSubTypePackages() {
-        assertThat(options.allowedSubTypePackages(), is(empty()));
+    void shouldDefaultToNotFilteringSubTypeScanningModules() {
+        assertThat(options.subTypeScanning().moduleWhiteList(), is(empty()));
+    }
+
+    @Test
+    void shouldDefaultToNotFilteringSubTypeScanningPackages() {
+        assertThat(options.subTypeScanning().packageWhiteList(), is(empty()));
     }
 }
