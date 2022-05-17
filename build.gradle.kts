@@ -58,7 +58,7 @@ subprojects {
         set("picoCliVersion", "4.6.3")          // https://mvnrepository.com/artifact/info.picocli/picocli
         set("jacksonVersion", "2.13.3")         // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations
         set("jsonSchemaVersion", "1.0.39")      // https://mvnrepository.com/artifact/com.kjetland/mbknor-jackson-jsonschema
-        set("classGraphVersion", "4.8.143")     // https://mvnrepository.com/artifact/io.github.classgraph/classgraph
+        set("classGraphVersion", "4.8.146")     // https://mvnrepository.com/artifact/io.github.classgraph/classgraph
 
         set("log4jVersion", "2.17.2")           // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
         set("guavaVersion", "31.1-jre")         // https://mvnrepository.com/artifact/com.google.guava/guava
