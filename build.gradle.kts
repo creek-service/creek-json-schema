@@ -4,7 +4,7 @@ plugins {
     `maven-publish`
     id("com.github.spotbugs") version "5.0.6"                           // https://plugins.gradle.org/plugin/com.github.spotbugs
     id("com.diffplug.spotless") version "6.6.1"                         // https://plugins.gradle.org/plugin/com.diffplug.spotless
-    id("pl.allegro.tech.build.axion-release") version "1.13.6"          // https://plugins.gradle.org/plugin/pl.allegro.tech.build.axion-release
+    id("pl.allegro.tech.build.axion-release") version "1.13.9"          // https://plugins.gradle.org/plugin/pl.allegro.tech.build.axion-release
     id("com.github.kt3k.coveralls") version "2.12.0"                    // https://plugins.gradle.org/plugin/com.github.kt3k.coveralls
     id("org.javamodularity.moduleplugin") version "1.8.11" apply false  // https://plugins.gradle.org/plugin/org.javamodularity.moduleplugin
 }
