@@ -15,7 +15,7 @@
  */
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.7.10"
+    id("org.jetbrains.kotlin.jvm") version "1.7.20"
     `java-library`
 }
 
