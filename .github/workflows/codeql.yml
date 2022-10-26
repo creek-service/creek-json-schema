@@ -42,7 +42,7 @@ jobs:
     - name: Build
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: ./gradlew jar
+      run: ./gradlew test
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
