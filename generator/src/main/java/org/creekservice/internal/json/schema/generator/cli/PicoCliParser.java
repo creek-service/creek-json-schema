@@ -33,12 +33,20 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
+/** Cli parser that leverages the PicoCli library. */
 public final class PicoCliParser {
 
     private static final Logger LOGGER = LogManager.getLogger(PicoCliParser.class);
 
     private PicoCliParser() {}
 
+    /**
+     * Parse the supplied {@code args}.
+     *
+     * @param args the args to parse
+     * @return the parsed args, or {@code empty} if the args have been handled and the app should
+     *     exit.
+     */
     public static Optional<GeneratorOptions> parse(final String... args) {
         final Options options = new Options();
         final CommandLine parser = new CommandLine(options);

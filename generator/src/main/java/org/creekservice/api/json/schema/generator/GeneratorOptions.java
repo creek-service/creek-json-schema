@@ -23,24 +23,29 @@ import java.util.Set;
 /** Options to control the {@link JsonSchemaGenerator}. */
 public interface GeneratorOptions {
 
+    /** Specification of modules and packages to include when scanning for subtypes. */
     interface TypeScanningSpec {
         /**
-         * The list of module names used to limit type scanning to only the specified modules.
+         * The set of module names used to limit type scanning to only the specified modules.
          *
          * <p>Allowed module names can include the glob wildcard {@code *} character.
          *
          * <p>Default: empty, meaning all modules will be scanned.
+         *
+         * @return the set of module names in the white list.
          */
         default Set<String> moduleWhiteList() {
             return Set.of();
         }
 
         /**
-         * The list of package name used to limit type scanning to only the specified packages.
+         * The set of package name used to limit type scanning to only the specified packages.
          *
          * <p>Allowed package names can include the glob wildcard {@code *} character.
          *
          * <p>Default: empty, meaning all packages will be scanned.
+         *
+         * @return the set of package names in the white list.
          */
         default Set<String> packageWhiteList() {
             return Set.of();

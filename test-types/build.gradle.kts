@@ -19,12 +19,12 @@ plugins {
     `java-library`
 }
 
-val creekBaseVersion : String by extra
+val creekVersion : String by extra
 val jacksonVersion : String by extra
 val jsonSchemaVersion : String by extra
 
 dependencies {
-    implementation("org.creekservice:creek-base-annotation:$creekBaseVersion")
+    implementation("org.creekservice:creek-base-annotation:$creekVersion")
     implementation("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
     implementation("com.kjetland:mbknor-jackson-jsonschema_2.13:$jsonSchemaVersion")
 

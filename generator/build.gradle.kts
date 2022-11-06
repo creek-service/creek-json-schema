@@ -19,7 +19,7 @@ plugins {
     application
 }
 
-val creekBaseVersion : String by extra
+val creekVersion : String by extra
 val picoCliVersion : String by extra
 val log4jVersion : String by extra
 val jacksonVersion : String by extra
@@ -27,9 +27,9 @@ val jsonSchemaVersion : String by extra
 val classGraphVersion : String by extra
 
 dependencies {
-    implementation("org.creekservice:creek-base-annotation:$creekBaseVersion")
-    implementation("org.creekservice:creek-base-type:$creekBaseVersion")
-    implementation("org.creekservice:creek-base-schema:$creekBaseVersion")
+    implementation("org.creekservice:creek-base-annotation:$creekVersion")
+    implementation("org.creekservice:creek-base-type:$creekVersion")
+    implementation("org.creekservice:creek-base-schema:$creekVersion")
 
     implementation("info.picocli:picocli:$picoCliVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")
