@@ -1,0 +1,63 @@
+# This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-gradle
+
+name: Build
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ "v*.*.*" ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      publish_artifacts:
+        description: "Publish release artifacts: true or false?"
+        default: "true"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.1.0
+      - name: Fetch version history
+        # Do NOT want to fetch all tags if build specific tag.
+        # Doing so could result in code published with wrong version, if newer tags have been pushed
+        if: (!startsWith(github.ref, 'refs/tags/'))
+        run: git fetch --tag --unshallow
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+          cache: gradle
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Build
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+        run: ./gradlew javadoc check coveralls
+      - name: Publish
+        if: github.event_name == 'push' || github.event.inputs.publish_artifacts == 'true'
+        env:
+          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.ORG_GRADLE_PROJECT_SIGNINGKEY }}
+          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.ORG_GRADLE_PROJECT_SIGNINGPASSWORD }}
+          ORG_GRADLE_PROJECT_SONA_USERNAME: ${{ secrets.SONA_USERNAME }}
+          ORG_GRADLE_PROJECT_SONA_PASSWORD: ${{ secrets.SONA_PASSWORD }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./gradlew cV
+          ./gradlew publish closeAndReleaseStagingRepository
+
+  create-gh-release:
+    if: startsWith(github.ref, 'refs/tags/') && !endsWith(github.ref, '-alpha')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3.1.0
+      - name: Create GitHut Release
+        uses: softprops/action-gh-release@v1
+        with:
+          generate_release_notes: true
