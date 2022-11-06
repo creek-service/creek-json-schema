@@ -25,16 +25,23 @@ import java.nio.file.Paths;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/** Writes schema to a file */
 public final class SchemaWriter {
 
     private static final Logger LOGGER = LogManager.getLogger(SchemaWriter.class);
 
     private final Path outputDir;
 
+    /** @param outputDir the directory into which to write the schema files */
     public SchemaWriter(final Path outputDir) {
         this.outputDir = requireNonNull(outputDir, "outputDir");
     }
 
+    /**
+     * Persist the supplied schema to disk.
+     *
+     * @param schema the schema to persist.
+     */
     public void write(final JsonSchema<?> schema) {
         final Class<?> type = schema.type();
         try {

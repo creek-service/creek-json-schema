@@ -36,6 +36,7 @@ import org.creekservice.api.base.annotation.VisibleForTesting;
 import org.creekservice.api.base.type.temporal.Clock;
 import org.creekservice.api.json.schema.generator.GeneratorOptions.TypeScanningSpec;
 
+/** Generates a YAML schema file. */
 public final class SchemaGenerator {
 
     private final ObjectMapper mapper =
@@ -104,9 +105,9 @@ public final class SchemaGenerator {
                 "---", "---" + lineSeparator() + "# timestamp=" + clock.get().toEpochMilli());
     }
 
-    public static final class SchemaGeneratorException extends RuntimeException {
+    private static final class SchemaGeneratorException extends RuntimeException {
 
-        public SchemaGeneratorException(final String msg, final Throwable cause) {
+        SchemaGeneratorException(final String msg, final Throwable cause) {
             super(msg, cause);
         }
     }

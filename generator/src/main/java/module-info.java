@@ -1,3 +1,4 @@
+/** Module for generating Json/YAML schemas from types. */
 module creek.json.schema.generator {
     requires creek.base.annotation;
     requires creek.base.type;

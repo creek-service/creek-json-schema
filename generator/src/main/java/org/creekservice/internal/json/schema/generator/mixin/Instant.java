@@ -24,7 +24,10 @@ package org.creekservice.internal.json.schema.generator.mixin;
  */
 @SuppressWarnings("unused") // Invoked via reflection.
 public interface Instant {
+
+    /** @return the number of seconds since epoc */
     long getSeconds();
 
+    /** @return the additional nanosecond past epoc */
     long getNanos();
 }
