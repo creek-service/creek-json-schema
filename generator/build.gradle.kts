@@ -37,7 +37,8 @@ dependencies {
     implementation("com.kjetland:mbknor-jackson-jsonschema_2.13:$jsonSchemaVersion")
     implementation("io.github.classgraph:classgraph:$classGraphVersion")
     implementation("org.apache.logging.log4j:log4j-core:$log4jVersion")
-    runtimeOnly("org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion")
+    // An old v1.x SLF4J impl as required by mbknor-jackson-jsonschema
+    implementation("org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion")
 
     testImplementation(project(":test-types"))
 }
