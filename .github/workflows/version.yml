@@ -1,18 +1,27 @@
-name: Version
+# A Workflow for adjusting the version number of the next release
+
+name: Set next version
 
 on:
   workflow_dispatch:
     inputs:
       part:
-        description: "Part to increment: Major, Minor or Patch"
+        description: "Part to increment: Major, Minor, Patch or the next release, e.g. 1.2.3"
         required: true
-        default: Patch
+        default: Minor
+
+concurrency: "${{ github.repository }}-versioning"
 
 jobs:
   version:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3.1.0
+        with:
+          token: ${{ secrets.TRIGGER_GITHUB_TOKEN }}
+      - name: Fetch version history
+        run: git fetch --tags --unshallow
       - name: Set up JDK 11
         uses: actions/setup-java@v3
         with:
@@ -21,12 +30,13 @@ jobs:
           cache: gradle
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
-      - name: Increment Version Part
+      - name: Increment version
+        if: contains(fromJson('["Major", "Minor", "Patch"]'), github.event.inputs.part)
         run: |
-          git fetch --tags --unshallow
+          # The following command will trigger the build.yml workflow as it pushes a alpha tag
           ./gradlew markNextVersion -Prelease.incrementer=increment${{ github.event.inputs.part }}
-      - name: Trigger Build
+      - name: Set next version
+        if: (!contains(fromJson('["Major", "Minor", "Patch"]'), github.event.inputs.part))
         run: |
-          curl -H "Accept: application/vnd.github.v3+json" -H "Authorization: token ${GITHUB_TOKEN}" "https://api.github.com/repos/${{ github.repository }}/actions/workflows/gradle.yml/dispatches" -d '{"ref":"main","inputs":{"publish":"true"}}'
-        env:
-          GITHUB_TOKEN: ${{ secrets.TRIGGER_GITHUB_TOKEN }}
+          # The following command will trigger the build.yml workflow as it pushes a alpha tag
+          ./gradlew markNextVersion -Prelease.version=${{ github.event.inputs.part }}

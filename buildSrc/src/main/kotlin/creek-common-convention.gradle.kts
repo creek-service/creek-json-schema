@@ -1,0 +1,90 @@
+// Common configuration of Creek projects
+plugins {
+    java
+    checkstyle
+    id("com.github.spotbugs")
+    id("com.diffplug.spotless")
+}
+
+group = "org.creekservice"
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+repositories {
+    mavenCentral()
+
+    maven {
+        url = uri("https://maven.pkg.github.com/creek-service/*")
+        credentials {
+            username = "Creek-Bot-Token"
+            password = "\u0067hp_LtyvXrQZen3WlKenUhv21Mg6NG38jn0AO2YH"
+        }
+    }
+}
+
+configurations.all {
+    // Reduce chance of build servers running into compilation issues due to stale snapshots:
+    resolutionStrategy.cacheChangingModulesFor(15, TimeUnit.MINUTES)
+}
+
+tasks.compileJava {
+    options.compilerArgs.add("-Xlint:all,-serial,-requires-automatic,-requires-transitive-automatic,-module")
+    options.compilerArgs.add("-Werror")
+}
+
+tasks.test {
+    useJUnitPlatform()
+    setForkEvery(1)
+    maxParallelForks = 4
+    testLogging {
+        showStandardStreams = true
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        showCauses = true
+        showExceptions = true
+        showStackTraces = true
+    }
+}
+
+spotless {
+    java {
+        googleJavaFormat("1.12.0").aosp()
+        indentWithSpaces()
+        importOrder()
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}
+
+spotbugs {
+    tasks.spotbugsMain {
+        reports.create("html") {
+            required.set(true)
+            setStylesheet("fancy-hist.xsl")
+        }
+    }
+    tasks.spotbugsTest {
+        reports.create("html") {
+            required.set(true)
+            setStylesheet("fancy-hist.xsl")
+        }
+    }
+}
+
+tasks.register("format") {
+    group = "creek"
+    description = "Format the code"
+
+    dependsOn("spotlessCheck", "spotlessApply")
+}
+
+tasks.register("static") {
+    group = "creek"
+    description = "Run static code analysis"
+
+    dependsOn("checkstyleMain", "checkstyleTest", "spotbugsMain", "spotbugsTest")
+}
+

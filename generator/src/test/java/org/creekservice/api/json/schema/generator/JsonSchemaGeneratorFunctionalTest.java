@@ -123,7 +123,14 @@ class JsonSchemaGeneratorFunctionalTest {
             executor.waitFor(30, TimeUnit.SECONDS);
 
             if (executor.exitValue() != 0) {
-                throw new AssertionError("Failed: " + readAll(executor.getErrorStream()));
+                throw new AssertionError(
+                        "Failed:"
+                                + System.lineSeparator()
+                                + "stderr:"
+                                + readAll(executor.getErrorStream())
+                                + System.lineSeparator()
+                                + "stdout:"
+                                + readAll(executor.getInputStream()));
             }
 
             assertThat(
