@@ -20,4 +20,4 @@ updates:
     registries:
       - creek-github-packages
     schedule:
-      interval: weekly
+      interval: monthly

@@ -1,5 +1,26 @@
-// Common configuration for Creek library publishing
-// Apply this plugin only to subprojects if in multi-module setup.
+/*
+ * Copyright 2022 Creek Contributors (https://github.com/creek-service)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * Standard configuration for Creek library publishing
+ *
+ * <p> Apply this plugin only to subprojects if in multi-module setup.
+ *
+ * <p> Use `creek-plugin-publishing-convention` for Gradle plugins.
+ */
 
 plugins {
     java
@@ -16,9 +37,16 @@ tasks.javadoc {
     if (JavaVersion.current().isJava9Compatible) {
         (options as StandardJavadocDocletOptions).apply {
             addBooleanOption("html5", true)
-            // -quite? See: https://github.com/gradle/gradle/issues/2354
+            // Why -quite? See: https://github.com/gradle/gradle/issues/2354
             addStringOption("Xwerror", "-quiet")
         }
+    }
+}
+
+// Dummy/empty publishPlugins task, to allow consistent build.yml workflow
+tasks.register("publishPlugins") {
+    doLast {
+        logger.info("No Gradle plugins to publish")
     }
 }
 
@@ -37,12 +65,20 @@ publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
-            artifactId = "${rootProject.name}-${project.name}"
+
+            val prependRootName = rootProject.name != project.name
+            if (prependRootName) {
+                artifactId = "${rootProject.name}-${project.name}"
+            }
 
             pom {
                 name.set("${project.group}:${artifactId}")
 
-                description.set("${rootProject.name.capitalize()} ${project.name.capitalize()} library")
+                if (prependRootName) {
+                    description.set("${rootProject.name.capitalize()} ${project.name} library".replace("-", " "))
+                } else {
+                    description.set("${project.name.capitalize()} library".replace("-", " "))
+                }
 
                 url.set("https://www.creekservice.org")
 
@@ -57,7 +93,7 @@ publishing {
                     developer {
                         name.set("Andy Coates")
                         email.set("8012398+big-andy-coates@users.noreply.github.com")
-                        organization.set("Creek-Service")
+                        organization.set("Creek Service")
                         organizationUrl.set("https://www.creekservice.org")
                     }
                 }
