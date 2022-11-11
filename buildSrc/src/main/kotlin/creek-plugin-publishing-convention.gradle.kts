@@ -17,6 +17,8 @@
 /**
  * Configuration for Creek Gradle plugin publishing.
  *
+ * <p>Version: 1.1
+ *
  * <p>Apply this plugin to any module publishing a Gradle plugin.
  *
  * <p>Do NOT ally the `creek-publishing-convention`.
@@ -38,7 +40,7 @@ java {
 val prependRootName = rootProject.name != project.name
 
 pluginBundle {
-    website = "https://www.creekservie.org"
+    website = "https://www.creekservice.org/${rootProject.name}"
     vcsUrl = "https://github.com/creek-service/${rootProject.name}"
 
     tags = listOf("creek", "creekservice", "microservice", "docker", "containers")

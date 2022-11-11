@@ -51,7 +51,9 @@ public final class SchemaGenerator {
     private final TypeScanningSpec subtypeScanning;
     private final Clock clock;
 
-    /** @param subtypeScanning config for subtype scanning. */
+    /**
+     * @param subtypeScanning config for subtype scanning.
+     */
     public SchemaGenerator(final TypeScanningSpec subtypeScanning) {
         this(subtypeScanning, Instant::now);
     }

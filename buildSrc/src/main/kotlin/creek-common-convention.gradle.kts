@@ -17,6 +17,8 @@
 /**
  * Standard configuration of Creek projects
  *
+ * <p>Version: 1.1
+ *
  * <p>Apply to all java modules, usually excluding the root project in multi-module sets.
  */
 
@@ -37,13 +39,29 @@ java {
 repositories {
     mavenCentral()
 
+    // Primary snapshot repo:
     maven {
-        url = uri("https://maven.pkg.github.com/creek-service/*")
-        credentials {
-            username = "Creek-Bot-Token"
-            password = "\u0067hp_LtyvXrQZen3WlKenUhv21Mg6NG38jn0AO2YH"
+        url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+        mavenContent {
+            includeGroup("org.creekservice")
+            snapshotsOnly()
         }
     }
+
+    // Backup snapshot repo:
+    maven {
+        url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+        mavenContent {
+            includeGroup("org.creekservice")
+            snapshotsOnly()
+        }
+        mavenContent {
+            includeGroup("org.creekservice")
+            snapshotsOnly()
+        }
+    }
+
+    mavenCentral()
 }
 
 configurations.all {
@@ -71,7 +89,7 @@ tasks.test {
 
 spotless {
     java {
-        googleJavaFormat("1.12.0").aosp()
+        googleJavaFormat("1.15.0").aosp()
         indentWithSpaces()
         importOrder()
         removeUnusedImports()

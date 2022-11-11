@@ -17,6 +17,8 @@
 /**
  * Standard coverage configuration of Creek projects, utilising Jacoco and Coveralls.io
  *
+ * <p>Version: 1.1
+ *
  * <p>Apply to root project only
  */
 

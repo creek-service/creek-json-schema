@@ -90,6 +90,8 @@ public interface GeneratorOptions {
         return false;
     }
 
-    /** @return The directory to output schema files to. */
+    /**
+     * @return The directory to output schema files to.
+     */
     Path outputDirectory();
 }
