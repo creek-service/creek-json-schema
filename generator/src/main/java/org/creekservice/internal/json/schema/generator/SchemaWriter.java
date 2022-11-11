@@ -32,7 +32,9 @@ public final class SchemaWriter {
 
     private final Path outputDir;
 
-    /** @param outputDir the directory into which to write the schema files */
+    /**
+     * @param outputDir the directory into which to write the schema files
+     */
     public SchemaWriter(final Path outputDir) {
         this.outputDir = requireNonNull(outputDir, "outputDir");
     }

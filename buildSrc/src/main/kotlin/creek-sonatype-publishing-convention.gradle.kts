@@ -17,7 +17,11 @@
 /**
  * Standard configuration for Creek library publishing to Maven Central vis SonaType OSSRH
  *
- * // Apply this plugin only to the root project if in multi-module setup.
+ * <p>Version: 1.1
+ *
+ * <p>Apply this plugin only to the root project if in multi-module setup.
+ *
+ * @see <a href="https://s01.oss.sonatype.org/">OSSHR Nexus Service</a>
  */
 
 plugins {

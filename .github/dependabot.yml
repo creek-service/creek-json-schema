@@ -5,6 +5,9 @@
 
 version: 2
 registries:
+  maven-snapshots:
+    type: maven-repository
+    url: https://s01.oss.sonatype.org/content/repositories/snapshots/
   creek-github-packages:
     type: maven-repository
     url: https://maven.pkg.github.com/creek-service/*
@@ -18,6 +21,7 @@ updates:
   - package-ecosystem: gradle
     directory: /
     registries:
+      - maven-snapshots
       - creek-github-packages
     schedule:
       interval: monthly

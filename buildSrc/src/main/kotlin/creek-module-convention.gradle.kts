@@ -17,6 +17,8 @@
 /**
  * Standard configuration of Java Module Platform System, a.k.a. Java 9 modules.
  *
+ * <p>Version: 1.1
+ *
  * <p>Apply to all modules that publish JPMS modules.
  */
 

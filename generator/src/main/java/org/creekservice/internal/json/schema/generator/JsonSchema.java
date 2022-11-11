@@ -37,12 +37,16 @@ public final class JsonSchema<T> {
         this.schema = requireNonNull(schema, "schema");
     }
 
-    /** @return the type */
+    /**
+     * @return the type
+     */
     public Class<T> type() {
         return type;
     }
 
-    /** @return it's schema */
+    /**
+     * @return it's schema
+     */
     public String text() {
         return schema;
     }
