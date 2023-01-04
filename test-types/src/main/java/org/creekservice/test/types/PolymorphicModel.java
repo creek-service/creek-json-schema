@@ -16,7 +16,6 @@
 
 package org.creekservice.test.types;
 
-
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.creekservice.api.base.annotation.schema.GeneratesSchema;

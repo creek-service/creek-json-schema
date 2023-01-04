@@ -16,7 +16,6 @@
 
 package org.creekservice;
 
-
 import org.creekservice.api.test.conformity.ConformityTester;
 import org.junit.jupiter.api.Test;
 

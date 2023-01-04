@@ -16,7 +16,6 @@
 
 package org.creekservice.api.json.schema.generator;
 
-
 import java.nio.file.Path;
 import java.util.Set;
 

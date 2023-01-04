@@ -16,7 +16,6 @@
 
 package org.creekservice.test.types;
 
-
 import java.net.URI;
 import java.time.Instant;
 import java.time.ZonedDateTime;

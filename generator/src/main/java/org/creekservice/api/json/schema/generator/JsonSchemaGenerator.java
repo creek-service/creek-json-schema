@@ -16,7 +16,6 @@
 
 package org.creekservice.api.json.schema.generator;
 
-
 import java.lang.management.ManagementFactory;
 import java.util.Set;
 import java.util.stream.Collectors;
