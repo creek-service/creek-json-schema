@@ -16,7 +16,6 @@
 
 package org.creekservice.test.types;
 
-
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;

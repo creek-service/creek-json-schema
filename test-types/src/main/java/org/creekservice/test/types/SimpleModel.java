@@ -16,7 +16,6 @@
 
 package org.creekservice.test.types;
 
-
 import org.creekservice.api.base.annotation.schema.GeneratesSchema;
 
 @SuppressWarnings("unused") // Invoked via reflection
