@@ -17,7 +17,7 @@
 /**
  * Standard configuration of Creek projects
  *
- * <p>Version: 1.1
+ * <p>Version: 1.2
  *
  * <p>Apply to all java modules, usually excluding the root project in multi-module sets.
  */
@@ -50,10 +50,10 @@ repositories {
 
     // Backup snapshot repo:
     maven {
-        url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-        mavenContent {
-            includeGroup("org.creekservice")
-            snapshotsOnly()
+        url = uri("https://maven.pkg.github.com/creek-service/*")
+        credentials {
+            username = System.getenv("GITHUB_ACTOR")
+            password = System.getenv("GITHUB_TOKEN")
         }
         mavenContent {
             includeGroup("org.creekservice")
