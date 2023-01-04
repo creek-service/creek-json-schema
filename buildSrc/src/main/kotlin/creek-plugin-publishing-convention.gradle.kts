@@ -17,7 +17,7 @@
 /**
  * Configuration for Creek Gradle plugin publishing.
  *
- * <p>Version: 1.1
+ * <p>Version: 1.2
  *
  * <p>Apply this plugin to any module publishing a Gradle plugin.
  *
@@ -100,12 +100,23 @@ publishing {
             }
 
             url.set("https://www.creekservice.org")
+            inceptionYear.set("2022")
 
             licenses {
                 license {
                     name.set("The Apache License, Version 2.0")
                     url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
                 }
+            }
+
+            organization {
+                name.set("Creek Service")
+                url.set("https://www.creekservice.org")
+            }
+
+            issueManagement {
+                name.set("GitHub issues")
+                url.set("https://github.com/creek-service/${rootProject.name}/issues")
             }
 
             developers {
