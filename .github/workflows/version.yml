@@ -1,6 +1,7 @@
 # A Workflow for adjusting the version number of the next release
 
 name: Set next version
+run-name: Set next version (${{ inputs.part }})
 
 on:
   workflow_dispatch:
