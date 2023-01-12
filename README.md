@@ -8,7 +8,9 @@
 
 # Creek JSON Schema
 
-Annotations and code for generating JSON schemas from JVM classes.
+The repositor contains classes for generating JSON schemas from JVM classes. 
+The generator can be used directly. However, the intended approach is to use a build plugin, 
+e.g.  the [Creek JSON schema Gradle plugin](https://github.com/creek-service/creek-json-schema-gradle-plugin).
 
 See [CreekService.org](https://www.creekservice.org) for info on Creek Service.
 
