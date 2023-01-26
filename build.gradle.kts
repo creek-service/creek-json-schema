@@ -36,7 +36,7 @@ subprojects {
         set("guavaVersion", "31.1-jre")         // https://mvnrepository.com/artifact/com.google.guava/guava
         set("junitVersion", "5.9.2")            // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
         set("junitPioneerVersion", "1.9.1")     // https://mvnrepository.com/artifact/org.junit-pioneer/junit-pioneer
-        set("mockitoVersion", "4.11.0")          // https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter
+        set("mockitoVersion", "4.11.0")         // https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter
         set("hamcrestVersion", "2.2")           // https://mvnrepository.com/artifact/org.hamcrest/hamcrest-core
     }
 
@@ -60,8 +60,20 @@ subprojects {
         testImplementation("com.google.guava:guava-testlib:$guavaVersion")
         testImplementation("org.apache.logging.log4j:log4j-core:$log4jVersion")
         // An old v1.x SLF4J impl as required by mbknor-jackson-jsonschema
+        // Can be removed once https://github.com/mbknor/mbknor-jackson-jsonSchema/pull/172 is resolved:
         testRuntimeOnly("org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion")
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
+    }
+
+    configurations.all {
+        resolutionStrategy.eachDependency {
+            // Can be removed once https://github.com/mbknor/mbknor-jackson-jsonSchema/issues/174 is resolved:
+            if (requested.group == "org.scala-lang" && requested.name == "scala-library") {
+                useVersion("2.13.10")
+                because("security vulnerabilities found < 2.13.9: " +
+                        "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-36944")
+            }
+        }
     }
 }
 

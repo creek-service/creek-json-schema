@@ -17,7 +17,7 @@
 /**
  * Standard configuration of Creek projects
  *
- * <p>Version: 1.2
+ * <p>Version: 1.3
  *
  * <p>Apply to all java modules, usually excluding the root project in multi-module sets.
  */
@@ -69,7 +69,7 @@ configurations.all {
     resolutionStrategy.cacheChangingModulesFor(15, TimeUnit.MINUTES)
 }
 
-tasks.compileJava {
+tasks.withType<JavaCompile> {
     options.compilerArgs.add("-Xlint:all,-serial,-requires-automatic,-requires-transitive-automatic,-module")
     options.compilerArgs.add("-Werror")
 }

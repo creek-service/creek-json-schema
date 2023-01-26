@@ -21,7 +21,7 @@
  *
  * <p>Apply this plugin to any module publishing a Gradle plugin.
  *
- * <p>Do NOT ally the `creek-publishing-convention`.
+ * <p>Do NOT apply the `creek-publishing-convention`.
  */
 
 plugins {
@@ -43,7 +43,7 @@ pluginBundle {
     website = "https://www.creekservice.org/${rootProject.name}"
     vcsUrl = "https://github.com/creek-service/${rootProject.name}"
 
-    tags = listOf("creek", "creekservice", "microservice", "docker", "containers")
+    tags = listOf("creek", "creekservice")
 }
 
 if (prependRootName) {
