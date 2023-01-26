@@ -32,9 +32,8 @@ plugins {
 group = "org.creekservice"
 
 java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
-    }
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
 }
 
 repositories {
@@ -70,7 +69,7 @@ configurations.all {
     resolutionStrategy.cacheChangingModulesFor(15, TimeUnit.MINUTES)
 }
 
-tasks.compileJava {
+tasks.withType<JavaCompile> {
     options.compilerArgs.add("-Xlint:all,-serial,-requires-automatic,-requires-transitive-automatic,-module")
     options.compilerArgs.add("-Werror")
 }
