@@ -17,7 +17,7 @@
 /**
  * Standard configuration of Creek projects
  *
- * <p>Version: 1.2
+ * <p>Version: 1.3
  *
  * <p>Apply to all java modules, usually excluding the root project in multi-module sets.
  */
@@ -32,8 +32,9 @@ plugins {
 group = "org.creekservice"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
 }
 
 repositories {

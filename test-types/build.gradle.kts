@@ -22,11 +22,12 @@ plugins {
 val creekVersion : String by extra
 val jacksonVersion : String by extra
 val jsonSchemaVersion : String by extra
+val kotlinVersion : String by extra
 
 dependencies {
     implementation("org.creekservice:creek-base-annotation:$creekVersion")
     implementation("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
     implementation("com.kjetland:mbknor-jackson-jsonschema_2.13:$jsonSchemaVersion")
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.0")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
 }
