@@ -31,7 +31,6 @@ subprojects {
         set("jacksonVersion", "2.14.1")         // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations
         set("jsonSchemaVersion", "1.0.39")      // https://mvnrepository.com/artifact/com.kjetland/mbknor-jackson-jsonschema
         set("classGraphVersion", "4.8.154")     // https://mvnrepository.com/artifact/io.github.classgraph/classgraph
-        set("kotlinVersion", "1.7.22")          // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-stdlib-common
 
         set("log4jVersion", "2.19.0")           // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
         set("guavaVersion", "31.1-jre")         // https://mvnrepository.com/artifact/com.google.guava/guava
@@ -48,7 +47,6 @@ subprojects {
     val junitPioneerVersion: String by extra
     val mockitoVersion: String by extra
     val hamcrestVersion : String by extra
-    val kotlinVersion : String by extra
 
     dependencies {
         testImplementation("org.creekservice:creek-test-hamcrest:$creekVersion")
@@ -74,13 +72,6 @@ subprojects {
                 useVersion("2.13.10")
                 because("security vulnerabilities found < 2.13.9: " +
                         "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-36944")
-            }
-
-            // Can be removed once https://github.com/mbknor/mbknor-jackson-jsonSchema/issues/178 is resolved:
-            if (requested.group == "org.jetbrains.kotlin" && requested.name == "kotlin-scripting-compiler-embeddable") {
-                useVersion(kotlinVersion)
-                because("security vulnerabilities found in 1.3.50: " +
-                        "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-24329")
             }
         }
     }

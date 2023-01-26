@@ -21,7 +21,7 @@
  *
  * <p>Apply this plugin to any module publishing a Gradle plugin.
  *
- * <p>Do NOT ally the `creek-publishing-convention`.
+ * <p>Do NOT apply the `creek-publishing-convention`.
  */
 
 plugins {
