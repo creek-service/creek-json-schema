@@ -60,7 +60,7 @@ subprojects {
         testImplementation("com.google.guava:guava-testlib:$guavaVersion")
         testImplementation("org.apache.logging.log4j:log4j-core:$log4jVersion")
         // An old v1.x SLF4J impl as required by mbknor-jackson-jsonschema
-        // Can be removed once https://github.com/mbknor/mbknor-jackson-jsonSchema/pull/172 is resolved:
+        // Can be updated once https://github.com/mbknor/mbknor-jackson-jsonSchema/pull/172 is resolved:
         testRuntimeOnly("org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion")
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
     }

@@ -24,6 +24,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesPattern;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -114,6 +115,7 @@ class JsonSchemaGeneratorFunctionalTest {
         generateSchemas(TestPaths.moduleRoot("generator").resolve(EXPECTED_SCHEMA_DIR));
     }
 
+    @SuppressFBWarnings(value = "COMMAND_INJECTION", justification = "Test code")
     private static void generateSchemas(final Path outputDir) {
         final List<String> cmd = buildCommand(outputDir);
 

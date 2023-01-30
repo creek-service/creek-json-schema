@@ -26,6 +26,7 @@ import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.startsWith;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -176,6 +177,7 @@ class JsonSchemaGeneratorTest {
         return runExecutor(javaArgs, cmdArgs);
     }
 
+    @SuppressFBWarnings(value = "COMMAND_INJECTION", justification = "Test code")
     private int runExecutor(final String[] javaArgs, final String[] cmdArgs) {
         final List<String> cmd = buildCommand(javaArgs, cmdArgs);
 

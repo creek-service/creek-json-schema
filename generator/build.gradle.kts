@@ -21,6 +21,7 @@ plugins {
 
 val creekVersion : String by extra
 val picoCliVersion : String by extra
+val spotBugsVersion : String by extra
 val log4jVersion : String by extra
 val jacksonVersion : String by extra
 val jsonSchemaVersion : String by extra
@@ -31,6 +32,7 @@ dependencies {
     implementation("org.creekservice:creek-base-type:$creekVersion")
     implementation("org.creekservice:creek-base-schema:$creekVersion")
 
+    implementation("com.github.spotbugs:spotbugs-annotations:$spotBugsVersion")
     implementation("info.picocli:picocli:$picoCliVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$jacksonVersion")
@@ -38,6 +40,7 @@ dependencies {
     implementation("io.github.classgraph:classgraph:$classGraphVersion")
     implementation("org.apache.logging.log4j:log4j-core:$log4jVersion")
     // An old v1.x SLF4J impl as required by mbknor-jackson-jsonschema
+    // Can be updated once https://github.com/mbknor/mbknor-jackson-jsonSchema/pull/172 is resolved:
     implementation("org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion")
 
     testImplementation(project(":test-types"))
