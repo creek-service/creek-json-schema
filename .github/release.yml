@@ -4,6 +4,7 @@ changelog:
       - documentation
       - subtask
       - chore
+      - github_actions
   categories:
     - title: Breaking Changes 🛠
       labels: [ breaking-change ]
