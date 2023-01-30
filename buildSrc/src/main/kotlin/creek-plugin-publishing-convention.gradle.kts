@@ -17,7 +17,8 @@
 /**
  * Configuration for Creek Gradle plugin publishing.
  *
- * <p>Version: 1.2
+ * <p>Version: 1.3
+ *  - 1.3: Switch to setting 'system' from issue-management
  *
  * <p>Apply this plugin to any module publishing a Gradle plugin.
  *
@@ -115,7 +116,7 @@ publishing {
             }
 
             issueManagement {
-                name.set("GitHub issues")
+                system.set("GitHub issues")
                 url.set("https://github.com/creek-service/${rootProject.name}/issues")
             }
 
