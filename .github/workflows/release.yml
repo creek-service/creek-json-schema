@@ -26,7 +26,7 @@ jobs:
           distribution: 'adopt'
           cache: gradle
       - name: Ensure build is green
-        run: ./gradlew check
+        run: ./gradlew build
       - name: Release
         run: |
           # The following command will trigger the build.yml workflow as it pushes a release tag
