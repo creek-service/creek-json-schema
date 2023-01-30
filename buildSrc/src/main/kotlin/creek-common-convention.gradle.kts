@@ -17,9 +17,11 @@
 /**
  * Standard configuration of Creek projects
  *
- * <p>Version: 1.3
- *
  * <p>Apply to all java modules, usually excluding the root project in multi-module sets.
+ *
+ * <p>Version: 1.4
+ *  - 1.4: Add findsecbugs-plugin
+ *  - 1.3: Fail on warnings for test code too.
  */
 
 plugins {
@@ -62,6 +64,10 @@ repositories {
     }
 
     mavenCentral()
+}
+
+dependencies {
+    spotbugsPlugins("com.h3xstream.findsecbugs:findsecbugs-plugin:1.12.0")
 }
 
 configurations.all {

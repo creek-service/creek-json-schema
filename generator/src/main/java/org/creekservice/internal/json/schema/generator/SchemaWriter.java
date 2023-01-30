@@ -18,6 +18,7 @@ package org.creekservice.internal.json.schema.generator;
 
 import static java.util.Objects.requireNonNull;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -67,6 +68,7 @@ public final class SchemaWriter {
         }
     }
 
+    @SuppressFBWarnings(value = "PATH_TRAVERSAL_IN", justification = "False positive")
     private static Path schemaFileName(final Class<?> type) {
         final String name =
                 type.getName()

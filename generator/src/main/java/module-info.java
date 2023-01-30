@@ -13,6 +13,7 @@ module creek.json.schema.generator {
     requires mbknor.jackson.jsonschema;
     requires io.github.classgraph;
     requires scala.library;
+    requires com.github.spotbugs.annotations;
 
     exports org.creekservice.api.json.schema.generator;
 
