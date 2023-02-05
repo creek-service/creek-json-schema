@@ -16,6 +16,7 @@ registries:
 updates:
   - package-ecosystem: github-actions
     directory: /
+    open-pull-requests-limit: 50
     schedule:
       interval: monthly
   - package-ecosystem: gradle
@@ -23,5 +24,6 @@ updates:
     registries:
       - maven-snapshots
       - creek-github-packages
+    open-pull-requests-limit: 50
     schedule:
       interval: monthly
