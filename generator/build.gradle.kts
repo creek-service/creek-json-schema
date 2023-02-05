@@ -26,6 +26,8 @@ val log4jVersion : String by extra
 val jacksonVersion : String by extra
 val jsonSchemaVersion : String by extra
 val classGraphVersion : String by extra
+val scalaVersion : String by extra
+val kotlinVersion : String by extra
 
 dependencies {
     implementation("org.creekservice:creek-base-annotation:$creekVersion")
@@ -42,6 +44,14 @@ dependencies {
     // An old v1.x SLF4J impl as required by mbknor-jackson-jsonschema
     // Can be updated once https://github.com/mbknor/mbknor-jackson-jsonSchema/pull/172 is resolved:
     implementation("org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion")
+
+    // The following are set to bring in dependency versions beyond known security vulnerabilities:
+    // The following can be removed once https://github.com/mbknor/mbknor-jackson-jsonSchema/issues/174 is resolved:
+    // Also see: https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-36944
+    implementation("org.scala-lang:scala-library:$scalaVersion")
+    // The following can be removed once https://github.com/mbknor/mbknor-jackson-jsonSchema/issues/178 is resolved:
+    // Also see: https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-24329
+    implementation("org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:$kotlinVersion")
 
     testImplementation(project(":test-types"))
 }
