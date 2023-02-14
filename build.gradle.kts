@@ -11,6 +11,12 @@ plugins {
 
 project.version = scmVersion.version
 
+allprojects {
+    tasks.jar {
+        onlyIf { sourceSets.main.get().allSource.files.isNotEmpty() }
+    }
+}
+
 subprojects {
     project.version = project.parent?.version!!
 

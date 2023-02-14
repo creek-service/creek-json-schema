@@ -82,12 +82,13 @@ class PolymorphicTypesTest {
         assertThat(
                 polyType.toString(),
                 is(
-                        "PolymorphicType{"
-                                + "type=interface org.creekservice.internal.json.schema.generator.PolymorphicTypesTest$AnotherInterface, "
-                                + "subTypes=["
-                                + "interface org.creekservice.internal.json.schema.generator.PolymorphicTypesTest$AnotherInterface, "
-                                + "class org.creekservice.internal.json.schema.generator.PolymorphicTypesTest$StaticNestedClass"
-                                + "]}"));
+                        "PolymorphicType{type=interface"
+                            + " org.creekservice.internal.json.schema.generator.PolymorphicTypesTest$AnotherInterface,"
+                            + " subTypes=[interface"
+                            + " org.creekservice.internal.json.schema.generator.PolymorphicTypesTest$AnotherInterface,"
+                            + " class"
+                            + " org.creekservice.internal.json.schema.generator.PolymorphicTypesTest$StaticNestedClass"
+                            + "]}"));
     }
 
     @Test
