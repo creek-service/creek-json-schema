@@ -114,7 +114,8 @@ public final class PicoCliParser {
         @Option(
                 names = {"-m", "--type-scanning-allowed-module"},
                 description = {
-                    "Optional module name(s) to limit scanning for @GeneratesSchema annotated types.",
+                    "Optional module name(s) to limit scanning for @GeneratesSchema annotated"
+                            + " types.",
                     "Only types under the supplied modules will be scanned.",
                     "Module names can include the '*' wildcard.",
                     "Specify multiple modules with multiple --type-scanning-allowed-module args."
@@ -124,7 +125,8 @@ public final class PicoCliParser {
         @Option(
                 names = {"-p", "--type-scanning-allowed-package"},
                 description = {
-                    "Optional package name(s) to limit scanning for @GeneratesSchema annotated types.",
+                    "Optional package name(s) to limit scanning for @GeneratesSchema annotated"
+                            + " types.",
                     "Only types under the supplied packages will be processed.",
                     "Package names can include the '*' wildcard.",
                     "Specify multiple packages with multiple --type-scanning-allowed-package args."
@@ -147,7 +149,8 @@ public final class PicoCliParser {
                     "Optional package name(s) to limit scanning for subtypes of polymorphic types.",
                     "Only subtypes under the supplied packages will be included.",
                     "Package names can include the '*' wildcard.",
-                    "Specify multiple packages with multiple --subtype-scanning-allowed-package args."
+                    "Specify multiple packages with multiple --subtype-scanning-allowed-package"
+                            + " args."
                 })
         private final Set<String> subtypeScanningPackageWhiteList = Set.of();
 
