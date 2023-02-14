@@ -19,7 +19,8 @@
  *
  * <p>Apply to all java modules, usually excluding the root project in multi-module sets.
  *
- * <p>Version: 1.4
+ * <p>Version: 1.5
+ *  - 1.5: Add filters to exclude generated sources
  *  - 1.4: Add findsecbugs-plugin
  *  - 1.3: Fail on warnings for test code too.
  */
@@ -95,17 +96,20 @@ tasks.test {
 
 spotless {
     java {
-        googleJavaFormat("1.15.0").aosp()
+        googleJavaFormat("1.15.0").aosp().reflowLongStrings()
         indentWithSpaces()
         importOrder()
         removeUnusedImports()
         trimTrailingWhitespace()
         endWithNewline()
         toggleOffOn("formatting:off", "formatting:on")
+        targetExclude("**/build/generated/source*/**/*.*")
     }
 }
 
 spotbugs {
+    excludeFilter.set(rootProject.file("config/spotbugs/suppressions.xml"))
+
     tasks.spotbugsMain {
         reports.create("html") {
             required.set(true)
