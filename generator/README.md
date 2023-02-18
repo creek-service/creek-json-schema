@@ -1,3 +1,4 @@
+[![javadoc](https://javadoc.io/badge2/org.creekservice/creek-json-schema-generator/javadoc.svg)](https://javadoc.io/doc/org.creekservice/creek-json-schema-generator)
 # Creek JSON schema generator
 
 A command line tool for generating JSON schemas from code.
