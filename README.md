@@ -16,5 +16,5 @@ See [CreekService.org](https://www.creekservice.org) for info on Creek Service.
 
 ## Modules in this repo
 
-* [generator](generator): a command line tool used to generate JSON schemas from code.
+* **[generator](generator)** [[JavaDocs](https://javadoc.io/doc/org.creekservice/creek-json-schema-generator)]: a command line tool used to generate JSON schemas from code.
 
