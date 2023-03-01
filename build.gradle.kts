@@ -40,7 +40,7 @@ subprojects {
         set("kotlinVersion", "1.7.22")          // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-stdlib-common
         set("scalaVersion", "2.13.10")
 
-        set("log4jVersion", "2.19.0")           // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
+        set("log4jVersion", "2.20.0")           // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
         set("guavaVersion", "31.1-jre")         // https://mvnrepository.com/artifact/com.google.guava/guava
         set("junitVersion", "5.9.2")            // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
         set("junitPioneerVersion", "2.0.0")     // https://mvnrepository.com/artifact/org.junit-pioneer/junit-pioneer
