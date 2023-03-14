@@ -31,7 +31,7 @@ subprojects {
     }
 
     extra.apply {
-        set("creekVersion", "0.4.0")
+        set("creekVersion", "0.4.1-SNAPSHOT")
         set("spotBugsVersion", "4.7.3")         // https://mvnrepository.com/artifact/com.github.spotbugs/spotbugs-annotations
         set("picoCliVersion", "4.7.1")          // https://mvnrepository.com/artifact/info.picocli/picocli
         set("jacksonVersion", "2.14.2")         // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations

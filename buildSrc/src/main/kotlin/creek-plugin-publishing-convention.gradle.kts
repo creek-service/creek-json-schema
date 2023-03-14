@@ -17,7 +17,8 @@
 /**
  * Configuration for Creek Gradle plugin publishing.
  *
- * <p>Version: 1.3
+ * <p>Version: 1.4
+ *  - 1.4: Fix website URL to avoid redirect 
  *  - 1.3: Switch to setting 'system' from issue-management
  *
  * <p>Apply this plugin to any module publishing a Gradle plugin.
@@ -41,7 +42,7 @@ java {
 val prependRootName = rootProject.name != project.name
 
 pluginBundle {
-    website = "https://www.creekservice.org/${rootProject.name}"
+    website = "https://www.creekservice.org/${rootProject.name}/"
     vcsUrl = "https://github.com/creek-service/${rootProject.name}"
 
     tags = listOf("creek", "creekservice")
