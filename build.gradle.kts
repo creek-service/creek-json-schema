@@ -31,7 +31,7 @@ subprojects {
     }
 
     extra.apply {
-        set("creekVersion", "0.3.3-SNAPSHOT")
+        set("creekVersion", "0.4.1-SNAPSHOT")
         set("spotBugsVersion", "4.7.3")         // https://mvnrepository.com/artifact/com.github.spotbugs/spotbugs-annotations
         set("picoCliVersion", "4.7.1")          // https://mvnrepository.com/artifact/info.picocli/picocli
         set("jacksonVersion", "2.14.2")         // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations
@@ -44,7 +44,7 @@ subprojects {
         set("guavaVersion", "31.1-jre")         // https://mvnrepository.com/artifact/com.google.guava/guava
         set("junitVersion", "5.9.2")            // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
         set("junitPioneerVersion", "2.0.0")     // https://mvnrepository.com/artifact/org.junit-pioneer/junit-pioneer
-        set("mockitoVersion", "5.1.1")         // https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter
+        set("mockitoVersion", "5.2.0")         // https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter
         set("hamcrestVersion", "2.2")           // https://mvnrepository.com/artifact/org.hamcrest/hamcrest-core
     }
 

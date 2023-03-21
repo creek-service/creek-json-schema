@@ -19,7 +19,8 @@
  *
  * <p>Apply to all java modules, usually excluding the root project in multi-module sets.
  *
- * <p>Version: 1.5
+ * <p>Version: 1.6
+ *  - 1.6: Remove GitHub packages for snapshots
  *  - 1.5: Add filters to exclude generated sources
  *  - 1.4: Add findsecbugs-plugin
  *  - 1.3: Fail on warnings for test code too.
@@ -42,7 +43,6 @@ java {
 repositories {
     mavenCentral()
 
-    // Primary snapshot repo:
     maven {
         url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
         mavenContent {
@@ -50,21 +50,6 @@ repositories {
             snapshotsOnly()
         }
     }
-
-    // Backup snapshot repo:
-    maven {
-        url = uri("https://maven.pkg.github.com/creek-service/*")
-        credentials {
-            username = System.getenv("GITHUB_ACTOR")
-            password = System.getenv("GITHUB_TOKEN")
-        }
-        mavenContent {
-            includeGroup("org.creekservice")
-            snapshotsOnly()
-        }
-    }
-
-    mavenCentral()
 }
 
 dependencies {
