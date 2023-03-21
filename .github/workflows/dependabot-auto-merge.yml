@@ -1,6 +1,6 @@
-# A Workflow for messing around in.
+# A Workflow for auto-approving and auto-merging dependency update PRs raised by Dependabot
 
-name: "Dependabot: Auto-merge"
+name: Dependabot
 on:
   pull_request:
     branches:
@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  dependabot:
+  auto-merge:
     runs-on: ubuntu-latest
     if: ${{ github.actor == 'dependabot[bot]' }}
     permissions:
