@@ -22,10 +22,19 @@ jobs:
   build:
     permissions:
       packages: write
+      pull-requests: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
       - uses: gradle/wrapper-validation-action@56b90f209b02bf6d1deae490e9ef18b21a389cd4 # v1.1.0
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v3
+        with:
+          comment-summary-in-pr: true
+          # Think carefully about the implications of adding dependencies with new licence types.
+          # Licence ids: https://spdx.org/licenses/
+          # License risks: https://brainhub.eu/library/open-source-licenses-to-avoid
+          allow-licenses: Apache-2.0, MIT
       - name: Fetch version history
         # Do NOT want to fetch all tags if building a specific tag.
         # Doing so could result in code published with wrong version, if newer tags have been pushed
