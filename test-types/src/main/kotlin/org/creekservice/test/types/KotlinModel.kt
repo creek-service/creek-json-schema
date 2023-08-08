@@ -16,12 +16,23 @@
 
 package org.creekservice.test.types
 
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.kjetland.jackson.jsonSchema.annotations.JsonSchemaDefault
 import org.creekservice.api.base.annotation.schema.GeneratesSchema
 
 @Suppress("unused")
 @GeneratesSchema
-class KotlinModel {
-    fun getProp1(): String? {return null;}
+class KotlinModel(
+    @get:JsonProperty(defaultValue = PROP3_DEFAULT_VAL) val prop3: String = PROP3_DEFAULT_VAL
+) {
 
+    companion object {
+        const val PROP3_DEFAULT_VAL = "another default"
+    }
+
+    @JsonProperty(required = true)
+    fun getProp1(): String {return "";}
+
+    @JsonSchemaDefault("a default value")
     var prop2: String? = null
 }
