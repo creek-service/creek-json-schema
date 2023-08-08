@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Creek Contributors (https://github.com/creek-service)
+ * Copyright 2023 Creek Contributors (https://github.com/creek-service)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,19 @@
 
 package org.creekservice.test.types;
 
-import java.util.Optional;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.creekservice.api.base.annotation.schema.GeneratesSchema;
 
 @SuppressWarnings("unused") // Invoked via reflection
 @GeneratesSchema
-public class SimpleModel {
-    public int getIntProp() {
-        return 0;
+public final class RequireModel {
+
+    public String getOptionalProp() {
+        return "";
     }
 
-    public Optional<String> getStringProp() {
-        return Optional.empty();
+    @JsonProperty(required = true)
+    public String getRequiredProp() {
+        return "";
     }
 }

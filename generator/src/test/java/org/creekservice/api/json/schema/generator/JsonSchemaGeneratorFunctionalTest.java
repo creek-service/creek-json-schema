@@ -72,9 +72,7 @@ class JsonSchemaGeneratorFunctionalTest {
     @AfterAll
     static void afterAll() {
         final Set<Path> expected =
-                TestPaths.listDirectory(EXPECTED_SCHEMA_DIR)
-                        .map(Path::getFileName)
-                        .collect(Collectors.toUnmodifiableSet());
+                expectedSchema().map(Path::getFileName).collect(Collectors.toUnmodifiableSet());
 
         final Set<Path> actual =
                 TestPaths.listDirectory(outputDir)
