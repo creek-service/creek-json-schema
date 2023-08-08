@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   analyze:
-    name: Analyze
+    if: ${{ github.run_number != 1 }}
     runs-on: ubuntu-latest
     permissions:
       actions: read
