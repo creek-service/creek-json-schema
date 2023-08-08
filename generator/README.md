@@ -3,10 +3,10 @@
 
 A command line tool for generating JSON schemas from code.
 
-## Executing the schema generator
-
 > ## NOTE
 > There is a [Gradle plugin][1] for generating JSON schemas as part of your build process.
+
+## Executing the schema generator
 
 The schema generator is designed to be run from build plugins, like the [Creek Schema Gradle Plugin][1].
 However, it can be run directly as a command line tool:
@@ -47,13 +47,13 @@ For example:
 ```java
 @GeneatesSchema
 public class SimpleModel {
-    public int getIntProp() {
-        // ...
-    }
-    
-    public String getStringProp() {
-        // ...
-    }
+   public int getIntProp() {
+      // ...
+   }
+
+   public Optional<String> getStringProp() {
+      // ...
+   }
 }
 ```
 
@@ -75,14 +75,28 @@ required:
 - intProp
 ```
 
-Properties for both the getters have been included in the above schema, and the integer property is marked as required
-as the return value from the getter can not be null.
+Properties for both the getters have been included in the above schema. 
+
+The integer property is marked as required, as primitive types can't be `null`.
+
+The string property is not marked as required, as non-primitive types can be null. 
+However, the schema intentionally does not allow the string property to be explicitly set to `null`.
+Instead, the JSON that omits the string property is valid.
+
+> ## NOTE
+> It is important to ensure properties with `null` values are excluded when serialising data to JSON.
+> Failure to do so may result in schema validation failure.
+
+It is recommended, but not required by the plugin, to use the `Optional` standard Java type for optional properties. 
+
+Non-primitive properties can be marked required using [Jackson annotations](#jackson-annotations).
 
 ### Type mapping
 
 As you can see from the simple model example above, the generator automatically converts some standard Java types 
-to their JSON schema counterparts. The generator will also leverage the [JSON Schema's `format` specifier][5] for
-the some types and formats some others as multi-property objects:
+to their JSON schema counterparts. 
+
+The generator will also leverage the [JSON Schema's `format` specifier][5] to convert the types below:
 
 | Java type       | Schema Type                                                                                                                 | 
 |-----------------|-----------------------------------------------------------------------------------------------------------------------------|
@@ -333,7 +347,9 @@ definitions:
       - '@type'
 ```
 
-## JsonSchema Annotations
+This behavior can be customised. See the [type scanning](#type-scanning) section for more information.
+
+### JsonSchema Annotations
 
 The generator also supports the [JsonSchema annotations][3]. These allow much more control of the generated schema, 
 including allowing for arbitrary schema elements to be injected.
@@ -441,7 +457,7 @@ properties:
     type: string
 ```
 
-## Type Scanning
+### Type Scanning
 
 The generator scans the class path to: 
 
@@ -460,7 +476,7 @@ and `--type-scanning-allowed-package` command line parameters. Subtype scanning 
 the `--subtype-scanning-allowed-module` and `--subtype-scanning-allowed-package` command line parameters. All of these
 parameters can be specified multiple times on the command line to add multiple allowed module or package names.
 
-### Running under JPMS
+#### Running under JPMS
 
 When running under JPMS, Java Platform Modular System, it is necessary to `export` all packages contained 
 `@GeneratesSchema` annotated types to `com.fasterxml.jackson.databind`. This is required to allow [Jackson][4] to work 
