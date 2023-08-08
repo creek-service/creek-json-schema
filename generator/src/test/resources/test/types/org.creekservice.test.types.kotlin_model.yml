@@ -9,3 +9,9 @@ properties:
     type: string
   prop2:
     type: string
+    default: a default value
+  prop3:
+    type: string
+    default: another default
+required:
+- prop1

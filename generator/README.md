@@ -434,10 +434,19 @@ The generator should work with any JVM based language, for example here's a Kotl
 ##### [KotlinModel Java Class](../test-types/src/main/kotlin/org/creekservice/test/types/KotlinModel.kt)
 ```kotlin
 @GeneratesSchema
-class KotlinModel {
-    fun getProp1(): String? {return null;}
+class KotlinModel(
+   @get:JsonProperty(defaultValue = PROP3_DEFAULT_VAL) val prop3: String = PROP3_DEFAULT_VAL
+) {
 
-    var prop2: String? = null
+   companion object {
+      const val PROP3_DEFAULT_VAL = "another default"
+   }
+
+   @JsonProperty(required = true)
+   fun getProp1(): String {return "";}
+
+   @JsonSchemaDefault("a default value")
+   var prop2: String? = null
 }
 ```
 
@@ -451,10 +460,16 @@ title: Kotlin Model
 type: object
 additionalProperties: false
 properties:
-  prop1:
-    type: string
-  prop2:
-    type: string
+   prop1:
+      type: string
+   prop2:
+      type: string
+      default: a default value
+   prop3:
+      type: string
+      default: another default
+required:
+   - prop1
 ```
 
 ### Type Scanning
