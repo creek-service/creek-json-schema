@@ -1,0 +1,37 @@
+name: Dependencies
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ "v*.*.*" ]
+  schedule:
+    - cron: "39 5 1,15 * *"
+  pull_request:
+    branches: [ main ]
+
+permissions: read-all
+
+jobs:
+  submit-dependencies:
+    permissions:
+      contents: write # required to submit dependencies report
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - uses: gradle/wrapper-validation-action@56b90f209b02bf6d1deae490e9ef18b21a389cd4 # v1.1.0
+      - name: Set up JDK
+        uses: actions/setup-java@cd89f46ac9d01407894225f350157564c9c7cee2 # v3.12.0
+        with:
+          java-version: '17'
+          distribution: 'adopt'
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@a4cf152f482c7ca97ef56ead29bf08bcd953284c # v2.7.0
+        with:
+          dependency-graph: generate-and-submit
+          gradle-home-cache-cleanup: true
+      - name: Generate dependency report
+        env:
+          DEPENDENCY_GRAPH_INCLUDE_CONFIGURATIONS: runtimeClasspath
+          DEPENDENCY_GRAPH_INCLUDE_PROJECTS: "^:(?!(buildSrc|test-)).*"
+        run: ./gradlew allDeps --configuration runtimeClasspath
+
