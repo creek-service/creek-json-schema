@@ -30,7 +30,8 @@ jobs:
           dependency-graph: generate-and-submit
           gradle-home-cache-cleanup: true
       - name: Generate dependency report
-        run: ./gradlew dependencies allDeps
-      - name: Generate dependency report for buildSrc
-        run: (cd buildSrc && ../gradlew dependencies)
+        env:
+          DEPENDENCY_GRAPH_INCLUDE_CONFIGURATIONS: runtimeClasspath
+          DEPENDENCY_GRAPH_INCLUDE_PROJECTS: "^:(?!(buildSrc|test-)).*"
+        run: ./gradlew allDeps --configuration runtimeClasspath
 
