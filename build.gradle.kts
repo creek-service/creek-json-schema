@@ -33,18 +33,18 @@ subprojects {
     extra.apply {
         set("creekVersion", "0.4.2-SNAPSHOT")
         set("spotBugsVersion", "4.7.3")         // https://mvnrepository.com/artifact/com.github.spotbugs/spotbugs-annotations
-        set("picoCliVersion", "4.7.4")          // https://mvnrepository.com/artifact/info.picocli/picocli
+        set("picoCliVersion", "4.7.5")          // https://mvnrepository.com/artifact/info.picocli/picocli
         set("jacksonVersion", "2.15.2")         // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations
         set("jsonSchemaVersion", "1.0.39")      // https://mvnrepository.com/artifact/com.kjetland/mbknor-jackson-jsonschema
-        set("classGraphVersion", "4.8.161")     // https://mvnrepository.com/artifact/io.github.classgraph/classgraph
-        set("kotlinVersion", "1.9.0")          // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-stdlib-common
+        set("classGraphVersion", "4.8.162")     // https://mvnrepository.com/artifact/io.github.classgraph/classgraph
+        set("kotlinVersion", "1.9.10")          // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-stdlib-common
         set("scalaVersion", "2.13.11")
 
         set("log4jVersion", "2.20.0")           // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
         set("guavaVersion", "32.1.2-jre")         // https://mvnrepository.com/artifact/com.google.guava/guava
         set("junitVersion", "5.10.0")            // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
         set("junitPioneerVersion", "2.0.1")     // https://mvnrepository.com/artifact/org.junit-pioneer/junit-pioneer
-        set("mockitoVersion", "5.4.0")         // https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter
+        set("mockitoVersion", "5.5.0")         // https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter
         set("hamcrestVersion", "2.2")           // https://mvnrepository.com/artifact/org.hamcrest/hamcrest-core
     }
 
