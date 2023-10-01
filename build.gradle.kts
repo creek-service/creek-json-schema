@@ -38,7 +38,7 @@ subprojects {
         set("jsonSchemaVersion", "1.0.39")      // https://mvnrepository.com/artifact/com.kjetland/mbknor-jackson-jsonschema
         set("classGraphVersion", "4.8.162")     // https://mvnrepository.com/artifact/io.github.classgraph/classgraph
         set("kotlinVersion", "1.9.10")          // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-stdlib-common
-        set("scalaVersion", "2.13.11")
+        set("scalaVersion", "2.13.12")
 
         set("log4jVersion", "2.20.0")           // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
         set("guavaVersion", "32.1.2-jre")         // https://mvnrepository.com/artifact/com.google.guava/guava
