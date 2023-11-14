@@ -40,7 +40,7 @@ subprojects {
         set("kotlinVersion", "1.9.20")          // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-stdlib-common
         set("scalaVersion", "2.13.12")
 
-        set("log4jVersion", "2.20.0")           // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
+        set("log4jVersion", "2.21.1")           // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
         set("guavaVersion", "32.1.3-jre")         // https://mvnrepository.com/artifact/com.google.guava/guava
         set("junitVersion", "5.10.0")            // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
         set("junitPioneerVersion", "2.1.0")     // https://mvnrepository.com/artifact/org.junit-pioneer/junit-pioneer
@@ -70,6 +70,7 @@ subprojects {
         // An old v1.x SLF4J impl as required by mbknor-jackson-jsonschema
         // Can be updated once https://github.com/mbknor/mbknor-jackson-jsonSchema/pull/172 is resolved:
         testRuntimeOnly("org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion")
+        testRuntimeOnly("org.slf4j:slf4j-api:2.0.9")
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
     }
 }
