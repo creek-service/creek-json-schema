@@ -70,7 +70,6 @@ subprojects {
         // An old v1.x SLF4J impl as required by mbknor-jackson-jsonschema
         // Can be updated once https://github.com/mbknor/mbknor-jackson-jsonSchema/pull/172 is resolved:
         testRuntimeOnly("org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion")
-        testRuntimeOnly("org.slf4j:slf4j-api:2.0.9")
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
     }
 }

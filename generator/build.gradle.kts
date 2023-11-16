@@ -44,6 +44,7 @@ dependencies {
     // An old v1.x SLF4J impl as required by mbknor-jackson-jsonschema
     // Can be updated once https://github.com/mbknor/mbknor-jackson-jsonSchema/pull/172 is resolved:
     implementation("org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion")
+    runtimeOnly("org.slf4j:slf4j-api:2.0.9")
 
     // The following are set to bring in dependency versions beyond known security vulnerabilities:
     // The following can be removed once https://github.com/mbknor/mbknor-jackson-jsonSchema/issues/174 is resolved:
