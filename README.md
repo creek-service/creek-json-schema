@@ -16,5 +16,10 @@ See [CreekService.org](https://www.creekservice.org) for info on Creek Service.
 
 ## Modules in this repo
 
+### Published jars:
+
 * **[generator](generator)** [[JavaDocs](https://javadoc.io/doc/org.creekservice/creek-json-schema-generator)]: a command line tool used to generate JSON schemas from code.
 
+### Internal models
+
+* **[test-types](test-types)**: contains types used internally by this repo for testing.

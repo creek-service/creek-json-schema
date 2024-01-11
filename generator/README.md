@@ -81,11 +81,18 @@ The integer property is marked as required, as primitive types can't be `null`.
 
 The string property is not marked as required, as non-primitive types can be null. 
 However, the schema intentionally does not allow the string property to be explicitly set to `null`.
-Instead, the JSON that omits the string property is valid.
+(Defaults in Creek encourage developers away from using `null` values).
+Instead, any JSON that omits the string property is valid, 
+i.e. rather than setting `stringProp` to `null` if it's not provided, the `stringProp` property should just not be set.
+
+While Creek strongly recommends avoiding the use of `null` in JSON documents, just as it recommends avoiding `null` in 
+Java code, it is still possible to build a schema that accepts `null` values. 
+See [allowing `null` values](#allowing-null-values) for more info.
 
 > ## NOTE
 > It is important to ensure properties with `null` values are excluded when serialising data to JSON.
 > Failure to do so may result in schema validation failure.
+> Creek's own serializers do this by default.
 
 It is recommended, but not required by the plugin, to use the `Optional` standard Java type for optional properties. 
 
@@ -506,6 +513,44 @@ module acme.model {
     exports acme.finance.model to com.fasterxml.jackson.databind;
 }
 ```
+
+### Allowing `null` values
+
+While Creek strongly recommends avoid `null`s in JSON documents, just as in code, it can support `null`s. 
+These are sometimes required when integrating with a 3rd-party system, which does not itself define a schema.
+
+The `@JsonSchemaInject` annotation can be used to inject arbitrary JSON into the schema, and can be used to allow 
+`null` values.
+
+For example, the following `Model` type has a `foo` property annotated to explicitly allow either `string` or `null`
+types:
+
+```java
+@GeneratesSchema
+class Model {
+ 
+   @JsonSchemaInject(json = "{\"type\": [\"null\", \"string\"]}")
+   public Optional<String> getFoo() {
+      return s;
+   }
+
+   //...
+}
+```
+      
+The above will generate a schema with the `foo` property defined as:
+
+```json
+{
+   "foo": {
+      "type": [
+         "null",
+         "string"
+      ]
+   }
+}
+```
+Meaning, documents can have `foo` set to either a string or `null` value.
 
 [1]: https://github.com/creek-service/creek-json-schema-gradle-plugin
 [2]: src/main/java/org/creekservice/api/json/schema/generator/JsonSchemaGenerator.java
