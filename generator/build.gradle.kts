@@ -41,9 +41,10 @@ dependencies {
     implementation("com.kjetland:mbknor-jackson-jsonschema_2.13:$jsonSchemaVersion")
     implementation("io.github.classgraph:classgraph:$classGraphVersion")
     implementation("org.apache.logging.log4j:log4j-core:$log4jVersion")
-    // An old v1.x SLF4J impl as required by mbknor-jackson-jsonschema
-    // Can be updated once https://github.com/mbknor/mbknor-jackson-jsonSchema/pull/172 is resolved:
-    implementation("org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion")
+    implementation("org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion") {
+        because("An old v1.x SLF4J impl is required by mbknor-jackson-jsonschema" +
+                "until https://github.com/mbknor/mbknor-jackson-jsonSchema/pull/172 is resolved:")
+    }
     implementation("org.slf4j:slf4j-api:1.7.36")
 
     // The following are set to bring in dependency versions beyond known security vulnerabilities:
