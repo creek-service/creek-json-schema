@@ -62,7 +62,7 @@ public final class SchemaWriter {
                     type.getCanonicalName() == null
                             ? type.getSimpleName()
                             : type.getCanonicalName();
-            LOGGER.info("Wrote {}'s schema to {}", name, path);
+            LOGGER.info("Wrote {}'s schema to {}", name, path.toUri());
         } catch (final Exception e) {
             throw new GenerateSchemaException("Failed to write schema for " + type, e);
         }
