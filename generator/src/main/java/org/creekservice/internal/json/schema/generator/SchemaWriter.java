@@ -18,15 +18,14 @@ package org.creekservice.internal.json.schema.generator;
 
 import static java.util.Objects.requireNonNull;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.creekservice.api.base.type.schema.GeneratedSchemas;
 
-/** Writes schema to a file */
+/** Writes schema to a YAML file */
 public final class SchemaWriter {
 
     private static final Logger LOGGER = LogManager.getLogger(SchemaWriter.class);
@@ -48,7 +47,8 @@ public final class SchemaWriter {
     public void write(final JsonSchema<?> schema) {
         final Class<?> type = schema.type();
         try {
-            final Path fileName = schemaFileName(type);
+            final Path fileName =
+                    GeneratedSchemas.schemaFileName(type, GeneratedSchemas.yamlExtension());
             final Path path = outputDir.resolve(fileName);
 
             final Path parent = path.getParent();
@@ -66,18 +66,6 @@ public final class SchemaWriter {
         } catch (final Exception e) {
             throw new GenerateSchemaException("Failed to write schema for " + type, e);
         }
-    }
-
-    @SuppressFBWarnings(value = "PATH_TRAVERSAL_IN", justification = "False positive")
-    private static Path schemaFileName(final Class<?> type) {
-        final String name =
-                type.getName()
-                        .replaceAll("([A-Z])", "_$1")
-                        .replaceFirst("_", "")
-                        .replaceAll("\\$_", "\\$")
-                        .toLowerCase();
-
-        return Paths.get(name + ".yml");
     }
 
     private static class GenerateSchemaException extends RuntimeException {
