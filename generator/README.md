@@ -228,12 +228,12 @@ For example:
 @GeneratesSchema
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = SubType1.class, name = "type_1"),
-        @JsonSubTypes.Type(value = SubType2.class, name = "type_2")
+        @JsonSubTypes.Type(value = ExplicitlyNamedType.class, name = "type_1"),
+        @JsonSubTypes.Type(value = ImplicitlyNamedType.class)
 })
 public interface PolymorphicModel {}
 
-public class SubType1 implements PolymorphicModel {
+public class ExplicitlyNamedType implements PolymorphicModel {
     public String getProp1() {
         // ...
     }
@@ -254,8 +254,8 @@ private class SubType2 implements PolymorphicModel {
 $schema: http://json-schema.org/draft-07/schema#
 title: Polymorphic Model
 oneOf:
-  - $ref: '#/definitions/SubType1'
-  - $ref: '#/definitions/SubType2'
+  - $ref: '#/definitions/ExplicitlyNamedType'
+  - $ref: '#/definitions/ImplicitlyNamedType'
 definitions:
   SubType1:
     type: object
@@ -278,11 +278,11 @@ definitions:
       '@type':
         type: string
         enum:
-          - type_2
-        default: type_2
+          - ImplicitlyNamedType
+        default: ImplicitlyNamedType
       prop2:
         type: string
-    title: type_2
+    title: ImplicitlyNamedType
     required:
       - '@type'
 ```
@@ -290,7 +290,7 @@ definitions:
 ##### Subtype discovery
 
 The generator will search the class and module paths for subtypes of any polymorphic types that are annotated without 
-a  `@JsonSubTypes` annotation to define explicit subtypes.
+a  `@JsonSubTypes` annotation to define explicit subtypes, using [ClassGraph](https://github.com/classgraph/classgraph).
 
 For example:
 
@@ -300,6 +300,7 @@ For example:
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
 public interface Thing {}
 
+@JsonTypeName("big")
 public class BigThing implements Thing {
     public String getProp1() {
         // ...
@@ -322,7 +323,7 @@ $schema: http://json-schema.org/draft-07/schema#
 title: Thing
 oneOf:
   - $ref: '#/definitions/SmallThing'
-  - $ref: '#/definitions/BigThing'
+  - $ref: '#/definitions/big'
 definitions:
   SmallThing:
     type: object
@@ -331,10 +332,10 @@ definitions:
       '@type':
         type: string
         enum:
-          - small
-        default: small
+          - SmallThing
+        default: SmallThing
       prop2:
-        type: string
+        type: SmallThing
     title: small
     required:
       - '@type'

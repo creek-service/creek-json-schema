@@ -18,20 +18,18 @@ package org.creekservice.internal.json.schema.generator;
 
 import static java.lang.System.lineSeparator;
 import static java.util.Objects.requireNonNull;
-import static org.creekservice.api.base.schema.naming.SubTypeNaming.subTypeName;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.databind.jsontype.NamedType;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.kjetland.jackson.jsonSchema.JsonSchemaGenerator;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.stream.Stream;
+import java.util.Set;
 import org.creekservice.api.base.annotation.VisibleForTesting;
 import org.creekservice.api.base.type.temporal.Clock;
 import org.creekservice.api.json.schema.generator.GeneratorOptions.TypeScanningSpec;
@@ -74,7 +72,8 @@ public final class SchemaGenerator {
      */
     public void registerSubTypes(final Collection<Class<?>> types) {
         PolymorphicTypes.findPolymorphicTypes(types, subtypeScanning, mapper).stream()
-                .flatMap(this::namedTypes)
+                .map(PolymorphicTypes.PolymorphicType::subTypes)
+                .flatMap(Set::stream)
                 .forEach(mapper::registerSubtypes);
     }
 
@@ -95,11 +94,6 @@ public final class SchemaGenerator {
             throw new SchemaGeneratorException(
                     "Failed to generate schema for " + type.getCanonicalName(), e);
         }
-    }
-
-    private <T> Stream<NamedType> namedTypes(final PolymorphicTypes.PolymorphicType<T> polyType) {
-        return polyType.subTypes().stream()
-                .map(subType -> new NamedType(subType, subTypeName(subType, polyType.type())));
     }
 
     private String injectVersionTimestamp(final String yaml) {

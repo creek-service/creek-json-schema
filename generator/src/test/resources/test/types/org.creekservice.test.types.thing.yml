@@ -4,7 +4,7 @@ $schema: http://json-schema.org/draft-07/schema#
 title: Thing
 oneOf:
 - $ref: '#/definitions/SmallThing'
-- $ref: '#/definitions/BigThing'
+- $ref: '#/definitions/big'
 definitions:
   SmallThing:
     type: object
@@ -13,14 +13,14 @@ definitions:
       '@type':
         type: string
         enum:
-        - small
-        default: small
+        - Thing$SmallThing
+        default: Thing$SmallThing
       prop2:
         type: string
-    title: small
+    title: Thing$SmallThing
     required:
     - '@type'
-  BigThing:
+  big:
     type: object
     additionalProperties: false
     properties:
