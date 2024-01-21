@@ -17,6 +17,7 @@
 package org.creekservice.test.types;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.creekservice.api.base.annotation.schema.GeneratesSchema;
 
 @SuppressWarnings("unused") // Invoked via reflection
@@ -24,6 +25,7 @@ import org.creekservice.api.base.annotation.schema.GeneratesSchema;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
 public interface Thing {
 
+    @JsonTypeName("big")
     class BigThing implements Thing {
         public String getProp1() {
             return null;

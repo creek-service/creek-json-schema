@@ -20,6 +20,7 @@ import static com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import static java.lang.System.lineSeparator;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.startsWith;
@@ -28,6 +29,9 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.kjetland.jackson.jsonSchema.annotations.JsonSchemaDescription;
 import com.kjetland.jackson.jsonSchema.annotations.JsonSchemaFormat;
 import com.kjetland.jackson.jsonSchema.annotations.JsonSchemaInject;
@@ -61,8 +65,10 @@ import org.mockito.quality.Strictness;
 class SchemaGeneratorTest {
 
     private Instant now = Instant.now();
-    private SchemaGenerator generator;
     @Mock private TypeScanningSpec subtypeScanning;
+
+    private ObjectMapper mapper;
+    private SchemaGenerator generator;
 
     @BeforeEach
     void setUp() {
@@ -71,6 +77,7 @@ class SchemaGeneratorTest {
                 .thenReturn(Set.of(SchemaGeneratorTest.class.getPackageName()));
 
         generator = new SchemaGenerator(subtypeScanning, () -> now);
+        mapper = JsonMapper.builder().build();
     }
 
     @Test
@@ -279,33 +286,6 @@ class SchemaGeneratorTest {
     }
 
     @Test
-    void shouldIncludeImplicitSubTypesIfIncludedAndUsingIdTypeName() {
-        // Given:
-        @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
-        class BaseType {}
-
-        class SubType1 extends BaseType {}
-
-        class SubType2 extends BaseType {}
-
-        generator.registerSubTypes(List.of(BaseType.class));
-
-        // When:
-        final JsonSchema<BaseType> result = generator.generateSchema(BaseType.class);
-
-        // Then:
-        assertThat(
-                result.text(),
-                containsString(
-                        ""
-                                + "oneOf:"
-                                + lineSeparator()
-                                + "- $ref: '#/definitions/SubType1'"
-                                + lineSeparator()
-                                + "- $ref: '#/definitions/SubType2'"));
-    }
-
-    @Test
     void shouldNotIncludeImplicitSubTypesIfInDifferentModule() {
         // Given:
         when(subtypeScanning.moduleWhiteList()).thenReturn(Set.of("different.module"));
@@ -344,26 +324,18 @@ class SchemaGeneratorTest {
     }
 
     @Test
-    void shouldIncludeExplicitSubTypesRegardlessOfFilters() {
+    void shouldIncludeExplicitSubTypesRegardlessOfFilters() throws Exception {
         // Given:
         when(subtypeScanning.moduleWhiteList()).thenReturn(Set.of("different.module"));
         when(subtypeScanning.packageWhiteList()).thenReturn(Set.of("different.package"));
 
-        @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
-        @JsonSubTypes({
-            @Type(value = Model.SubType2.class, name = "sub1"),
-            @Type(value = Model.SubType1.class, name = "sub2")
-        })
-        class Model {
-            class SubType1 extends Model {}
-
-            class SubType2 extends Model {}
-
-            class IgnoredAsNotInTheList extends Model {}
-        }
+        final String explicitType = "the-explicit-name";
+        final String implicitType =
+                "SchemaGeneratorTest$TypeWithExplicitPolymorphism$ImplicitlyNamed";
 
         // When:
-        final JsonSchema<Model> result = generator.generateSchema(Model.class);
+        final JsonSchema<TypeWithExplicitPolymorphism> result =
+                generator.generateSchema(TypeWithExplicitPolymorphism.class);
 
         // Then:
         assertThat(
@@ -372,24 +344,131 @@ class SchemaGeneratorTest {
                         ""
                                 + "oneOf:"
                                 + lineSeparator()
-                                + "- $ref: '#/definitions/SubType2'"
+                                + "- $ref: '#/definitions/ExplicitlyNamed'"
                                 + lineSeparator()
-                                + "- $ref: '#/definitions/SubType1'"));
+                                + "- $ref: '#/definitions/ImplicitlyNamed'"));
 
-        assertThat(result.text(), containsString("default: sub1"));
-        assertThat(result.text(), containsString("default: sub2"));
+        assertThat(result.text(), containsString("default: " + explicitType));
+        assertThat(result.text(), containsString("default: " + implicitType));
+
+        assertThat(result.text().toLowerCase(), not(containsString("ignored")));
+
+        // Should align with Jackson:
+        final String explicitJson =
+                mapper.writeValueAsString(new TypeWithExplicitPolymorphism.ExplicitlyNamed());
+        final String implicitJson =
+                mapper.writeValueAsString(new TypeWithExplicitPolymorphism.ImplicitlyNamed());
+        assertThat(explicitJson, is("{\"@type\":\"" + explicitType + "\"}"));
+        assertThat(implicitJson, is("{\"@type\":\"" + implicitType + "\"}"));
+        assertThat(
+                mapper.readValue(explicitJson, TypeWithExplicitPolymorphism.class),
+                is(instanceOf(TypeWithExplicitPolymorphism.ExplicitlyNamed.class)));
+        assertThat(
+                mapper.readValue(implicitJson, TypeWithExplicitPolymorphism.class),
+                is(instanceOf(TypeWithExplicitPolymorphism.ImplicitlyNamed.class)));
     }
 
     @Test
-    void shouldIncludeImplicitSubTypesIfIncludedAndNotUsingIdTypeName() {
+    void shouldIncludeImplicitSubTypesUsingTypeName() throws Exception {
         // Given:
-        @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
-        class BaseType {}
-        class SubType1 extends BaseType {}
-        class SubType2 extends BaseType {}
+        generator.registerSubTypes(List.of(TypeWithImplicitPolymorphism.class));
+
+        mapper.registerSubtypes(TypeWithImplicitPolymorphism.ExplicitlyNamed.class);
+        mapper.registerSubtypes(TypeWithImplicitPolymorphism.ImplicitlyNamed.class);
+
+        final String implicitType =
+                "SchemaGeneratorTest$TypeWithImplicitPolymorphism$ImplicitlyNamed";
+        final String explicitType = "the-explicit-name";
 
         // When:
-        final JsonSchema<BaseType> result = generator.generateSchema(BaseType.class);
+        final JsonSchema<TypeWithImplicitPolymorphism> result =
+                generator.generateSchema(TypeWithImplicitPolymorphism.class);
+
+        // Then:
+        assertThat(
+                result.text(),
+                containsString(
+                        ""
+                                + "oneOf:"
+                                + lineSeparator()
+                                + "- $ref: '#/definitions/ImplicitlyNamed'"
+                                + lineSeparator()
+                                + "- $ref: '#/definitions/"
+                                + explicitType
+                                + "'"));
+
+        assertThat(result.text(), containsString("default: " + explicitType));
+        assertThat(result.text(), containsString("default: " + implicitType));
+
+        // Should align with Jackson:
+        final String explicitJson =
+                mapper.writeValueAsString(new TypeWithImplicitPolymorphism.ExplicitlyNamed());
+        final String implicitJson =
+                mapper.writeValueAsString(new TypeWithImplicitPolymorphism.ImplicitlyNamed());
+        assertThat(explicitJson, is("{\"@type\":\"" + explicitType + "\"}"));
+        assertThat(implicitJson, is("{\"@type\":\"" + implicitType + "\"}"));
+        assertThat(
+                mapper.readValue(explicitJson, TypeWithImplicitPolymorphism.class),
+                is(instanceOf(TypeWithImplicitPolymorphism.ExplicitlyNamed.class)));
+        assertThat(
+                mapper.readValue(implicitJson, TypeWithImplicitPolymorphism.class),
+                is(instanceOf(TypeWithImplicitPolymorphism.ImplicitlyNamed.class)));
+    }
+
+    @Test
+    void shouldIncludeImplicitSubTypesUsingSimpleName() throws Exception {
+        // Given:
+        generator.registerSubTypes(List.of(TypeWithImplicitSimplePolymorphism.class));
+
+        mapper.registerSubtypes(TypeWithImplicitSimplePolymorphism.ExplicitlyNamed.class);
+        mapper.registerSubtypes(TypeWithImplicitSimplePolymorphism.ImplicitlyNamed.class);
+
+        final String implicitType =
+                TypeWithImplicitSimplePolymorphism.ImplicitlyNamed.class.getSimpleName();
+        final String explicitType = "the-explicit-name";
+
+        // When:
+        final JsonSchema<TypeWithImplicitSimplePolymorphism> result =
+                generator.generateSchema(TypeWithImplicitSimplePolymorphism.class);
+
+        // Then:
+        assertThat(
+                result.text(),
+                containsString(
+                        ""
+                                + "oneOf:"
+                                + lineSeparator()
+                                + "- $ref: '#/definitions/"
+                                + explicitType
+                                + "'"
+                                + lineSeparator()
+                                + "- $ref: '#/definitions/ImplicitlyNamed'"));
+
+        assertThat(result.text(), containsString("default: " + explicitType));
+        assertThat(result.text(), containsString("default: " + implicitType));
+
+        // Should align with Jackson:
+        final String explicitJson =
+                mapper.writeValueAsString(new TypeWithImplicitSimplePolymorphism.ExplicitlyNamed());
+        final String implicitJson =
+                mapper.writeValueAsString(new TypeWithImplicitSimplePolymorphism.ImplicitlyNamed());
+        assertThat(explicitJson, is("{\"@type\":\"" + explicitType + "\"}"));
+        assertThat(implicitJson, is("{\"@type\":\"" + implicitType + "\"}"));
+        assertThat(
+                mapper.readValue(explicitJson, TypeWithImplicitSimplePolymorphism.class),
+                is(instanceOf(TypeWithImplicitSimplePolymorphism.ExplicitlyNamed.class)));
+        assertThat(
+                mapper.readValue(implicitJson, TypeWithImplicitSimplePolymorphism.class),
+                is(instanceOf(TypeWithImplicitSimplePolymorphism.ImplicitlyNamed.class)));
+    }
+
+    @Test
+    void shouldIncludeImplicitSubTypesUsingClass() throws Exception {
+        // When:
+        final JsonSchema<TypeWithClassPolymorphism> result =
+                generator.generateSchema(TypeWithClassPolymorphism.class);
+        final String explicitClass = TypeWithClassPolymorphism.ExplicitlyNamed.class.getName();
+        final String implicitClass = TypeWithClassPolymorphism.ImplicitlyNamed.class.getName();
 
         // Then:
         assertThat(
@@ -397,9 +476,64 @@ class SchemaGeneratorTest {
                 containsString(
                         "oneOf:"
                                 + lineSeparator()
-                                + "- $ref: '#/definitions/SubType2'"
+                                + "- $ref: '#/definitions/the-explicit-name'"
                                 + lineSeparator()
-                                + "- $ref: '#/definitions/SubType1'"));
+                                + "- $ref: '#/definitions/ImplicitlyNamed'"));
+
+        assertThat(result.text(), containsString("default: " + explicitClass));
+        assertThat(result.text(), containsString("default: " + implicitClass));
+
+        // Should align with Jackson:
+        final String explicitJson =
+                mapper.writeValueAsString(new TypeWithClassPolymorphism.ExplicitlyNamed());
+        final String implicitJson =
+                mapper.writeValueAsString(new TypeWithClassPolymorphism.ImplicitlyNamed());
+        assertThat(explicitJson, is("{\"@class\":\"" + explicitClass + "\"}"));
+        assertThat(implicitJson, is("{\"@class\":\"" + implicitClass + "\"}"));
+        assertThat(
+                mapper.readValue(explicitJson, TypeWithClassPolymorphism.class),
+                is(instanceOf(TypeWithClassPolymorphism.ExplicitlyNamed.class)));
+        assertThat(
+                mapper.readValue(implicitJson, TypeWithClassPolymorphism.class),
+                is(instanceOf(TypeWithClassPolymorphism.ImplicitlyNamed.class)));
+    }
+
+    @Test
+    void shouldIncludeImplicitSubTypesUsingMinimalClass() throws Exception {
+        // When:
+        final JsonSchema<TypeWithMinimalClassPolymorphism> result =
+                generator.generateSchema(TypeWithMinimalClassPolymorphism.class);
+        final String explicitClass =
+                ".SchemaGeneratorTest$TypeWithMinimalClassPolymorphism$ExplicitlyNamed";
+        final String implicitClass =
+                ".SchemaGeneratorTest$TypeWithMinimalClassPolymorphism$ImplicitlyNamed";
+
+        // Then:
+        assertThat(
+                result.text(),
+                containsString(
+                        "oneOf:"
+                                + lineSeparator()
+                                + "- $ref: '#/definitions/the-explicit-name'"
+                                + lineSeparator()
+                                + "- $ref: '#/definitions/ImplicitlyNamed'"));
+
+        assertThat(result.text(), containsString("default: " + explicitClass));
+        assertThat(result.text(), containsString("default: " + implicitClass));
+
+        // Should align with Jackson:
+        final String explicitJson =
+                mapper.writeValueAsString(new TypeWithMinimalClassPolymorphism.ExplicitlyNamed());
+        final String implicitJson =
+                mapper.writeValueAsString(new TypeWithMinimalClassPolymorphism.ImplicitlyNamed());
+        assertThat(explicitJson, is("{\"@c\":\"" + explicitClass + "\"}"));
+        assertThat(implicitJson, is("{\"@c\":\"" + implicitClass + "\"}"));
+        assertThat(
+                mapper.readValue(explicitJson, TypeWithMinimalClassPolymorphism.class),
+                is(instanceOf(TypeWithMinimalClassPolymorphism.ExplicitlyNamed.class)));
+        assertThat(
+                mapper.readValue(implicitJson, TypeWithMinimalClassPolymorphism.class),
+                is(instanceOf(TypeWithMinimalClassPolymorphism.ImplicitlyNamed.class)));
     }
 
     @Test
@@ -437,9 +571,9 @@ class SchemaGeneratorTest {
                                 + lineSeparator()
                                 + "        enum:"
                                 + lineSeparator()
-                                + "        - sub_type1"
+                                + "        - SchemaGeneratorTest$3SubType1"
                                 + lineSeparator()
-                                + "        default: sub_type1"
+                                + "        default: SchemaGeneratorTest$3SubType1"
                                 + lineSeparator()
                                 + "      a:"
                                 + lineSeparator()
@@ -456,9 +590,9 @@ class SchemaGeneratorTest {
                                 + lineSeparator()
                                 + "        enum:"
                                 + lineSeparator()
-                                + "        - sub_type2"
+                                + "        - SchemaGeneratorTest$1SubType2"
                                 + lineSeparator()
-                                + "        default: sub_type2"
+                                + "        default: SchemaGeneratorTest$1SubType2"
                                 + lineSeparator()
                                 + "      b:"
                                 + lineSeparator()
@@ -730,5 +864,54 @@ class SchemaGeneratorTest {
                                 + "    - nanos"
                                 + lineSeparator()
                                 + "    - seconds"));
+    }
+
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
+    @JsonSubTypes({
+        // With explicit logical name:
+        @Type(
+                value = TypeWithExplicitPolymorphism.ExplicitlyNamed.class,
+                name = "the-explicit-name"),
+        // With  implicit logical name:
+        @Type(value = TypeWithExplicitPolymorphism.ImplicitlyNamed.class)
+    })
+    public static class TypeWithExplicitPolymorphism {
+        public static class ExplicitlyNamed extends TypeWithExplicitPolymorphism {}
+
+        public static class ImplicitlyNamed extends TypeWithExplicitPolymorphism {}
+
+        public static class IgnoredAsNotInTheList extends TypeWithExplicitPolymorphism {}
+    }
+
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
+    public static class TypeWithImplicitPolymorphism {
+        @JsonTypeName("the-explicit-name")
+        public static class ExplicitlyNamed extends TypeWithImplicitPolymorphism {}
+
+        public static class ImplicitlyNamed extends TypeWithImplicitPolymorphism {}
+    }
+
+    @JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME)
+    public static class TypeWithImplicitSimplePolymorphism {
+        @JsonTypeName("the-explicit-name")
+        public static class ExplicitlyNamed extends TypeWithImplicitSimplePolymorphism {}
+
+        public static class ImplicitlyNamed extends TypeWithImplicitSimplePolymorphism {}
+    }
+
+    @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
+    public static class TypeWithClassPolymorphism {
+        @JsonTypeName("the-explicit-name")
+        public static class ExplicitlyNamed extends TypeWithClassPolymorphism {}
+
+        public static class ImplicitlyNamed extends TypeWithClassPolymorphism {}
+    }
+
+    @JsonTypeInfo(use = JsonTypeInfo.Id.MINIMAL_CLASS)
+    public static class TypeWithMinimalClassPolymorphism {
+        @JsonTypeName("the-explicit-name")
+        public static class ExplicitlyNamed extends TypeWithMinimalClassPolymorphism {}
+
+        public static class ImplicitlyNamed extends TypeWithMinimalClassPolymorphism {}
     }
 }

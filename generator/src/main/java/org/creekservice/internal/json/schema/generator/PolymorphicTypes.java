@@ -158,7 +158,7 @@ final class PolymorphicTypes {
 
         // Visit subtypes:
         for (final Class<? extends T> subType : poly.subTypes()) {
-            // Optimisation: subtypes already found for parent, which is super set of sub type:
+            // Optimisation: subtypes already found for parent, which is super set of subtype:
             found.put(subType, new PolymorphicType<>(subType, Set.of()));
 
             visitType(subType);
@@ -168,7 +168,9 @@ final class PolymorphicTypes {
     @SuppressWarnings({"unchecked", "rawtypes"})
     private <T> List<Class<? extends T>> implementationsOf(final Class<T> type) {
         final JsonTypeInfo typeInfo = type.getAnnotation(JsonTypeInfo.class);
-        if (typeInfo == null || typeInfo.use() != JsonTypeInfo.Id.NAME) {
+        if (typeInfo == null
+                || (typeInfo.use() != JsonTypeInfo.Id.NAME
+                        && typeInfo.use() != JsonTypeInfo.Id.SIMPLE_NAME)) {
             // Not using registered types
             return List.of();
         }
