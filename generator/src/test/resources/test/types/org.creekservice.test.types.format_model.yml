@@ -5,23 +5,21 @@ title: Format Model
 type: object
 additionalProperties: false
 properties:
+  date:
+    type: string
+    format: date
   dateTime:
     type: string
     format: date-time
   instant:
-    $ref: '#/definitions/Instant'
+    type: string
+    format: date-time
+  period:
+    type: string
+    format: duration
+  time:
+    type: string
+    format: time
   uri:
     type: string
     format: uri
-definitions:
-  Instant:
-    type: object
-    additionalProperties: false
-    properties:
-      nanos:
-        type: integer
-      seconds:
-        type: integer
-    required:
-    - nanos
-    - seconds

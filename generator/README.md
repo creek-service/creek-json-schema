@@ -105,15 +105,43 @@ to their JSON schema counterparts.
 
 The generator will also leverage the [JSON Schema's `format` specifier][5] to convert the types below:
 
-| Java type       | Schema Type                                                                                                                 | 
-|-----------------|-----------------------------------------------------------------------------------------------------------------------------|
-| `URI`           | type: string <br> format: uri                                                                                               |
-| `UUID`          | type: string <br> format: uuid                                                                                              |
-| `LocalDate`     | type: string <br> format: date                                                                                              |
-| `LocalTime`     | type: string <br> format: time                                                                                              |
-| `LocalDateTime` | type: string <br> format: date-time                                                                                         |
-| `ZonedDateTime` | type: string <br> format: date-time                                                                                         |
-| `Instant`       | type: object <br> properties: <br>&nbsp;seconds <br>&nbsp;&nbsp; type: integer<br>&nbsp;nanos <br>&nbsp;&nbsp;type: integer |
+| Java type        | Schema Type                                               | 
+|------------------|-----------------------------------------------------------|
+| `URI`            | type: string <br> format: uri                             |
+| `UUID`           | type: string <br> format: uuid                            |
+| `OffsetTime`     | type: string <br> format: time                            |
+| `OffsetDateTime` | type: string <br> format: date-time                       |
+| `LocalDate`      | type: string <br> format: date                            |
+| `LocalTime`      | type: string <br> format: none <br> see note 1 below      |
+| `LocalDateTime`  | type: string <br> format: date-time                       |
+| `ZonedDateTime`  | type: string <br> format: date-time <br> see note 2 below |
+| `MonthDay`       | type: string <br> format: none <br> see note 3 below      |
+| `YearMonth`      | type: string <br> format: none <br> see note 3 below      |
+| `Year`           | type: string <br> format: none <br> see note 3 below      |
+| `Instant`        | type: string <br> format: date-time                       |
+| `Duration`       | type: number <br> format: none <br> see note 4 below      |
+| `Period`         | type: string <br> format: duration                        |
+
+**Note 1:** 
+`LocateTime` properties will be of type `string` in the generated schema, but will not have a `time` format set.
+This is because, Jackson serialization does not include an offset when serializing `LocalTime` and the `time` format requires an offset.
+For this reason, the use of `LocalTime` is discouraged: use `OffsetTime` instead.
+
+**Note 2:**
+`ZonedDateTime` properties will be of type `string` and a format of `date-time` in the generated schema.
+However, serialization of the textual zone information is not platform / language independent.
+Jackson does not serialize the zone information, only the offset information.
+The serialized form is the same as `OffsetDateTime`.
+For this reason, the use of `ZonedDateTime` is discouraged: use `OffsetDateTime` instead.
+
+**Note 3:**
+Properties of type `MonthDay`, `YearMonth` & `Year` will be of type `string`, but with no format, in the generated schema.
+Jackson will serialize these types as strings, assuming the `JavaTimeModule` module is installed.
+However, there is no defined JSON format to match these types.
+
+**Note 4:**
+`Duration` properties are serialized by Jackson as numbers, therefore the generated schema will define the property
+as type `number` with no format.
 
 For example:
 
@@ -129,7 +157,7 @@ public class FormatModel {
         // ...
     }
 
-    public ZonedDateTime getDateTime() { 
+    public OffsetDateTime getDateTime() { 
         // ...
     }
 }
@@ -149,23 +177,55 @@ properties:
     type: string
     format: date-time
   instant:
-    $ref: '#/definitions/Instant'
+     type: string
+     format: date-time
   uri:
     type: string
     format: uri
-definitions:
-  Instant:
-    type: object
-    additionalProperties: false
-    properties:
-      nanos:
-        type: integer
-      seconds:
-        type: integer
-    required:
-      - nanos
-      - seconds
 ```
+
+### Compatible Jackson configuration
+
+The above type mapping is not automatically compatible with Jackson's default JSON serialization.
+
+// The minimal configuration for Jackson is shown below:
+
+```java
+class Example {
+ JsonMapper mapper = JsonMapper.builder()
+        .addModule(new Jdk8Module()) // Note 1
+        .addModule(new JavaTimeModule()) // Note 2
+        .serializationInclusion(JsonInclude.Include.NON_EMPTY) // Note 3
+        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS) // Note 4
+        .disable(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE) // Note 5
+        .build();
+}
+```
+
+**Note 1:**
+The `Jdk8Module` is required if models include any optional JDK types, e.g. `Optional`, `OptionalLong` etc.
+
+**Note 2:**
+The `JavaTimeModule` is required if models include any temporal JDK types, e.g. `Instant`, `OffsetDateTime` etc.
+
+**Note 3:**
+The generated schema does not allow `null` values by default _by design_.
+Nulls are a common source of bugs and are best avoid in data, just like in code.
+As the generated schema doesn't allow `null` values, Jackson will need configuring to exclude properties
+with a `null` value. Setting serialization inclusion to `NON_EMPTY` will exclude properties with:
+ * a `null` value
+ * a `Optional.empty()` value
+ * or return a empty collection or array.
+
+See [Allowing null values](#allowing-null-values) if you _really_ want to allow nulls in your data.
+
+**Note 4:**
+The generated schema will map JDK temporal times, e.g. `OffsetDateTime`, to type `string` with an appropriate `format`.
+Jackson, by default, writes dates as timestamps. This feature must be disabled so dates are written as schema-compatible strings.
+
+**Note 5:**
+(Optional): If you require temporal types to maintain the serialized offset, disable `ADJUST_DATES_TO_CONTEXT_TIME_ZONE`.
+By default, Jackson will adjust temporal types to their local time equivalent when deserializing.
 
 ### Jackson Annotations
 
@@ -378,7 +438,7 @@ public final class JsonSchemaModel {
     // Add a description:
     @JsonSchemaDescription("This property has a text description.")
     public String getWithDescription() {
-        return null;
+        // ..
     }
 
     // Inject minLength requirement,  i.e. if supplied, it can't be empty:

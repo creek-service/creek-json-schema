@@ -18,7 +18,10 @@ package org.creekservice.test.types;
 
 import java.net.URI;
 import java.time.Instant;
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
+import java.time.Period;
 import org.creekservice.api.base.annotation.schema.GeneratesSchema;
 
 @SuppressWarnings("unused") // Invoked via reflection
@@ -32,7 +35,19 @@ public class FormatModel {
         return null;
     }
 
-    public ZonedDateTime getDateTime() {
+    public OffsetDateTime getDateTime() {
+        return null;
+    }
+
+    public LocalDate getDate() {
+        return null;
+    }
+
+    public OffsetTime getTime() {
+        return null;
+    }
+
+    public Period getPeriod() {
         return null;
     }
 }

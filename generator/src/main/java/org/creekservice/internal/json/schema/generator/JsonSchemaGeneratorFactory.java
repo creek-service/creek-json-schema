@@ -26,14 +26,22 @@ import com.kjetland.jackson.jsonSchema.SubclassesResolver;
 import com.kjetland.jackson.jsonSchema.SubclassesResolverImpl;
 import io.github.classgraph.ClassGraph;
 import java.net.URI;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.MonthDay;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
+import java.time.Period;
+import java.time.Year;
+import java.time.YearMonth;
 import java.time.ZonedDateTime;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import org.creekservice.internal.json.schema.generator.mixin.Instant;
 
 final class JsonSchemaGeneratorFactory {
 
@@ -87,19 +95,34 @@ final class JsonSchemaGeneratorFactory {
         return Map.of(
                 URI.class.getName(), "uri",
                 LocalDate.class.getName(), "date",
-                LocalTime.class.getName(), "time",
+                OffsetTime.class.getName(), "time",
+                OffsetDateTime.class.getName(), "date-time",
                 LocalDateTime.class.getName(), "date-time",
-                ZonedDateTime.class.getName(), "date-time");
+                ZonedDateTime.class.getName(), "date-time",
+                Instant.class.getName(), "date-time",
+                Period.class.getName(), "duration");
     }
 
     /** Overrides the type used in the schema for specific types. */
     private static Map<Class<?>, Class<?>> classTypeReMapping() {
-        return Map.of(
-                URI.class, String.class,
-                LocalDate.class, String.class,
-                LocalTime.class, String.class,
-                LocalDateTime.class, String.class,
-                ZonedDateTime.class, String.class,
-                java.time.Instant.class, Instant.class);
+        final HashMap<Class<?>, Class<?>> mappings = new HashMap<>();
+        mappings.putAll(
+                Map.of(
+                        URI.class, String.class,
+                        LocalDate.class, String.class,
+                        LocalTime.class, String.class,
+                        LocalDateTime.class, String.class,
+                        OffsetTime.class, String.class,
+                        OffsetDateTime.class, String.class,
+                        ZonedDateTime.class, String.class,
+                        MonthDay.class, String.class,
+                        YearMonth.class, String.class,
+                        Year.class, String.class));
+        mappings.putAll(
+                Map.of(
+                        Instant.class, String.class,
+                        Duration.class, Number.class,
+                        Period.class, String.class));
+        return mappings;
     }
 }

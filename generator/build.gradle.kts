@@ -19,6 +19,11 @@ plugins {
     application
 }
 
+repositories {
+    // For net.jimblackler.jsonschemafriend:core:
+    maven { url = uri("https://jitpack.io")  }
+}
+
 val creekVersion : String by extra
 val picoCliVersion : String by extra
 val spotBugsVersion : String by extra
@@ -56,6 +61,8 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:$kotlinVersion")
 
     testImplementation(project(":test-types"))
+    testImplementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
+    testImplementation("net.jimblackler.jsonschemafriend:core:0.12.3")
 }
 
 application {
