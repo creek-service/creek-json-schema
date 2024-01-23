@@ -19,6 +19,4 @@ module creek.json.schema.generator {
 
     opens org.creekservice.internal.json.schema.generator.cli to
             info.picocli;
-    opens org.creekservice.internal.json.schema.generator.mixin to
-            com.fasterxml.jackson.databind;
 }
