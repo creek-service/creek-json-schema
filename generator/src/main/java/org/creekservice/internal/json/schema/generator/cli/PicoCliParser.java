@@ -99,7 +99,7 @@ public final class PicoCliParser {
 
     @SuppressWarnings("unused")
     @Command(name = "JsonSchemaGenerator", mixinStandardHelpOptions = true)
-    private static class Options implements GeneratorOptions {
+    private static final class Options implements GeneratorOptions {
         @Option(
                 names = {"-e", "--echo-only"},
                 hidden = true)

@@ -198,7 +198,7 @@ final class PolymorphicTypes {
         }
     }
 
-    private class FormatVisitor extends JsonFormatVisitorWrapper.Base {
+    private final class FormatVisitor extends JsonFormatVisitorWrapper.Base {
 
         @Override
         public JsonObjectFormatVisitor expectObjectFormat(final JavaType type)
@@ -229,7 +229,7 @@ final class PolymorphicTypes {
         }
     }
 
-    private class ObjectVisitor extends JsonObjectFormatVisitor.Base {
+    private final class ObjectVisitor extends JsonObjectFormatVisitor.Base {
 
         @Override
         public void property(final BeanProperty prop) throws JsonMappingException {

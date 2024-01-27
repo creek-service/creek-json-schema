@@ -5,6 +5,9 @@
 
 version: 2
 registries:
+  maven-central:
+    type: maven-repository
+    url: https://repo.maven.apache.org/maven2/
   maven-snapshots:
     type: maven-repository
     url: https://s01.oss.sonatype.org/content/repositories/snapshots/
@@ -25,6 +28,7 @@ updates:
   - package-ecosystem: gradle
     directory: /
     registries:
+      - maven-central
       - maven-snapshots
       - creek-github-packages
     open-pull-requests-limit: 50
