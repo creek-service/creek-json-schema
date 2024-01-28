@@ -21,22 +21,49 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.stream.Collectors;
+import org.creekservice.api.json.schema.generator.GeneratorOptions.OutputLocationStrategy;
 import org.creekservice.api.test.util.TestPaths;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class SchemaWriterTest {
 
     @TempDir private Path outputDir;
+    @Mock private OutputLocationStrategy outputLocation;
     private SchemaWriter writer;
+    private Path expectedOutput;
 
     @BeforeEach
     void setUp() {
-        writer = new SchemaWriter(outputDir);
+        writer = new SchemaWriter(outputDir, outputLocation);
+
+        final Path outputFile = Paths.get("some.file");
+        expectedOutput = outputDir.resolve(outputFile);
+        when(outputLocation.outputPath(any())).thenReturn(outputFile);
+    }
+
+    @Test
+    void shouldPassTypeToStrategy() {
+        // Given:
+        final JsonSchema<?> schema = new JsonSchema<>(SchemaWriterTest.class, "the schema");
+
+        // When:
+        writer.write(schema);
+
+        // Then:
+        verify(outputLocation).outputPath(SchemaWriterTest.class);
     }
 
     @Test
@@ -48,12 +75,10 @@ class SchemaWriterTest {
         writer.write(schema);
 
         // Then:
-        final Path expected =
-                outputDir.resolve(
-                        "org.creekservice.internal.json.schema.generator.schema_writer_test.yml");
         assertThat(
-                TestPaths.listDirectory(outputDir).collect(Collectors.toList()), hasItem(expected));
-        assertThat(TestPaths.readString(expected), is("the schema"));
+                TestPaths.listDirectory(outputDir).collect(Collectors.toList()),
+                hasItem(expectedOutput));
+        assertThat(TestPaths.readString(expectedOutput), is("the schema"));
     }
 
     @Test
@@ -65,12 +90,10 @@ class SchemaWriterTest {
         writer.write(schema);
 
         // Then:
-        final Path expected =
-                outputDir.resolve(
-                        "org.creekservice.internal.json.schema.generator.schema_writer_test$nested.yml");
         assertThat(
-                TestPaths.listDirectory(outputDir).collect(Collectors.toList()), hasItem(expected));
-        assertThat(TestPaths.readString(expected), is("the schema"));
+                TestPaths.listDirectory(outputDir).collect(Collectors.toList()),
+                hasItem(expectedOutput));
+        assertThat(TestPaths.readString(expectedOutput), is("the schema"));
     }
 
     @Test
@@ -83,21 +106,17 @@ class SchemaWriterTest {
         writer.write(schema);
 
         // Then:
-        final Path expected =
-                outputDir.resolve(
-                        "org.creekservice.internal.json.schema.generator.schema_writer_test$1_model.yml");
         assertThat(
-                TestPaths.listDirectory(outputDir).collect(Collectors.toList()), hasItem(expected));
-        assertThat(TestPaths.readString(expected), is("the schema"));
+                TestPaths.listDirectory(outputDir).collect(Collectors.toList()),
+                hasItem(expectedOutput));
+        assertThat(TestPaths.readString(expectedOutput), is("the schema"));
     }
 
     @Test
     void shouldThrowOnFailureToWrite() {
         // Given:
         final JsonSchema<?> schema = new JsonSchema<>(SchemaWriterTest.class, "the schema");
-        TestPaths.ensureDirectories(
-                outputDir.resolve(
-                        "org.creekservice.internal.json.schema.generator.schema_writer_test.yml"));
+        TestPaths.ensureDirectories(expectedOutput);
 
         // When:
         final Exception e = assertThrows(RuntimeException.class, () -> writer.write(schema));

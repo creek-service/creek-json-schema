@@ -74,7 +74,8 @@ public final class JsonSchemaGenerator {
                         .scan();
 
         final SchemaGenerator generator = new SchemaGenerator(options.subTypeScanning());
-        final SchemaWriter writer = new SchemaWriter(options.outputDirectory());
+        final SchemaWriter writer =
+                new SchemaWriter(options.outputDirectory(), options.outputLocationStrategy());
         generator.registerSubTypes(types);
         types.stream().map(generator::generateSchema).forEach(writer::write);
         LOGGER.info("Wrote {} schemas", types.size());

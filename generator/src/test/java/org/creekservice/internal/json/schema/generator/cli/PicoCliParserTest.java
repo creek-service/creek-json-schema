@@ -18,6 +18,7 @@ package org.creekservice.internal.json.schema.generator.cli;
 
 import static java.lang.System.lineSeparator;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -29,6 +30,8 @@ import java.util.Optional;
 import java.util.Set;
 import org.creekservice.api.json.schema.generator.GeneratorOptions;
 import org.creekservice.api.json.schema.generator.GeneratorOptions.TypeScanningSpec;
+import org.creekservice.internal.json.schema.generator.output.DirectoryTreeOutputLocationStrategy;
+import org.creekservice.internal.json.schema.generator.output.FlatDirectoryOutputLocationStrategy;
 import org.junit.jupiter.api.Test;
 
 class PicoCliParserTest {
@@ -82,6 +85,23 @@ class PicoCliParserTest {
                 result.map(GeneratorOptions::outputDirectory),
                 is(Optional.of(Paths.get("some/path"))));
         assertThat(result.map(GeneratorOptions::echoOnly), is(Optional.of(false)));
+        assertThat(
+                result.orElseThrow().outputLocationStrategy(),
+                is(instanceOf(DirectoryTreeOutputLocationStrategy.class)));
+    }
+
+    @Test
+    void shouldParseOutputStrategy() {
+        // Given:
+        final String[] args = minimalArgs("--output-strategy=flatDirectory");
+
+        // When:
+        final Optional<GeneratorOptions> result = PicoCliParser.parse(args);
+
+        // Then:
+        assertThat(
+                result.orElseThrow().outputLocationStrategy(),
+                is(instanceOf(FlatDirectoryOutputLocationStrategy.class)));
     }
 
     @Test
@@ -175,6 +195,8 @@ class PicoCliParserTest {
                 is(
                         Optional.of(
                                 "--output-directory=some/path"
+                                        + lineSeparator()
+                                        + "--output-strategy=directoryTree"
                                         + lineSeparator()
                                         + "--type-scanning-allowed-modules=[some.module]"
                                         + lineSeparator()

@@ -1,0 +1,13 @@
+---
+# timestamp=1706376038822
+$schema: http://json-schema.org/draft-07/schema#
+title: Jackson Model
+type: object
+additionalProperties: false
+properties:
+  optional_prop:
+    type: string
+  required_prop:
+    type: string
+required:
+- required_prop

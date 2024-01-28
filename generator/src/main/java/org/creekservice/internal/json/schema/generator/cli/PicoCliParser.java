@@ -29,6 +29,8 @@ import org.creekservice.api.base.type.JarVersion;
 import org.creekservice.api.json.schema.generator.GeneratorOptions;
 import org.creekservice.api.json.schema.generator.GeneratorOptions.TypeScanningSpec;
 import org.creekservice.api.json.schema.generator.JsonSchemaGenerator;
+import org.creekservice.internal.json.schema.generator.output.DirectoryTreeOutputLocationStrategy;
+import org.creekservice.internal.json.schema.generator.output.FlatDirectoryOutputLocationStrategy;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -111,6 +113,26 @@ public final class PicoCliParser {
                 description = "The directory the schemas will be written to.")
         private Path outputDirectory;
 
+        private enum OutputStrategy {
+            directoryTree,
+            flatDirectory
+        }
+
+        @SuppressWarnings("FieldMayBeFinal")
+        @Option(
+                names = {"-os", "--output-strategy"},
+                description = {
+                    "Optionally specify the output naming strategy to use"
+                        + " (${COMPLETION-CANDIDATES}). If omitted the directoryTree strategy is"
+                        + " used. ",
+                    "Only the directoryTree strategy is compatible with other Creek components",
+                    " directoryTree: a directory tree is build under --output-directory matching"
+                            + " the type package names.",
+                    " flatDirectory: schemas are output in --output-directory. The filename is"
+                            + " built from the full type name."
+                })
+        private OutputStrategy outputStrategy = OutputStrategy.directoryTree;
+
         @Option(
                 names = {"-m", "--type-scanning-allowed-module"},
                 description = {
@@ -176,9 +198,23 @@ public final class PicoCliParser {
         }
 
         @Override
+        public OutputLocationStrategy outputLocationStrategy() {
+            switch (outputStrategy) {
+                case flatDirectory:
+                    return new FlatDirectoryOutputLocationStrategy();
+                case directoryTree:
+                default:
+                    return new DirectoryTreeOutputLocationStrategy();
+            }
+        }
+
+        @Override
         public String toString() {
             return "--output-directory="
                     + outputDirectory
+                    + lineSeparator()
+                    + "--output-strategy="
+                    + outputStrategy
                     + lineSeparator()
                     + "--type-scanning-allowed-modules="
                     + formatAllowed(typeScanningModuleWhiteList)

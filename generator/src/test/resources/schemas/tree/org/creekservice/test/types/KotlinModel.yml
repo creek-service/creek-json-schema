@@ -1,15 +1,17 @@
 ---
+# timestamp=1706376038823
 $schema: http://json-schema.org/draft-07/schema#
-title: Optional Model
+title: Kotlin Model
 type: object
 additionalProperties: false
 properties:
-  nonOptional:
+  prop1:
     type: string
-  optional:
+  prop2:
     type: string
-  requiredOptional:
+    default: a default value
+  prop3:
     type: string
+    default: another default
 required:
-- nonOptional
-- requiredOptional
+- prop1

@@ -1,0 +1,27 @@
+---
+# timestamp=1706376038149
+$schema: http://json-schema.org/draft-07/schema#
+title: Custom Title
+type: object
+additionalProperties: false
+anyOf:
+- required:
+  - uuid
+- required:
+  - with_description
+properties:
+  nonEmpty:
+    type: string
+    minLength: 1
+  set:
+    type: array
+    items:
+      type: integer
+    minItems: 1
+    uniqueItems: true
+  uuid:
+    type: string
+    format: uuid
+  withDescription:
+    type: string
+    description: This property has a text description.

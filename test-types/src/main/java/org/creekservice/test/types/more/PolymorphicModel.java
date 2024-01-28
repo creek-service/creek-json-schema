@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.creekservice.test.types;
+package org.creekservice.test.types.more;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;

@@ -18,6 +18,7 @@ package org.creekservice.api.json.schema.generator;
 
 import java.nio.file.Path;
 import java.util.Set;
+import org.creekservice.internal.json.schema.generator.output.DirectoryTreeOutputLocationStrategy;
 
 /** Options to control the {@link JsonSchemaGenerator}. */
 public interface GeneratorOptions {
@@ -90,7 +91,38 @@ public interface GeneratorOptions {
     }
 
     /**
-     * @return The directory to output schema files to.
+     * The base directory under which schema files will be written.
+     *
+     * <p>The full path to a generated schema file for a specific {@code type} is {@code
+     * outputDirectory()}{@code .resolve(}{@link #outputLocationStrategy()}{@code
+     * .outputPath(type))}
+     *
+     * @return The base directory to output schema files to.
      */
     Path outputDirectory();
+
+    /**
+     * Strategy to use for naming generated schemas
+     *
+     * <p>The full path to a generated schema file for a specific {@code type} is {@link
+     * #outputDirectory()}{@code .resolve(}{@code outputLocationStrategy()}{@code
+     * .outputPath(type))}
+     *
+     * @return strategy that controls where under the {@link #outputDirectory()} schema files will
+     *     be written.
+     */
+    default OutputLocationStrategy outputLocationStrategy() {
+        return new DirectoryTreeOutputLocationStrategy();
+    }
+
+    /** Control where generated schemas are output. */
+    interface OutputLocationStrategy {
+        /**
+         * Get the path that the schema file for a specific {@code type} should be written too.
+         *
+         * @param type the type having its schema generated
+         * @return the path the schema should be written too.
+         */
+        Path outputPath(Class<?> type);
+    }
 }

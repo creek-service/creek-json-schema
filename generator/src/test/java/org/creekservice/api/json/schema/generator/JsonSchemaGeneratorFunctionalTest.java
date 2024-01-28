@@ -58,39 +58,61 @@ class JsonSchemaGeneratorFunctionalTest {
 
     private static final Path TEST_TYPES_LIB_DIR =
             TestPaths.moduleRoot("test-types").resolve("build//libs").toAbsolutePath();
+    private static final Path EXPECTED_FLAT_SCHEMA_DIR =
+            TestPaths.moduleRoot("generator").resolve("src/test/resources/schemas/flat");
+    private static final Path EXPECTED_TREE_SCHEMA_DIR =
+            TestPaths.moduleRoot("generator").resolve("src/test/resources/schemas/tree");
 
-    private static final Path EXPECTED_SCHEMA_DIR =
-            TestPaths.moduleRoot("generator").resolve("src/test/resources/test/types");
-
-    @TempDir private static Path outputDir;
+    @TempDir private static Path rootOutput;
+    private static Path flatOutput;
+    private static Path treeOutput;
 
     @BeforeAll
     static void setUp() {
-        generateSchemas(outputDir);
+        flatOutput = rootOutput.resolve("flat");
+        treeOutput = rootOutput.resolve("tree");
+        generateSchemas(flatOutput, "flatDirectory");
+        generateSchemas(treeOutput, "directoryTree");
     }
 
     @AfterAll
-    static void afterAll() {
-        final Set<Path> expected =
-                expectedSchema().map(Path::getFileName).collect(Collectors.toUnmodifiableSet());
-
-        final Set<Path> actual =
-                TestPaths.listDirectory(outputDir)
-                        .map(Path::getFileName)
-                        .collect(Collectors.toUnmodifiableSet());
-
-        assertThat(actual, is(expected));
+    static void afterAll() throws Exception {
+        assertFilesMatch(EXPECTED_FLAT_SCHEMA_DIR, flatOutput);
+        assertFilesMatch(EXPECTED_TREE_SCHEMA_DIR, treeOutput);
     }
 
     @ParameterizedTest
-    @MethodSource("expectedSchema")
-    void shouldGenerateSchemasForTestType(final Path expectedSchemaPath) {
-        final Path actualSchemaPath = outputDir.resolve(expectedSchemaPath.getFileName());
+    @MethodSource("expectedFlatSchema")
+    void shouldGenerateSchemasForInFlatDirectory(final Path expectedSchemaPath) {
+        final Path actualSchemaPath = flatOutput.resolve(expectedSchemaPath);
         assertThat(
                 "Schema does not exist: " + actualSchemaPath.toUri(),
                 Files.isRegularFile(actualSchemaPath));
 
-        final String expectedSchema = readSchema(expectedSchemaPath);
+        final String expectedSchema =
+                readSchema(EXPECTED_FLAT_SCHEMA_DIR.resolve(expectedSchemaPath));
+        final String actualSchema = readSchema(actualSchemaPath);
+
+        assertThat(
+                "Actual schema: "
+                        + actualSchemaPath.toUri()
+                        + lineSeparator()
+                        + "Does not match expected schema: "
+                        + expectedSchemaPath.toUri(),
+                actualSchema,
+                is(expectedSchema));
+    }
+
+    @ParameterizedTest
+    @MethodSource("expectedTreeSchema")
+    void shouldGenerateSchemasForInFreeDirectory(final Path expectedSchemaPath) {
+        final Path actualSchemaPath = treeOutput.resolve(expectedSchemaPath);
+        assertThat(
+                "Schema does not exist: " + actualSchemaPath.toUri(),
+                Files.isRegularFile(actualSchemaPath));
+
+        final String expectedSchema =
+                readSchema(EXPECTED_TREE_SCHEMA_DIR.resolve(expectedSchemaPath));
         final String actualSchema = readSchema(actualSchemaPath);
 
         assertThat(
@@ -110,12 +132,28 @@ class JsonSchemaGeneratorFunctionalTest {
 
     // Run me to dump out updated schemas:
     public static void main(final String... args) {
-        generateSchemas(TestPaths.moduleRoot("generator").resolve(EXPECTED_SCHEMA_DIR));
+        generateSchemas(
+                TestPaths.moduleRoot("generator").resolve(EXPECTED_FLAT_SCHEMA_DIR),
+                "flatDirectory");
+        generateSchemas(
+                TestPaths.moduleRoot("generator").resolve(EXPECTED_TREE_SCHEMA_DIR),
+                "directoryTree");
+    }
+
+    private static void assertFilesMatch(final Path expected, final Path actual) throws Exception {
+        try (Stream<Path> e = schemaFiles(expected);
+                Stream<Path> a = schemaFiles(actual)) {
+            final Set<Path> expectedFiles =
+                    e.map(Path::getFileName).collect(Collectors.toUnmodifiableSet());
+            final Set<Path> actualFiles =
+                    a.map(Path::getFileName).collect(Collectors.toUnmodifiableSet());
+            assertThat(actualFiles, is(expectedFiles));
+        }
     }
 
     @SuppressFBWarnings(value = "COMMAND_INJECTION", justification = "Test code")
-    private static void generateSchemas(final Path outputDir) {
-        final List<String> cmd = buildCommand(outputDir);
+    private static void generateSchemas(final Path outputDir, final String outputDirStrategy) {
+        final List<String> cmd = buildCommand(outputDir, outputDirStrategy);
 
         try {
             final Process executor = new ProcessBuilder().command(cmd).start();
@@ -141,7 +179,7 @@ class JsonSchemaGeneratorFunctionalTest {
         }
     }
 
-    private static List<String> buildCommand(final Path outputDir) {
+    private static List<String> buildCommand(final Path outputDir, final String outputDirStrategy) {
         final List<String> cmd = new ArrayList<>(List.of("java"));
 
         if (DEBUG) {
@@ -157,13 +195,26 @@ class JsonSchemaGeneratorFunctionalTest {
                         "--module",
                         "creek.json.schema.generator/org.creekservice.api.json.schema.generator.JsonSchemaGenerator",
                         "--output-directory=" + outputDir.toAbsolutePath(),
+                        "--output-strategy=" + outputDirStrategy,
                         "--type-scanning-allowed-module=creek.json.schema.test.types",
                         "--subtype-scanning-allowed-module=creek.json.schema.test.types"));
         return cmd;
     }
 
-    public static Stream<Path> expectedSchema() {
-        return TestPaths.listDirectory(EXPECTED_SCHEMA_DIR);
+    public static Stream<Path> expectedFlatSchema() throws Exception {
+        return schemaFiles(EXPECTED_FLAT_SCHEMA_DIR);
+    }
+
+    public static Stream<Path> expectedTreeSchema() throws Exception {
+        return schemaFiles(EXPECTED_TREE_SCHEMA_DIR);
+    }
+
+    @SuppressWarnings("resource")
+    private static Stream<Path> schemaFiles(final Path dir) throws IOException {
+        return Files.walk(dir, 5)
+                .filter(Files::isRegularFile)
+                .filter(path -> path.toString().endsWith(".yml"))
+                .map(dir::relativize);
     }
 
     private static String readAll(final InputStream stdErr) {
