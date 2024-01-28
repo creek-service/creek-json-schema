@@ -23,20 +23,24 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.creekservice.api.base.type.schema.GeneratedSchemas;
+import org.creekservice.api.json.schema.generator.GeneratorOptions.OutputLocationStrategy;
 
 /** Writes schema to a YAML file */
 public final class SchemaWriter {
 
     private static final Logger LOGGER = LogManager.getLogger(SchemaWriter.class);
 
-    private final Path outputDir;
+    private final Path rootDirectory;
+    private final OutputLocationStrategy outputLocation;
 
     /**
-     * @param outputDir the directory into which to write the schema files
+     * @param rootDirectory the root directory under which schemas are written
+     * @param outputLocation strategy used to determine where under {@code rootDirectory} generated
+     *     schema should be written.
      */
-    public SchemaWriter(final Path outputDir) {
-        this.outputDir = requireNonNull(outputDir, "outputDir");
+    public SchemaWriter(final Path rootDirectory, final OutputLocationStrategy outputLocation) {
+        this.rootDirectory = requireNonNull(rootDirectory, "rootDirectory");
+        this.outputLocation = requireNonNull(outputLocation, "outputLocation");
     }
 
     /**
@@ -47,9 +51,7 @@ public final class SchemaWriter {
     public void write(final JsonSchema<?> schema) {
         final Class<?> type = schema.type();
         try {
-            final Path fileName =
-                    GeneratedSchemas.schemaFileName(type, GeneratedSchemas.yamlExtension());
-            final Path path = outputDir.resolve(fileName);
+            final Path path = rootDirectory.resolve(outputLocation.outputPath(type));
 
             final Path parent = path.getParent();
             if (parent != null) {

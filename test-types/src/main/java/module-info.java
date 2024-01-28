@@ -6,4 +6,6 @@ module creek.json.schema.test.types {
 
     exports org.creekservice.test.types to
             com.fasterxml.jackson.databind;
+    exports org.creekservice.test.types.more to
+            com.fasterxml.jackson.databind;
 }

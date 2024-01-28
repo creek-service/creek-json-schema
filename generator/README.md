@@ -563,15 +563,36 @@ parameters can be specified multiple times on the command line to add multiple a
 
 When running under JPMS, Java Platform Modular System, it is necessary to `export` all packages contained 
 `@GeneratesSchema` annotated types to `com.fasterxml.jackson.databind`. This is required to allow [Jackson][4] to work 
-its magic and walk the object model. For example:
+its magic and walk the object model.
+
+Additionally, the modular system encapsulates resources, such as the generated schema files. 
+If the schema files need to be accessible from outside the module, then the module descriptor must `opens`
+the package containing the generated schema.
+
+By default, the generator outputs schema files under the same directory structure as the source types.
+(See `--output-strategy`).
+This means if the `--out-directory` is a resource root for the project, then schema files are generated in the same
+package as their source type. To expose the schema within the module, add an `opens` statement for the package containing
+the source types.
+
+For example, given types that generate schemas in an `acme.finance.model` package, ensure:
 
 ```java
 module acme.model {
-    requires creek.base.annotation;
-    requires com.fasterxml.jackson.annotation;
-    requires mbknor.jackson.jsonschema;
+    // Creek annotations, e.g. @GeneratesSchema
+    requires transitive creek.base.annotation;
+    // Jackson annotations, e.g. @JsonProperty
+    requires transitive com.fasterxml.jackson.annotation;
+    // Optionally, JSON Schema annotations, e.g. @JsonSchemaInject
+    requires transitive mbknor.jackson.jsonschema;
 
+    // Export the model to Jackson:
     exports acme.finance.model to com.fasterxml.jackson.databind;
+    // Or more normally, export the models to everyone:
+    exports acme.finance.model;
+
+    // Allow other modules to access the schemas generated into the same package:
+    opens acme.finance.model;
 }
 ```
 

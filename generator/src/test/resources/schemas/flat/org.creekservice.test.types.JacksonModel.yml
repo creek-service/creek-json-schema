@@ -1,13 +1,13 @@
 ---
-# timestamp=1652261637077
+# timestamp=1706376038135
 $schema: http://json-schema.org/draft-07/schema#
-title: Simple Model
+title: Jackson Model
 type: object
 additionalProperties: false
 properties:
-  intProp:
-    type: integer
-  stringProp:
+  optional_prop:
+    type: string
+  required_prop:
     type: string
 required:
-- intProp
+- required_prop
