@@ -16,7 +16,9 @@
 
 package org.creekservice.internal.json.schema.generator.output;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import org.creekservice.api.base.type.schema.GeneratedSchemas;
 import org.creekservice.api.json.schema.generator.GeneratorOptions;
 
@@ -33,8 +35,10 @@ import org.creekservice.api.json.schema.generator.GeneratorOptions;
  */
 public final class DirectoryTreeOutputLocationStrategy
         implements GeneratorOptions.OutputLocationStrategy {
+
+    @SuppressFBWarnings("PATH_TRAVERSAL_IN")
     @Override
     public Path outputPath(final Class<?> type) {
-        return GeneratedSchemas.schemaFileName(type, GeneratedSchemas.yamlExtension());
+        return Paths.get(GeneratedSchemas.schemaFileName(type, GeneratedSchemas.yamlExtension()));
     }
 }
