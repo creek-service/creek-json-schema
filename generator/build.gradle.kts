@@ -50,7 +50,7 @@ dependencies {
         because("An old v1.x SLF4J impl is required by mbknor-jackson-jsonschema" +
                 "until https://github.com/mbknor/mbknor-jackson-jsonSchema/pull/172 is resolved:")
     }
-    implementation("org.slf4j:slf4j-api:1.7.36")
+    implementation("org.slf4j:slf4j-api:2.0.11")
 
     // The following are set to bring in dependency versions beyond known security vulnerabilities:
     // The following can be removed once https://github.com/mbknor/mbknor-jackson-jsonSchema/issues/174 is resolved:
