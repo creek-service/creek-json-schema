@@ -49,7 +49,7 @@ subprojects {
     extra.apply {
         set("creekVersion", "0.4.2-SNAPSHOT")
         set("spotBugsVersion", "4.8.5")         // https://mvnrepository.com/artifact/com.github.spotbugs/spotbugs-annotations
-        set("picoCliVersion", "4.7.5")          // https://mvnrepository.com/artifact/info.picocli/picocli
+        set("picoCliVersion", "4.7.6")          // https://mvnrepository.com/artifact/info.picocli/picocli
         set("jacksonVersion", "2.16.1")         // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations
         set("jsonSchemaVersion", "1.0.39")      // https://mvnrepository.com/artifact/com.kjetland/mbknor-jackson-jsonschema
         set("classGraphVersion", "4.8.172")     // https://mvnrepository.com/artifact/io.github.classgraph/classgraph
