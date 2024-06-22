@@ -373,9 +373,9 @@ class SchemaGeneratorTest {
                         ""
                                 + "oneOf:"
                                 + lineSeparator()
-                                + "- $ref: '#/definitions/ExplicitlyNamed'"
+                                + "- $ref: \"#/definitions/ExplicitlyNamed\""
                                 + lineSeparator()
-                                + "- $ref: '#/definitions/ImplicitlyNamed'"));
+                                + "- $ref: \"#/definitions/ImplicitlyNamed\""));
 
         assertThat(result.text(), containsString("default: " + explicitType));
         assertThat(result.text(), containsString("default: " + implicitType));
@@ -411,11 +411,11 @@ class SchemaGeneratorTest {
                         ""
                                 + "oneOf:"
                                 + lineSeparator()
-                                + "- $ref: '#/definitions/ImplicitlyNamed'"
+                                + "- $ref: \"#/definitions/ImplicitlyNamed\""
                                 + lineSeparator()
-                                + "- $ref: '#/definitions/"
+                                + "- $ref: \"#/definitions/"
                                 + explicitType
-                                + "'"));
+                                + "\""));
 
         assertThat(result.text(), containsString("default: " + explicitType));
         assertThat(result.text(), containsString("default: " + implicitType));
@@ -449,11 +449,11 @@ class SchemaGeneratorTest {
                         ""
                                 + "oneOf:"
                                 + lineSeparator()
-                                + "- $ref: '#/definitions/"
+                                + "- $ref: \"#/definitions/"
                                 + explicitType
-                                + "'"
+                                + "\""
                                 + lineSeparator()
-                                + "- $ref: '#/definitions/ImplicitlyNamed'"));
+                                + "- $ref: \"#/definitions/ImplicitlyNamed\""));
 
         assertThat(result.text(), containsString("default: " + explicitType));
         assertThat(result.text(), containsString("default: " + implicitType));
@@ -480,9 +480,9 @@ class SchemaGeneratorTest {
                 containsString(
                         "oneOf:"
                                 + lineSeparator()
-                                + "- $ref: '#/definitions/the-explicit-name'"
+                                + "- $ref: \"#/definitions/the-explicit-name\""
                                 + lineSeparator()
-                                + "- $ref: '#/definitions/ImplicitlyNamed'"));
+                                + "- $ref: \"#/definitions/ImplicitlyNamed\""));
 
         assertThat(result.text(), containsString("default: " + explicitClass));
         assertThat(result.text(), containsString("default: " + implicitClass));
@@ -509,9 +509,9 @@ class SchemaGeneratorTest {
                 containsString(
                         "oneOf:"
                                 + lineSeparator()
-                                + "- $ref: '#/definitions/the-explicit-name'"
+                                + "- $ref: \"#/definitions/the-explicit-name\""
                                 + lineSeparator()
-                                + "- $ref: '#/definitions/ImplicitlyNamed'"));
+                                + "- $ref: \"#/definitions/ImplicitlyNamed\""));
 
         assertThat(result.text(), containsString("default: " + explicitClass));
         assertThat(result.text(), containsString("default: " + implicitClass));
