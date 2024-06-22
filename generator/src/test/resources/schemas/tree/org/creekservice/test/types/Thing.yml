@@ -3,8 +3,8 @@
 $schema: http://json-schema.org/draft-07/schema#
 title: Thing
 oneOf:
-- $ref: '#/definitions/SmallThing'
-- $ref: '#/definitions/big'
+- $ref: "#/definitions/SmallThing"
+- $ref: "#/definitions/big"
 definitions:
   SmallThing:
     type: object
