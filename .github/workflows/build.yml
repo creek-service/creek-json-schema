@@ -21,7 +21,7 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  build_linux:
     permissions:
       packages: write
     runs-on: ubuntu-latest
@@ -46,6 +46,20 @@ jobs:
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
         run: ./gradlew build coveralls
+      - name: Upload Reports
+        if: failure()
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        with:
+          name: reports-linux
+          path: '**/build/reports/**/*.xml'
+          retention-days: 5
+      - name: Upload Test Results
+        if: failure()
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        with:
+          name: test-results-linux
+          path: '**/build/test-results/**/*.xml'
+          retention-days: 5
       - name: Publish
         if: github.event_name == 'push' || github.event.inputs.publish_artifacts == 'true'
         env:
@@ -69,7 +83,7 @@ jobs:
 
   create-gh-release:
     if: startsWith(github.ref, 'refs/tags/') && !endsWith(github.ref, '-alpha')
-    needs: build
+    needs: build_linux
     runs-on: ubuntu-latest
     permissions:
       contents: write
