@@ -45,12 +45,8 @@ dependencies {
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$jacksonVersion")
     implementation("com.kjetland:mbknor-jackson-jsonschema_2.13:$jsonSchemaVersion")
     implementation("io.github.classgraph:classgraph:$classGraphVersion")
-    implementation("org.apache.logging.log4j:log4j-core:$log4jVersion")
-    implementation("org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion") {
-        because("An old v1.x SLF4J impl is required by mbknor-jackson-jsonschema" +
-                "until https://github.com/mbknor/mbknor-jackson-jsonSchema/pull/172 is resolved:")
-    }
-    implementation("org.slf4j:slf4j-api:1.7.36")
+    implementation("org.apache.logging.log4j:log4j-slf4j2-impl:$log4jVersion")
+    implementation("org.slf4j:slf4j-api:2.0.16")
 
     // The following are set to bring in dependency versions beyond known security vulnerabilities:
     // The following can be removed once https://github.com/mbknor/mbknor-jackson-jsonSchema/issues/174 is resolved:

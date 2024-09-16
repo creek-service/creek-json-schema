@@ -79,9 +79,7 @@ subprojects {
         testImplementation("org.junit-pioneer:junit-pioneer:$junitPioneerVersion")
         testImplementation("org.mockito:mockito-junit-jupiter:$mockitoVersion")
         testImplementation("com.google.guava:guava-testlib:$guavaVersion")
-        // An old v1.x SLF4J impl as required by mbknor-jackson-jsonschema
-        // Can be updated once https://github.com/mbknor/mbknor-jackson-jsonSchema/pull/172 is resolved:
-        testRuntimeOnly("org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion")
+        testRuntimeOnly("org.apache.logging.log4j:log4j-slf4j2-impl:$log4jVersion")
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
     }
 }

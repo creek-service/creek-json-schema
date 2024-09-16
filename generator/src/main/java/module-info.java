@@ -5,6 +5,7 @@ module creek.json.schema.generator {
     requires creek.base.schema;
     requires info.picocli;
     requires org.apache.logging.log4j;
+    requires org.slf4j;
     requires java.management;
     requires com.fasterxml.jackson.annotation;
     requires com.fasterxml.jackson.databind;
