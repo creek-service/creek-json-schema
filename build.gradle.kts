@@ -50,7 +50,7 @@ subprojects {
         set("creekVersion", "0.4.2-SNAPSHOT")
         set("spotBugsVersion", "4.8.6")         // https://mvnrepository.com/artifact/com.github.spotbugs/spotbugs-annotations
         set("picoCliVersion", "4.7.6")          // https://mvnrepository.com/artifact/info.picocli/picocli
-        set("jacksonVersion", "2.18.0")         // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations
+        set("jacksonVersion", "2.18.1")         // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations
         set("jsonSchemaVersion", "1.0.39")      // https://mvnrepository.com/artifact/com.kjetland/mbknor-jackson-jsonschema
         set("classGraphVersion", "4.8.176")     // https://mvnrepository.com/artifact/io.github.classgraph/classgraph
         set("kotlinVersion", "2.0.20")          // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-stdlib-common
