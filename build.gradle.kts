@@ -53,7 +53,7 @@ subprojects {
         set("jacksonVersion", "2.18.0")         // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations
         set("jsonSchemaVersion", "1.0.39")      // https://mvnrepository.com/artifact/com.kjetland/mbknor-jackson-jsonschema
         set("classGraphVersion", "4.8.176")     // https://mvnrepository.com/artifact/io.github.classgraph/classgraph
-        set("kotlinVersion", "2.0.20")          // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-stdlib-common
+        set("kotlinVersion", "2.0.21")          // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-stdlib-common
         set("scalaVersion", "2.13.15")
 
         set("log4jVersion", "2.24.1")           // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
