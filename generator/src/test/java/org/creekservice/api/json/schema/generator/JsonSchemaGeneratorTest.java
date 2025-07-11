@@ -188,7 +188,15 @@ class JsonSchemaGeneratorTest {
 
             stdErr = Suppliers.memoize(() -> readAll(executor.getErrorStream()));
             stdOut = Suppliers.memoize(() -> readAll(executor.getInputStream()));
-            executor.waitFor(30, TimeUnit.SECONDS);
+            if (!executor.waitFor(30, TimeUnit.SECONDS)) {
+                throw new AssertionError(
+                        "Process did not terminate.\ncnd + "
+                                + cmd
+                                + "\nstdOut: "
+                                + stdOut.get()
+                                + "\nstdErr: "
+                                + stdErr.get());
+            }
             return executor.exitValue();
         } catch (final Exception e) {
             throw new AssertionError("Error executing: " + cmd, e);

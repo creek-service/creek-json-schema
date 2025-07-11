@@ -191,6 +191,10 @@ class PicoCliParserTest {
 
         // Then:
         assertThat(
+                result.map(Object::toString)
+                        .orElse("")
+                        .replace("\r\n", "{win-le}")
+                        .replace("\n", "{lin-le}"),
                 result.map(Object::toString),
                 is(
                         Optional.of(

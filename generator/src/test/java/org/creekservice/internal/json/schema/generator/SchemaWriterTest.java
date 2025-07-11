@@ -18,6 +18,7 @@ package org.creekservice.internal.json.schema.generator;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.either;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -123,7 +124,14 @@ class SchemaWriterTest {
 
         // Then:
         assertThat(e.getMessage(), is("Failed to write schema for " + SchemaWriterTest.class));
-        assertThat(e.getCause().toString(), containsString("Is a directory"));
+        assertThat(
+                e.getCause().toString(),
+                either(
+                                // Linux
+                                containsString("Is a directory"))
+                        .or(
+                                // Windows
+                                containsString("AccessDeniedException")));
     }
 
     private static final class Nested {}

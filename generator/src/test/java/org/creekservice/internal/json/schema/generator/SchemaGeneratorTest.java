@@ -17,6 +17,7 @@
 package org.creekservice.internal.json.schema.generator;
 
 import static com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import static java.lang.System.lineSeparator;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
@@ -133,7 +134,8 @@ class SchemaGeneratorTest {
                 result.text().replace("\r\n", "${win-ln}").replace("\n", "${unix-ln}"),
                 result.text(),
                 startsWith(
-                        "---\n"
+                        "---"
+                                + lineSeparator()
                                 + "# timestamp="
                                 + now.toEpochMilli()
                                 + "\n$schema: http://json-schema.org/draft-07/schema#"));
@@ -836,8 +838,7 @@ class SchemaGeneratorTest {
             new Validator(true).validate(parsedSchema, o);
         } catch (Exception e) {
             throw new AssertionError(
-                    "Invalid JSON: " + json + System.lineSeparator() + "Schema: " + schema.text(),
-                    e);
+                    "Invalid JSON: " + json + lineSeparator() + "Schema: " + schema.text(), e);
         }
     }
 
@@ -856,7 +857,7 @@ class SchemaGeneratorTest {
             throw new AssertionError(
                     "Invalid JSON not detected: "
                             + json
-                            + System.lineSeparator()
+                            + lineSeparator()
                             + "Schema: "
                             + schema.text());
         } catch (ValidationException e) {
