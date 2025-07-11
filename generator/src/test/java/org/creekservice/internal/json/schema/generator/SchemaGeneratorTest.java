@@ -133,12 +133,10 @@ class SchemaGeneratorTest {
         assertThat(
                 result.text(),
                 startsWith(
-                        "---"
-                                + lineSeparator()
+                        "---\n"
                                 + "# timestamp="
                                 + now.toEpochMilli()
-                                + lineSeparator()
-                                + "$schema: http://json-schema.org/draft-07/schema#"));
+                                + "\n$schema: http://json-schema.org/draft-07/schema#"));
     }
 
     @Test
@@ -232,13 +230,7 @@ class SchemaGeneratorTest {
         assertThat(
                 result.text(),
                 containsString(
-                        lineSeparator()
-                                + "properties:"
-                                + lineSeparator()
-                                + "  someLongPropertyName:"
-                                + lineSeparator()
-                                + "    type: string"
-                                + lineSeparator()));
+                        "\nproperties:\n" + "  someLongPropertyName:\n" + "    type: string\n"));
     }
 
     @Test
@@ -265,20 +257,13 @@ class SchemaGeneratorTest {
         assertThat(
                 result.text(),
                 containsString(
-                        lineSeparator()
-                                + "properties:"
-                                + lineSeparator()
-                                + "  a:"
-                                + lineSeparator()
-                                + "    type: string"
-                                + lineSeparator()
-                                + "  b:"
-                                + lineSeparator()
-                                + "    type: string"
-                                + lineSeparator()
-                                + "  c:"
-                                + lineSeparator()
-                                + "    type: string"));
+                        "\nproperties:\n"
+                                + "  a:\n"
+                                + "    type: string\n"
+                                + "  b:\n"
+                                + "    type: string\n"
+                                + "  c:\n"
+                                + "    type: string\n"));
     }
 
     @Test
@@ -302,16 +287,11 @@ class SchemaGeneratorTest {
         assertThat(
                 result.text(),
                 containsString(
-                        lineSeparator()
-                                + "properties:"
-                                + lineSeparator()
-                                + "  b:"
-                                + lineSeparator()
-                                + "    type: string"
-                                + lineSeparator()
-                                + "  a:"
-                                + lineSeparator()
-                                + "    type: string"));
+                        "\nproperties:\n"
+                                + "  b:\n"
+                                + "    type: string\n"
+                                + "  a:\n"
+                                + "    type: string\n"));
     }
 
     @Test
@@ -370,12 +350,9 @@ class SchemaGeneratorTest {
         assertThat(
                 result.text(),
                 containsString(
-                        ""
-                                + "oneOf:"
-                                + lineSeparator()
-                                + "- $ref: \"#/definitions/ExplicitlyNamed\""
-                                + lineSeparator()
-                                + "- $ref: \"#/definitions/ImplicitlyNamed\""));
+                        "oneOf:\n"
+                                + "- $ref: \"#/definitions/ExplicitlyNamed\"\n"
+                                + "- $ref: \"#/definitions/ImplicitlyNamed\"\n"));
 
         assertThat(result.text(), containsString("default: " + explicitType));
         assertThat(result.text(), containsString("default: " + implicitType));
@@ -408,11 +385,8 @@ class SchemaGeneratorTest {
         assertThat(
                 result.text(),
                 containsString(
-                        ""
-                                + "oneOf:"
-                                + lineSeparator()
-                                + "- $ref: \"#/definitions/ImplicitlyNamed\""
-                                + lineSeparator()
+                        "oneOf:\n"
+                                + "- $ref: \"#/definitions/ImplicitlyNamed\"\n"
                                 + "- $ref: \"#/definitions/"
                                 + explicitType
                                 + "\""));
@@ -446,13 +420,10 @@ class SchemaGeneratorTest {
         assertThat(
                 result.text(),
                 containsString(
-                        ""
-                                + "oneOf:"
-                                + lineSeparator()
+                        "oneOf:\n"
                                 + "- $ref: \"#/definitions/"
                                 + explicitType
-                                + "\""
-                                + lineSeparator()
+                                + "\"\n"
                                 + "- $ref: \"#/definitions/ImplicitlyNamed\""));
 
         assertThat(result.text(), containsString("default: " + explicitType));
@@ -478,10 +449,8 @@ class SchemaGeneratorTest {
         assertThat(
                 result.text(),
                 containsString(
-                        "oneOf:"
-                                + lineSeparator()
-                                + "- $ref: \"#/definitions/the-explicit-name\""
-                                + lineSeparator()
+                        "oneOf:\n"
+                                + "- $ref: \"#/definitions/the-explicit-name\"\n"
                                 + "- $ref: \"#/definitions/ImplicitlyNamed\""));
 
         assertThat(result.text(), containsString("default: " + explicitClass));
@@ -507,10 +476,8 @@ class SchemaGeneratorTest {
         assertThat(
                 result.text(),
                 containsString(
-                        "oneOf:"
-                                + lineSeparator()
-                                + "- $ref: \"#/definitions/the-explicit-name\""
-                                + lineSeparator()
+                        "oneOf:\n"
+                                + "- $ref: \"#/definitions/the-explicit-name\"\n"
                                 + "- $ref: \"#/definitions/ImplicitlyNamed\""));
 
         assertThat(result.text(), containsString("default: " + explicitClass));
@@ -532,39 +499,25 @@ class SchemaGeneratorTest {
         assertThat(
                 result.text(),
                 containsString(
-                        "properties:"
-                                + lineSeparator()
-                                + "      '@type':"
-                                + lineSeparator()
-                                + "        type: string"
-                                + lineSeparator()
-                                + "        enum:"
-                                + lineSeparator()
-                                + "        - type-1"
-                                + lineSeparator()
-                                + "        default: type-1"
-                                + lineSeparator()
-                                + "      a:"
-                                + lineSeparator()
+                        "properties:\n"
+                                + "      '@type':\n"
+                                + "        type: string\n"
+                                + "        enum:\n"
+                                + "        - type-1\n"
+                                + "        default: type-1\n"
+                                + "      a:\n"
                                 + "        type: string"));
 
         assertThat(
                 result.text(),
                 containsString(
-                        "properties:"
-                                + lineSeparator()
-                                + "      '@type':"
-                                + lineSeparator()
-                                + "        type: string"
-                                + lineSeparator()
-                                + "        enum:"
-                                + lineSeparator()
-                                + "        - type-2"
-                                + lineSeparator()
-                                + "        default: type-2"
-                                + lineSeparator()
-                                + "      b:"
-                                + lineSeparator()
+                        "properties:\n"
+                                + "      '@type':\n"
+                                + "        type: string\n"
+                                + "        enum:\n"
+                                + "        - type-2\n"
+                                + "        default: type-2\n"
+                                + "      b:\n"
                                 + "        type: integer"));
 
         assertAlignsWithJackson(
@@ -581,14 +534,10 @@ class SchemaGeneratorTest {
         assertThat(
                 result.text(),
                 containsString(
-                        "  list:"
-                                + lineSeparator()
-                                + "    type: array"
-                                + lineSeparator()
-                                + "    items:"
-                                + lineSeparator()
-                                + "      type: integer"
-                                + lineSeparator()
+                        "  list:\n"
+                                + "    type: array\n"
+                                + "    items:\n"
+                                + "      type: integer\n"
                                 + "    maxItems: 2"));
 
         assertAlignsWithJackson(
@@ -605,13 +554,7 @@ class SchemaGeneratorTest {
         // Then:
         assertThat(
                 result.text(),
-                containsString(
-                        lineSeparator()
-                                + "  x:"
-                                + lineSeparator()
-                                + "    type: string"
-                                + lineSeparator()
-                                + "    format: uuid"));
+                containsString("  x:\n" + "    type: string\n" + "    format: uuid"));
 
         assertAlignsWithJackson(
                 result,
@@ -641,12 +584,7 @@ class SchemaGeneratorTest {
         // Then:
         assertThat(
                 result.text(),
-                containsString(
-                        "  date:"
-                                + lineSeparator()
-                                + "    type: string"
-                                + lineSeparator()
-                                + "    format: date"));
+                containsString("  date:\n" + "    type: string\n" + "    format: date"));
 
         assertThat(result.text(), not(containsString("LocalDate")));
 
@@ -677,12 +615,7 @@ class SchemaGeneratorTest {
         // Then:
         assertThat(
                 result.text(),
-                containsString(
-                        "  date:"
-                                + lineSeparator()
-                                + "    type: string"
-                                + lineSeparator()
-                                + "    format: date-time"));
+                containsString("  date:\n" + "    type: string\n" + "    format: date-time"));
 
         assertThat(result.text(), not(containsString("LocalDateTime")));
 
@@ -698,12 +631,7 @@ class SchemaGeneratorTest {
         // Then:
         assertThat(
                 result.text(),
-                containsString(
-                        "  date:"
-                                + lineSeparator()
-                                + "    type: string"
-                                + lineSeparator()
-                                + "    format: date-time"));
+                containsString("  date:\n" + "    type: string\n" + "    format: date-time"));
 
         assertThat(result.text(), not(containsString("ZonedDateTime")));
 
@@ -719,12 +647,7 @@ class SchemaGeneratorTest {
         // Then:
         assertThat(
                 result.text(),
-                containsString(
-                        "  time:"
-                                + lineSeparator()
-                                + "    type: string"
-                                + lineSeparator()
-                                + "    format: time"));
+                containsString("  time:\n" + "    type: string\n" + "    format: time"));
 
         assertThat(result.text(), not(containsString("OffsetTime")));
 
@@ -740,12 +663,7 @@ class SchemaGeneratorTest {
         // Then:
         assertThat(
                 result.text(),
-                containsString(
-                        "  date:"
-                                + lineSeparator()
-                                + "    type: string"
-                                + lineSeparator()
-                                + "    format: date-time"));
+                containsString("  date:\n" + "    type: string\n" + "    format: date-time"));
 
         assertThat(result.text(), not(containsString("OffsetDateTime")));
 
@@ -804,12 +722,7 @@ class SchemaGeneratorTest {
         // Then:
         assertThat(
                 result.text(),
-                containsString(
-                        "  instant:"
-                                + lineSeparator()
-                                + "    type: string"
-                                + lineSeparator()
-                                + "    format: date-time"));
+                containsString("  instant:\n" + "    type: string\n" + "    format: date-time"));
 
         assertAlignsWithJackson(result, new TypeWithInstant(Instant.now()));
     }
@@ -839,12 +752,7 @@ class SchemaGeneratorTest {
         // Then:
         assertThat(
                 result.text(),
-                containsString(
-                        "  period:"
-                                + lineSeparator()
-                                + "    type: string"
-                                + lineSeparator()
-                                + "    format: duration"));
+                containsString("  period:\n" + "    type: string\n" + "    format: duration"));
 
         assertAlignsWithJackson(result, new TypeWithPeriod(Period.parse("P1Y2M3D")));
     }
@@ -857,12 +765,7 @@ class SchemaGeneratorTest {
         // Then:
         assertThat(
                 result.text(),
-                containsString(
-                        "  uri:"
-                                + lineSeparator()
-                                + "    type: string"
-                                + lineSeparator()
-                                + "    format: uri"));
+                containsString("  uri:\n" + "    type: string\n" + "    format: uri"));
 
         assertThat(result.text(), not(containsString("URI")));
 
@@ -877,12 +780,7 @@ class SchemaGeneratorTest {
         // Then:
         assertThat(
                 result.text(),
-                containsString(
-                        "  uuid:"
-                                + lineSeparator()
-                                + "    type: string"
-                                + lineSeparator()
-                                + "    format: uuid"));
+                containsString("  uuid:\n" + "    type: string\n" + "    format: uuid"));
 
         assertThat(result.text(), not(containsString("UUID")));
 
