@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Creek Contributors (https://github.com/creek-service)
+ * Copyright 2022-2025 Creek Contributors (https://github.com/creek-service)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.creekservice.internal.json.schema.generator.cli;
 
-import static java.lang.System.lineSeparator;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
@@ -194,16 +193,11 @@ class PicoCliParserTest {
                 result.map(Object::toString),
                 is(
                         Optional.of(
-                                "--output-directory=some/path"
-                                        + lineSeparator()
-                                        + "--output-strategy=directoryTree"
-                                        + lineSeparator()
-                                        + "--type-scanning-allowed-modules=[some.module]"
-                                        + lineSeparator()
-                                        + "--type-scanning-allowed-packages=<ANY>"
-                                        + lineSeparator()
-                                        + "--subtype-scanning-allowed-modules=<ANY>"
-                                        + lineSeparator()
+                                "--output-directory=some/path\n"
+                                        + "--output-strategy=directoryTree\n"
+                                        + "--type-scanning-allowed-modules=[some.module]\n"
+                                        + "--type-scanning-allowed-packages=<ANY>\n"
+                                        + "--subtype-scanning-allowed-modules=<ANY>\n"
                                         + "--subtype-scanning-allowed-packages=<ANY>")));
     }
 
