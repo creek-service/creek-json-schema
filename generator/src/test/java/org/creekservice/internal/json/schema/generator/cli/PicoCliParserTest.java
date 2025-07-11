@@ -200,11 +200,16 @@ class PicoCliParserTest {
                         Optional.of(
                                 "--output-directory=some"
                                         + File.separator
-                                        + "path\n"
-                                        + "--output-strategy=directoryTree\n"
-                                        + "--type-scanning-allowed-modules=[some.module]\n"
-                                        + "--type-scanning-allowed-packages=<ANY>\n"
-                                        + "--subtype-scanning-allowed-modules=<ANY>\n"
+                                        + "path"
+                                        + System.lineSeparator()
+                                        + "--output-strategy=directoryTree"
+                                        + System.lineSeparator()
+                                        + "--type-scanning-allowed-modules=[some.module]"
+                                        + System.lineSeparator()
+                                        + "--type-scanning-allowed-packages=<ANY>"
+                                        + System.lineSeparator()
+                                        + "--subtype-scanning-allowed-modules=<ANY>"
+                                        + System.lineSeparator()
                                         + "--subtype-scanning-allowed-packages=<ANY>")));
     }
 
