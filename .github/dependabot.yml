@@ -11,9 +11,6 @@ registries:
   maven-snapshots:
     type: maven-repository
     url: https://s01.oss.sonatype.org/content/repositories/snapshots/
-  jit-pack:
-    type: maven-repository
-    url: https://jitpack.io
   creek-github-packages:
     type: maven-repository
     url: https://maven.pkg.github.com/creek-service/*
