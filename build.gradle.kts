@@ -50,15 +50,15 @@ subprojects {
         set("creekVersion", "0.4.2-SNAPSHOT")
         set("spotBugsVersion", "4.9.3")         // https://mvnrepository.com/artifact/com.github.spotbugs/spotbugs-annotations
         set("picoCliVersion", "4.7.7")          // https://mvnrepository.com/artifact/info.picocli/picocli
-        set("jacksonVersion", "2.19.0")         // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations
+        set("jacksonVersion", "2.19.1")         // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations
         set("jsonSchemaVersion", "1.0.39")      // https://mvnrepository.com/artifact/com.kjetland/mbknor-jackson-jsonschema
-        set("classGraphVersion", "4.8.179")     // https://mvnrepository.com/artifact/io.github.classgraph/classgraph
-        set("kotlinVersion", "2.1.21")          // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-stdlib-common
+        set("classGraphVersion", "4.8.180")     // https://mvnrepository.com/artifact/io.github.classgraph/classgraph
+        set("kotlinVersion", "2.2.0")          // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-stdlib-common
         set("scalaVersion", "2.13.16")
 
-        set("log4jVersion", "2.24.3")           // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
-        set("guavaVersion", "33.4.0-jre")         // https://mvnrepository.com/artifact/com.google.guava/guava
-        set("junitVersion", "5.13.0")            // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
+        set("log4jVersion", "2.25.0")           // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
+        set("guavaVersion", "33.4.8-jre")         // https://mvnrepository.com/artifact/com.google.guava/guava
+        set("junitVersion", "5.13.2")            // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
         set("junitPioneerVersion", "2.3.0")     // https://mvnrepository.com/artifact/org.junit-pioneer/junit-pioneer
         set("mockitoVersion", "5.15.2")         // https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter
     }
