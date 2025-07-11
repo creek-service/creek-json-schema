@@ -22,7 +22,7 @@ plugins {
     `creek-coverage-convention`
     `creek-publishing-convention` apply false
     `creek-sonatype-publishing-convention`
-    id("pl.allegro.tech.build.axion-release") version "1.18.18" // https://plugins.gradle.org/plugin/pl.allegro.tech.build.axion-release
+    id("pl.allegro.tech.build.axion-release") version "1.19.0" // https://plugins.gradle.org/plugin/pl.allegro.tech.build.axion-release
 }
 
 project.version = scmVersion.version
@@ -58,7 +58,7 @@ subprojects {
 
         set("log4jVersion", "2.25.0")           // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
         set("guavaVersion", "33.4.8-jre")         // https://mvnrepository.com/artifact/com.google.guava/guava
-        set("junitVersion", "5.13.2")            // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
+        set("junitVersion", "5.13.3")            // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
         set("junitPioneerVersion", "2.3.0")     // https://mvnrepository.com/artifact/org.junit-pioneer/junit-pioneer
         set("mockitoVersion", "5.18.0")         // https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter
     }
