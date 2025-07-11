@@ -17,7 +17,6 @@
 package org.creekservice.internal.json.schema.generator;
 
 import static com.fasterxml.jackson.annotation.JsonSubTypes.Type;
-import static java.lang.System.lineSeparator;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
@@ -131,6 +130,7 @@ class SchemaGeneratorTest {
 
         // Then:
         assertThat(
+                result.text().replace("\r\n", "${win-ln}").replace("\n", "${unix-ln}"),
                 result.text(),
                 startsWith(
                         "---\n"
@@ -568,8 +568,7 @@ class SchemaGeneratorTest {
         final JsonSchema<TypeWithDecimal> result = generator.generateSchema(TypeWithDecimal.class);
 
         // Then:
-        assertThat(
-                result.text(), containsString("decimal:" + lineSeparator() + "    type: number"));
+        assertThat(result.text(), containsString("decimal:\n    type: number"));
         assertThat(result.text(), not(containsString("BigDecimal")));
 
         assertAlignsWithJackson(result, new TypeWithDecimal(new BigDecimal("0.1")));
@@ -598,7 +597,7 @@ class SchemaGeneratorTest {
                 generator.generateSchema(TypeWithLocalTime.class);
 
         // Then:
-        assertThat(result.text(), containsString("  time:" + lineSeparator() + "    type: string"));
+        assertThat(result.text(), containsString("  time:\n    type: string"));
 
         assertThat(result.text(), not(containsString("format:")));
         assertThat(result.text(), not(containsString("LocalTime")));
@@ -677,7 +676,7 @@ class SchemaGeneratorTest {
                 generator.generateSchema(TypeWithMonthDay.class);
 
         // Then:
-        assertThat(result.text(), containsString("  date:" + lineSeparator() + "    type: string"));
+        assertThat(result.text(), containsString("  date:\n    type: string"));
 
         assertThat(result.text(), not(containsString("format:")));
         assertThat(result.text(), not(containsString("MonthDay")));
@@ -692,7 +691,7 @@ class SchemaGeneratorTest {
                 generator.generateSchema(TypeWithYearMonth.class);
 
         // Then:
-        assertThat(result.text(), containsString("  date:" + lineSeparator() + "    type: string"));
+        assertThat(result.text(), containsString("  date:\n    type: string"));
 
         assertThat(result.text(), not(containsString("format:")));
         assertThat(result.text(), not(containsString("YearMonth")));
@@ -706,7 +705,7 @@ class SchemaGeneratorTest {
         final JsonSchema<TypeWithYear> result = generator.generateSchema(TypeWithYear.class);
 
         // Then:
-        assertThat(result.text(), containsString("  date:" + lineSeparator() + "    type: string"));
+        assertThat(result.text(), containsString("  date:\n    type: string"));
 
         assertThat(result.text(), not(containsString("format:")));
         assertThat(result.text(), not(containsString("Year")));
@@ -734,9 +733,7 @@ class SchemaGeneratorTest {
                 generator.generateSchema(TypeWithDuration.class);
 
         // Then:
-        assertThat(
-                result.text(),
-                containsString("  duration:" + lineSeparator() + "    type: number"));
+        assertThat(result.text(), containsString("  duration:\n    type: number"));
 
         assertThat(result.text(), not(containsString("format:")));
 

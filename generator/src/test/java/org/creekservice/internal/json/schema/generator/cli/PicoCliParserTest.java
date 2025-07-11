@@ -22,6 +22,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -193,7 +194,9 @@ class PicoCliParserTest {
                 result.map(Object::toString),
                 is(
                         Optional.of(
-                                "--output-directory=some/path\n"
+                                "--output-directory=some"
+                                        + File.separator
+                                        + "path\n"
                                         + "--output-strategy=directoryTree\n"
                                         + "--type-scanning-allowed-modules=[some.module]\n"
                                         + "--type-scanning-allowed-packages=<ANY>\n"

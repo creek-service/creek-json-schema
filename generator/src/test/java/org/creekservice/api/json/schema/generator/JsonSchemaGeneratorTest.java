@@ -28,6 +28,7 @@ import static org.hamcrest.Matchers.startsWith;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
@@ -99,7 +100,8 @@ class JsonSchemaGeneratorTest {
         // Then:
         assertThat(stdErr.get(), is(""));
         assertThat(stdOut.get(), matchesPattern(VERSION_PATTERN));
-        assertThat(stdOut.get(), containsString("--output-directory=some/path"));
+        assertThat(
+                stdOut.get(), containsString("--output-directory=some" + File.separator + "path"));
         assertThat(stdOut.get(), containsString("--type-scanning-allowed-modules=<ANY>"));
         assertThat(
                 stdOut.get(), containsString("--type-scanning-allowed-packages=[some.*.package]"));
