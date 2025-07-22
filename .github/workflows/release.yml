@@ -1,4 +1,9 @@
 # A Workflow for triggering a new release.
+#
+# Releasing is a two-stage process.
+# 1. Running this workflow will check the build is green and then push a release tag to the repo, e.g., v1.2.3
+# 2. Pushing the release tag will trigger the main build.yml.
+#    This main build has conditional steps to publish artifacts when building a tag
 
 name: Release
 
@@ -13,6 +18,8 @@ jobs:
   release:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
