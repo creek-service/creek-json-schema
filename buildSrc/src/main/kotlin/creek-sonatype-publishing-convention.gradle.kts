@@ -29,6 +29,8 @@ plugins {
 }
 
 nexusPublishing {
+    packageGroup = "org.creekservice"
+
     repositories {
         sonatype {
             nexusUrl.set(uri("https://ossrh-staging-api.central.sonatype.com/service/local/"))

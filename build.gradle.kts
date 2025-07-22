@@ -25,7 +25,12 @@ plugins {
     id("pl.allegro.tech.build.axion-release") version "1.19.0" // https://plugins.gradle.org/plugin/pl.allegro.tech.build.axion-release
 }
 
+scmVersion {
+    versionCreator("simple")
+}
+
 project.version = scmVersion.version
+println("creekVersion: ${project.version}")
 
 allprojects {
     tasks.jar {
@@ -47,7 +52,7 @@ subprojects {
     }
 
     extra.apply {
-        set("creekVersion", "0.4.2-SNAPSHOT")
+        set("creekVersion", project.version)
         set("spotBugsVersion", "4.9.3")         // https://mvnrepository.com/artifact/com.github.spotbugs/spotbugs-annotations
         set("picoCliVersion", "4.7.7")          // https://mvnrepository.com/artifact/info.picocli/picocli
         set("jacksonVersion", "2.19.1")         // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations
