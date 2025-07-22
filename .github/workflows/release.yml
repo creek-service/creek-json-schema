@@ -39,7 +39,9 @@ jobs:
       - name: Ensure build is green
         run: |
           # Locally, set the release version
-          ./gradlew createRelease
+          ./gradlew createRelease -Prelease.disableSnapshotsCheck
+          # Fail on snapshots:
+          ./gradlew verifyRelease 
           # Then run the build, with proposed creekVersion
           ./gradlew build
       - name: Release
