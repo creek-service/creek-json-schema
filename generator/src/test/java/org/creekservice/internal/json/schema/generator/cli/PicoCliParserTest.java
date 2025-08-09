@@ -22,6 +22,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -190,14 +191,25 @@ class PicoCliParserTest {
 
         // Then:
         assertThat(
+                result.map(Object::toString)
+                        .orElse("")
+                        .replace("\r\n", "{win-le}")
+                        .replace("\n", "{lin-le}"),
                 result.map(Object::toString),
                 is(
                         Optional.of(
-                                "--output-directory=some/path\n"
-                                        + "--output-strategy=directoryTree\n"
-                                        + "--type-scanning-allowed-modules=[some.module]\n"
-                                        + "--type-scanning-allowed-packages=<ANY>\n"
-                                        + "--subtype-scanning-allowed-modules=<ANY>\n"
+                                "--output-directory=some"
+                                        + File.separator
+                                        + "path"
+                                        + System.lineSeparator()
+                                        + "--output-strategy=directoryTree"
+                                        + System.lineSeparator()
+                                        + "--type-scanning-allowed-modules=[some.module]"
+                                        + System.lineSeparator()
+                                        + "--type-scanning-allowed-packages=<ANY>"
+                                        + System.lineSeparator()
+                                        + "--subtype-scanning-allowed-modules=<ANY>"
+                                        + System.lineSeparator()
                                         + "--subtype-scanning-allowed-packages=<ANY>")));
     }
 

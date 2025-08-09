@@ -28,6 +28,7 @@ import static org.hamcrest.Matchers.startsWith;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
@@ -99,7 +100,8 @@ class JsonSchemaGeneratorTest {
         // Then:
         assertThat(stdErr.get(), is(""));
         assertThat(stdOut.get(), matchesPattern(VERSION_PATTERN));
-        assertThat(stdOut.get(), containsString("--output-directory=some/path"));
+        assertThat(
+                stdOut.get(), containsString("--output-directory=some" + File.separator + "path"));
         assertThat(stdOut.get(), containsString("--type-scanning-allowed-modules=<ANY>"));
         assertThat(
                 stdOut.get(), containsString("--type-scanning-allowed-packages=[some.*.package]"));
@@ -186,7 +188,15 @@ class JsonSchemaGeneratorTest {
 
             stdErr = Suppliers.memoize(() -> readAll(executor.getErrorStream()));
             stdOut = Suppliers.memoize(() -> readAll(executor.getInputStream()));
-            executor.waitFor(30, TimeUnit.SECONDS);
+            if (!executor.waitFor(30, TimeUnit.SECONDS)) {
+                throw new AssertionError(
+                        "Process did not terminate.\ncnd + "
+                                + cmd
+                                + "\nstdOut: "
+                                + stdOut.get()
+                                + "\nstdErr: "
+                                + stdErr.get());
+            }
             return executor.exitValue();
         } catch (final Exception e) {
             throw new AssertionError("Error executing: " + cmd, e);
