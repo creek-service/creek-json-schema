@@ -91,7 +91,10 @@ class SchemaGeneratorTest {
             JsonMapper.builder()
                     .addModule(new Jdk8Module())
                     .addModule(new JavaTimeModule())
-                    .serializationInclusion(JsonInclude.Include.NON_EMPTY)
+                    .defaultPropertyInclusion(
+                            JsonInclude.Value.construct(
+                                    JsonInclude.Include.NON_EMPTY,
+                                    JsonInclude.Include.USE_DEFAULTS))
                     .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                     .disable(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE)
                     .build();
