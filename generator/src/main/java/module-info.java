@@ -12,7 +12,7 @@ module creek.json.schema.generator {
     requires com.fasterxml.jackson.dataformat.yaml;
     requires com.fasterxml.jackson.datatype.jdk8;
     requires mbknor.jackson.jsonschema;
-    requires io.github.classgraph;
+    requires classgraph;
     requires scala.library;
     requires com.github.spotbugs.annotations;
 
