@@ -15,19 +15,19 @@
  */
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "2.2.0"
+    id("org.jetbrains.kotlin.jvm") version "2.2.10"
     `java-library`
 }
 
 val creekVersion : String by extra
-val jacksonVersion : String by extra
+val jacksonAnnotationVersion : String by extra
 val jsonSchemaVersion : String by extra
 val kotlinVersion : String by extra
 val scalaVersion : String by extra
 
 dependencies {
     implementation("org.creekservice:creek-base-annotation:$creekVersion")
-    implementation("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
+    implementation("com.fasterxml.jackson.core:jackson-annotations:$jacksonAnnotationVersion")
     implementation("com.kjetland:mbknor-jackson-jsonschema_2.13:$jsonSchemaVersion")
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
