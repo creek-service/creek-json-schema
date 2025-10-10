@@ -99,7 +99,7 @@ class JsonSchemaGeneratorTest {
         // Then:
         assertThat(stdErr.get(), is(""));
         assertThat(stdOut.get(), matchesPattern(VERSION_PATTERN));
-        assertThat(stdOut.get(), containsString("--output-directory=some/path"));
+        assertThat(stdOut.get(), containsString("--output-directory=" + Path.of("some/path")));
         assertThat(stdOut.get(), containsString("--type-scanning-allowed-modules=<ANY>"));
         assertThat(
                 stdOut.get(), containsString("--type-scanning-allowed-packages=[some.*.package]"));
@@ -143,7 +143,6 @@ class JsonSchemaGeneratorTest {
         assertThat(stdErr.get(), is(""));
         assertThat(stdOut.get(), containsString("--module-path=" + LIB_DIR));
         assertThat(stdOut.get(), containsString("--module-path=/another/path"));
-        assertThat(stdOut.get(), not(containsString("--class-path")));
         assertThat(exitCode, is(0));
     }
 

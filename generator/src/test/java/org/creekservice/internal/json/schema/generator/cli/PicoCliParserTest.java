@@ -193,7 +193,7 @@ class PicoCliParserTest {
                 result.map(Object::toString),
                 is(
                         Optional.of(
-                                "--output-directory=some/path\n"
+                                String.format("--output-directory=%s\n", Paths.get("some/path"))
                                         + "--output-strategy=directoryTree\n"
                                         + "--type-scanning-allowed-modules=[some.module]\n"
                                         + "--type-scanning-allowed-packages=<ANY>\n"

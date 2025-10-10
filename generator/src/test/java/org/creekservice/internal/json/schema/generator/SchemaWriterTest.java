@@ -123,7 +123,7 @@ class SchemaWriterTest {
 
         // Then:
         assertThat(e.getMessage(), is("Failed to write schema for " + SchemaWriterTest.class));
-        assertThat(e.getCause().getMessage(), containsString("Is a directory"));
+        assertThat(e.getCause().toString(), containsString("Is a directory"));
     }
 
     private static final class Nested {}
