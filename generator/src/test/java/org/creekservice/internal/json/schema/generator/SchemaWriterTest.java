@@ -16,6 +16,7 @@
 
 package org.creekservice.internal.json.schema.generator;
 
+import static org.creekservice.api.test.hamcrest.OSMatchers.onWindows;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
@@ -123,7 +124,10 @@ class SchemaWriterTest {
 
         // Then:
         assertThat(e.getMessage(), is("Failed to write schema for " + SchemaWriterTest.class));
-        assertThat(e.getCause().toString(), containsString("Is a directory"));
+        assertThat(
+                e.getCause().toString(),
+                onWindows(containsString("AccessDeniedException"))
+                        .onUnix(containsString("Is a directory")));
     }
 
     private static final class Nested {}

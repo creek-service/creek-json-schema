@@ -185,10 +185,17 @@ class JsonSchemaGeneratorTest {
 
             stdErr = Suppliers.memoize(() -> readAll(executor.getErrorStream()));
             stdOut = Suppliers.memoize(() -> readAll(executor.getInputStream()));
-            executor.waitFor(30, TimeUnit.SECONDS);
+            executor.waitFor(1, TimeUnit.MINUTES);
             return executor.exitValue();
         } catch (final Exception e) {
-            throw new AssertionError("Error executing: " + cmd, e);
+            throw new AssertionError(
+                    "Error executing: "
+                            + cmd
+                            + ", stdErr: "
+                            + stdErr.get()
+                            + ", stdOut: "
+                            + stdOut.get(),
+                    e);
         }
     }
 
@@ -203,8 +210,8 @@ class JsonSchemaGeneratorTest {
         return cmd;
     }
 
-    private static String readAll(final InputStream stdErr) {
-        return new BufferedReader(new InputStreamReader(stdErr, UTF_8))
+    private static String readAll(final InputStream s) {
+        return new BufferedReader(new InputStreamReader(s, UTF_8))
                 .lines()
                 .collect(Collectors.joining("\n"));
     }
