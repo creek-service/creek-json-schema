@@ -144,8 +144,7 @@ class SchemaGeneratorTest {
                                 + lineSeparator()
                                 + "# timestamp="
                                 + now.toEpochMilli()
-                                + lineSeparator()
-                                + "$schema: http://json-schema.org/draft-07/schema#"));
+                                + "\n$schema: http://json-schema.org/draft-07/schema#"));
     }
 
     @Test

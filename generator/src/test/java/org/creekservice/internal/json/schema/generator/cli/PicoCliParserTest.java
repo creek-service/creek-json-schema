@@ -191,7 +191,6 @@ class PicoCliParserTest {
 
         // Then:
         assertThat(
-                result.map(Object::toString).orElse("").replace("\r", "\\r").replace("\n", "\\n"),
                 result.map(Object::toString).orElse("<empty>"),
                 is(
                         String.format("--output-directory=%s", Paths.get("some/path"))

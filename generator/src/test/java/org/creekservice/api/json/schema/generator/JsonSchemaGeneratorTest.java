@@ -16,7 +16,6 @@
 
 package org.creekservice.api.json.schema.generator;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.creekservice.api.test.util.coverage.CodeCoverage.codeCoverageCmdLineArg;
 import static org.creekservice.api.test.util.debug.RemoteDebug.remoteDebugArguments;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -27,19 +26,19 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.startsWith;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import org.creekservice.api.base.type.Suppliers;
 import org.creekservice.api.test.util.TestPaths;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class JsonSchemaGeneratorTest {
 
@@ -54,8 +53,20 @@ class JsonSchemaGeneratorTest {
     private static final Pattern VERSION_PATTERN =
             Pattern.compile(".*JsonSchemaGenerator: \\d+\\.\\d+\\.\\d+.*", Pattern.DOTALL);
 
+    @TempDir private Path output;
+    private Path stdErrFile;
+    private Path stdOutFile;
     private Supplier<String> stdErr;
     private Supplier<String> stdOut;
+
+    @BeforeEach
+    void setUp() {
+        stdOutFile = output.resolve("stdOut.txt");
+        stdErrFile = output.resolve("stdErr.txt");
+
+        stdOut = Suppliers.memoize(() -> readAll(stdOutFile));
+        stdErr = Suppliers.memoize(() -> readAll(stdErrFile));
+    }
 
     @Test
     void shouldOutputHelp() {
@@ -181,11 +192,14 @@ class JsonSchemaGeneratorTest {
         final List<String> cmd = buildCommand(javaArgs, cmdArgs);
 
         try {
-            final Process executor = new ProcessBuilder().command(cmd).start();
+            final Process executor =
+                    new ProcessBuilder()
+                            .command(cmd)
+                            .redirectError(ProcessBuilder.Redirect.to(stdErrFile.toFile()))
+                            .redirectOutput(ProcessBuilder.Redirect.to(stdOutFile.toFile()))
+                            .start();
 
-            stdErr = Suppliers.memoize(() -> readAll(executor.getErrorStream()));
-            stdOut = Suppliers.memoize(() -> readAll(executor.getInputStream()));
-            executor.waitFor(1, TimeUnit.MINUTES);
+            executor.waitFor(30, TimeUnit.SECONDS);
             return executor.exitValue();
         } catch (final Exception e) {
             throw new AssertionError(
@@ -210,10 +224,12 @@ class JsonSchemaGeneratorTest {
         return cmd;
     }
 
-    private static String readAll(final InputStream s) {
-        return new BufferedReader(new InputStreamReader(s, UTF_8))
-                .lines()
-                .collect(Collectors.joining("\n"));
+    private static String readAll(final Path path) {
+        try {
+            return Files.readString(path);
+        } catch (IOException e) {
+            throw new AssertionError("Failed to read " + path, e);
+        }
     }
 
     private static String[] minimalArgs(final String... additional) {
