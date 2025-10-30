@@ -137,7 +137,6 @@ class SchemaGeneratorTest {
 
         // Then:
         assertThat(
-                "text: " + result.text().replace("\r", "\\r").replace("\n", "\\n"),
                 result.text(),
                 startsWith(
                         "---"
