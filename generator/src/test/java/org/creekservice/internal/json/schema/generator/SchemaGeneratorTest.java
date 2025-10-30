@@ -134,15 +134,12 @@ class SchemaGeneratorTest {
 
         // Then:
         assertThat(
-                "text: " + result.text().replace("\r", "\\r").replace("\n", "\\n"),
                 result.text(),
                 startsWith(
-                        "---"
-                                + lineSeparator()
+                        "---\n"
                                 + "# timestamp="
                                 + now.toEpochMilli()
-                                + lineSeparator()
-                                + "$schema: http://json-schema.org/draft-07/schema#"));
+                                + "\n$schema: http://json-schema.org/draft-07/schema#"));
     }
 
     @Test

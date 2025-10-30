@@ -16,7 +16,6 @@
 
 package org.creekservice.internal.json.schema.generator.cli;
 
-import static java.lang.System.lineSeparator;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
@@ -191,20 +190,15 @@ class PicoCliParserTest {
 
         // Then:
         assertThat(
-                result.map(Object::toString).orElse("").replace("\r", "\\r").replace("\n", "\\n"),
-                result.map(Object::toString).orElse("<empty>"),
+                result.map(Object::toString),
                 is(
-                        "--output-directory=some/path"
-                                + lineSeparator()
-                                + "--output-strategy=directoryTree"
-                                + lineSeparator()
-                                + "--type-scanning-allowed-modules=[some.module]"
-                                + lineSeparator()
-                                + "--type-scanning-allowed-packages=<ANY>"
-                                + lineSeparator()
-                                + "--subtype-scanning-allowed-modules=<ANY>"
-                                + lineSeparator()
-                                + "--subtype-scanning-allowed-packages=<ANY>"));
+                        Optional.of(
+                                "--output-directory=some/path\n"
+                                        + "--output-strategy=directoryTree\n"
+                                        + "--type-scanning-allowed-modules=[some.module]\n"
+                                        + "--type-scanning-allowed-packages=<ANY>\n"
+                                        + "--subtype-scanning-allowed-modules=<ANY>\n"
+                                        + "--subtype-scanning-allowed-packages=<ANY>")));
     }
 
     private static String[] minimalArgs(final String... additional) {
