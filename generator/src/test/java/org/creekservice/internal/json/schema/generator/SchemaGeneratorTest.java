@@ -16,7 +16,6 @@
 
 package org.creekservice.internal.json.schema.generator;
 
-import static com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import static java.lang.System.lineSeparator;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -29,8 +28,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -62,6 +64,7 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -136,7 +139,8 @@ class SchemaGeneratorTest {
         assertThat(
                 result.text(),
                 startsWith(
-                        "---\n"
+                        "---"
+                                + lineSeparator()
                                 + "# timestamp="
                                 + now.toEpochMilli()
                                 + "\n$schema: http://json-schema.org/draft-07/schema#"));
@@ -571,8 +575,9 @@ class SchemaGeneratorTest {
         final JsonSchema<TypeWithDecimal> result = generator.generateSchema(TypeWithDecimal.class);
 
         // Then:
-        assertThat(
-                result.text(), containsString("decimal:" + lineSeparator() + "    type: number"));
+        final Map<String, ?> parsedSchema = parseYaml(result);
+        assertThat(yamlGet(parsedSchema, "properties", "decimal", "type"), is("number"));
+
         assertThat(result.text(), not(containsString("BigDecimal")));
 
         assertAlignsWithJackson(result, new TypeWithDecimal(new BigDecimal("0.1")));
@@ -601,7 +606,8 @@ class SchemaGeneratorTest {
                 generator.generateSchema(TypeWithLocalTime.class);
 
         // Then:
-        assertThat(result.text(), containsString("  time:" + lineSeparator() + "    type: string"));
+        final Map<String, ?> parsedSchema = parseYaml(result);
+        assertThat(yamlGet(parsedSchema, "properties", "time", "type"), is("string"));
 
         assertThat(result.text(), not(containsString("format:")));
         assertThat(result.text(), not(containsString("LocalTime")));
@@ -680,7 +686,8 @@ class SchemaGeneratorTest {
                 generator.generateSchema(TypeWithMonthDay.class);
 
         // Then:
-        assertThat(result.text(), containsString("  date:" + lineSeparator() + "    type: string"));
+        final Map<String, ?> parsedSchema = parseYaml(result);
+        assertThat(yamlGet(parsedSchema, "properties", "date", "type"), is("string"));
 
         assertThat(result.text(), not(containsString("format:")));
         assertThat(result.text(), not(containsString("MonthDay")));
@@ -695,7 +702,8 @@ class SchemaGeneratorTest {
                 generator.generateSchema(TypeWithYearMonth.class);
 
         // Then:
-        assertThat(result.text(), containsString("  date:" + lineSeparator() + "    type: string"));
+        final Map<String, ?> parsedSchema = parseYaml(result);
+        assertThat(yamlGet(parsedSchema, "properties", "date", "type"), is("string"));
 
         assertThat(result.text(), not(containsString("format:")));
         assertThat(result.text(), not(containsString("YearMonth")));
@@ -709,7 +717,8 @@ class SchemaGeneratorTest {
         final JsonSchema<TypeWithYear> result = generator.generateSchema(TypeWithYear.class);
 
         // Then:
-        assertThat(result.text(), containsString("  date:" + lineSeparator() + "    type: string"));
+        final Map<String, ?> parsedSchema = parseYaml(result);
+        assertThat(yamlGet(parsedSchema, "properties", "date", "type"), is("string"));
 
         assertThat(result.text(), not(containsString("format:")));
         assertThat(result.text(), not(containsString("Year")));
@@ -737,9 +746,8 @@ class SchemaGeneratorTest {
                 generator.generateSchema(TypeWithDuration.class);
 
         // Then:
-        assertThat(
-                result.text(),
-                containsString("  duration:" + lineSeparator() + "    type: number"));
+        final Map<String, ?> parsedSchema = parseYaml(result);
+        assertThat(yamlGet(parsedSchema, "properties", "duration", "type"), is("number"));
 
         assertThat(result.text(), not(containsString("format:")));
 
@@ -788,6 +796,31 @@ class SchemaGeneratorTest {
         assertThat(result.text(), not(containsString("UUID")));
 
         assertAlignsWithJackson(result, new TypeWithUuid(UUID.randomUUID()));
+    }
+
+    private Map<String, ?> parseYaml(final JsonSchema<?> schema) {
+        try {
+            return yamlMapper.readValue(schema.text(), new TypeReference<Map<String, ?>>() {});
+        } catch (JsonProcessingException e) {
+            throw new AssertionError("Failed to parse schema", e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Object yamlGet(final Map<String, ?> parsed, final String... props) {
+        final StringBuilder path = new StringBuilder();
+        Map<String, ?> current = parsed;
+        for (int i = 0; i < props.length - 1; i++) {
+            final String prop = props[i];
+            path.append(".").append(prop);
+            final Object v = current.get(prop);
+            if (!(v instanceof Map<?, ?>)) {
+                throw new AssertionError("Expected map for " + path + ", got " + v);
+            }
+            current = (Map<String, ?>) v;
+        }
+
+        return current.get(props[props.length - 1]);
     }
 
     @SafeVarargs
