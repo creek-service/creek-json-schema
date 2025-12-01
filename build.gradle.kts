@@ -22,7 +22,7 @@ plugins {
     `creek-coverage-convention`
     `creek-publishing-convention` apply false
     `creek-sonatype-publishing-convention`
-    id("pl.allegro.tech.build.axion-release") version "1.21.0" // https://plugins.gradle.org/plugin/pl.allegro.tech.build.axion-release
+    id("pl.allegro.tech.build.axion-release") version "1.21.1" // https://plugins.gradle.org/plugin/pl.allegro.tech.build.axion-release
 }
 
 scmVersion {
