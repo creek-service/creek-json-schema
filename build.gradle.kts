@@ -55,18 +55,18 @@ subprojects {
         set("creekVersion", project.version)
         set("spotBugsVersion", "4.9.8")         // https://mvnrepository.com/artifact/com.github.spotbugs/spotbugs-annotations
         set("picoCliVersion", "4.7.7")          // https://mvnrepository.com/artifact/info.picocli/picocli
-        set("jacksonVersion", "2.20.1")         // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
+        set("jacksonVersion", "2.21.2")         // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
         set("jacksonAnnotationVersion", "2.20") // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations
         set("jsonSchemaVersion", "1.0.39")      // https://mvnrepository.com/artifact/com.kjetland/mbknor-jackson-jsonschema
         set("classGraphVersion", "4.8.184")     // https://mvnrepository.com/artifact/io.github.classgraph/classgraph
-        set("kotlinVersion", "2.3.0")          // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-stdlib-common
+        set("kotlinVersion", "2.3.20")          // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-stdlib-common
         set("scalaVersion", "2.13.18")
 
-        set("log4jVersion", "2.25.3")           // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
+        set("log4jVersion", "2.25.4")           // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
         set("guavaVersion", "33.5.0-jre")         // https://mvnrepository.com/artifact/com.google.guava/guava
         set("junitVersion", "5.13.4")            // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
         set("junitPioneerVersion", "2.3.0")     // https://mvnrepository.com/artifact/org.junit-pioneer/junit-pioneer
-        set("mockitoVersion", "5.21.0")         // https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter
+        set("mockitoVersion", "5.23.0")         // https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter
     }
 
     val creekVersion : String by extra
