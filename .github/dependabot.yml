@@ -31,6 +31,14 @@ updates:
     open-pull-requests-limit: 50
     schedule:
       interval: monthly
+    ignore:
+      # scala-library is a transitive security pin for mbknor-jackson-jsonschema (Scala 2).
+      # Scala 3 ships a scala-library jar that lacks Automatic-Module-Name, so Gradle's
+      # InferModulePath puts it on the classpath rather than the module path, breaking
+      # creek.json.schema.generator at boot-layer initialisation.  Pin to 2.x until the
+      # mbknor dependency is replaced with a Scala-3-compatible alternative.
+      - dependency-name: "org.scala-lang:scala-library"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: gradle
     directory: /buildSrc
     registries:
