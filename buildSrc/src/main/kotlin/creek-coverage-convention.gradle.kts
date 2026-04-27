@@ -18,6 +18,7 @@
  * Standard coverage configuration of Creek projects, utilising Jacoco and Codecov.
  *
  * <p>Versions:
+ *  - 1.5: Add coverage task
  *  - 1.4: Switch from Coveralls to Codecov; remove multi-module report aggregation
  *  - 1.3: remove deprecated use of $buildDir
  *  - 1.2: Apply to root project only
@@ -41,4 +42,10 @@ allprojects {
             xml.required.set(true)
         }
     }
+}
+
+tasks.register("coverage") {
+    group = "creek"
+    description = "generate coverage report"
+    dependsOn("jacocoTestReport")
 }
