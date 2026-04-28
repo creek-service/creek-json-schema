@@ -14,3 +14,5 @@ out
 
 # Apple
 **/.DS_Store
+# Kotlin compiler session files
+buildSrc/.kotlin/
