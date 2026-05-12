@@ -126,12 +126,6 @@ final class PolymorphicTypes {
     private void findPolymorphicTypes(final Class<?> type) {
         try {
             visitType(type);
-        } catch (LinkageError e) {
-            // Todo:
-            // Skip types whose transitive dependencies are not available at runtime
-            // (e.g., Kotlin types when kotlin-stdlib is absent). Polymorphic subtypes
-            // reachable only through such types won't be auto-discovered; callers may
-            // register them explicitly via registerSubTypes().
         } catch (Exception e) {
             throw new PolymorphicExtractorException(type, e);
         }

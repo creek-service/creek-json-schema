@@ -64,14 +64,19 @@ tasks.test {
     dependsOn("installDist")
     dependsOn(":test-types:jar")
 
-    // Todo: Why?
     doFirst {
-        val kotlinStdlibJars = configurations.getByName("testRuntimeClasspath")
+        val generatorLibJars = file("build/install/generator/lib")
+            .listFiles()?.map { it.name }?.toSet() ?: emptySet()
+
+        // generator's test dependencies includes test-types production dependencies:
+        val testTypeDeps = configurations.getByName("testRuntimeClasspath")
             .resolvedConfiguration.resolvedArtifacts
-            .filter { it.name.startsWith("kotlin-stdlib") }
+            .filter { it.file.name !in generatorLibJars }
+            .filter { !it.file.absolutePath.contains("/test-types/") }
             .joinToString(File.pathSeparator) { it.file.absolutePath }
-        if (kotlinStdlibJars.isNotEmpty()) {
-            systemProperty("kotlin.stdlib.jars", kotlinStdlibJars)
+
+        if (testTypeDeps.isNotEmpty()) {
+            systemProperty("test.types.dependency.jars", testTypeDeps)
         }
     }
 }

@@ -429,7 +429,7 @@ final class JsonSchemaGeneratorFactory {
                 .withTypeAttributeOverride(
                         (node, scope, ctx) ->
                                 findInjectJson(scope.getType().getErasedType())
-                                        .ifPresent(json -> mergeJson(node, json, JSON_MAPPER)));
+                                        .ifPresent(json -> mergeJson(node, json)));
 
         // Skip fake container-item scopes (prevents List getter inject leaking to items).
         configBuilder
@@ -439,8 +439,7 @@ final class JsonSchemaGeneratorFactory {
                             if (scope.isFakeContainerItemScope()) {
                                 return;
                             }
-                            findInjectJson(scope)
-                                    .ifPresent(json -> mergeJson(node, json, JSON_MAPPER));
+                            findInjectJson(scope).ifPresent(json -> mergeJson(node, json));
                         });
     }
 
@@ -454,13 +453,12 @@ final class JsonSchemaGeneratorFactory {
                 .map(JsonSchemaInject::value);
     }
 
-    private static void mergeJson(
-            final ObjectNode node, final String json, final ObjectMapper mapper) {
+    private static void mergeJson(final ObjectNode node, final String json) {
         if (json.isEmpty()) {
             return;
         }
         try {
-            final ObjectNode extra = (ObjectNode) mapper.readTree(json);
+            final ObjectNode extra = (ObjectNode) JSON_MAPPER.readTree(json);
             extra.properties().forEach(entry -> node.set(entry.getKey(), entry.getValue()));
         } catch (final Exception e) {
             throw new IllegalArgumentException("Invalid @JsonSchemaInject JSON: " + json, e);
@@ -583,9 +581,7 @@ final class JsonSchemaGeneratorFactory {
                         CustomDefinition.AttributeInclusion.NO);
             }
 
-            // No subtypes found: return a plain object schema to prevent JsonSubTypesResolver
-            // from incorrectly generating a self-referential discriminator schema for the base
-            // type.
+            // No subtypes: plain object prevents self-referential schema.
             final ObjectNode placeholder = context.getGeneratorConfig().createObjectNode();
             placeholder.put(
                     context.getKeyword(SchemaKeyword.TAG_TYPE),
@@ -663,9 +659,7 @@ final class JsonSchemaGeneratorFactory {
                     yield typeName != null ? typeName.value() : subtype.getSimpleName();
                 }
                 case MINIMAL_CLASS -> {
-                    // Strip the base type's package prefix, leaving a leading "." + remainder.
-                    // If the subtype is in a shorter or different package, fall back to the
-                    // fully-qualified class name.
+                    // Strip base package prefix; fall back to FQCN if different package.
                     final String subtypeName = subtype.getName();
                     final String basePackage = baseType.getPackageName();
                     yield subtypeName.length() > basePackage.length()
@@ -677,22 +671,7 @@ final class JsonSchemaGeneratorFactory {
             };
         }
 
-        /**
-         * Finds the nearest {@link JsonTypeInfo} annotation on an ancestor of {@code cls} by
-         * walking the class hierarchy up to (but not including) {@link Object}, and also checking
-         * implemented interfaces recursively.
-         *
-         * <p>This handles multi-level hierarchies where only the root base type carries
-         * {@code @JsonTypeInfo}: a deep subtype (e.g. {@code Concrete extends Middle extends Base})
-         * must still receive the discriminator property even though its immediate parent ({@code
-         * Middle}) has no direct {@code @JsonTypeInfo}. It also handles interface-based
-         * polymorphism where {@code @JsonTypeInfo} is on an interface rather than a superclass.
-         *
-         * <p>Types that have {@code @JsonTypeInfo} <em>directly</em> are handled by {@link
-         * #handleBaseType} before reaching this method, so there is no risk of double-processing.
-         */
         private static Optional<ParentTypeInfo> findAncestorTypeInfo(final Class<?> cls) {
-            // Check interfaces implemented by this class
             final Optional<ParentTypeInfo> fromInterface = findTypeInfoInInterfaces(cls);
             if (fromInterface.isPresent()) {
                 return fromInterface;
@@ -745,9 +724,7 @@ final class JsonSchemaGeneratorFactory {
                         .collect(Collectors.toList());
             }
 
-            // Fall back to subtypes registered on the mapper (implicit polymorphism).
-            // Deduplicate (double-registration is possible) and sort by class name for
-            // deterministic ordering.
+            // Fall back to mapper-registered subtypes; deduplicate and sort for stability.
             final BeanDescription beanDesc =
                     mapper.getSerializationConfig().introspectClassAnnotations(erasedType);
             final Collection<NamedType> registered =
