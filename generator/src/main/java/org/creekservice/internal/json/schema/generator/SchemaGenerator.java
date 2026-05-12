@@ -19,16 +19,16 @@ package org.creekservice.internal.json.schema.generator;
 import static java.lang.System.lineSeparator;
 import static java.util.Objects.requireNonNull;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.kjetland.jackson.jsonSchema.JsonSchemaGenerator;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import org.creekservice.api.base.annotation.VisibleForTesting;
 import org.creekservice.api.base.type.temporal.Clock;
@@ -45,7 +45,7 @@ public final class SchemaGenerator {
                     .enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
                     .build();
 
-    private final JsonSchemaGenerator generator;
+    private final com.github.victools.jsonschema.generator.SchemaGenerator generator;
     private final TypeScanningSpec subtypeScanning;
     private final Clock clock;
 
@@ -59,13 +59,17 @@ public final class SchemaGenerator {
     @VisibleForTesting
     SchemaGenerator(final TypeScanningSpec subtypeScanning, final Clock clock) {
         this.subtypeScanning = requireNonNull(subtypeScanning, "subtypeScanning");
-        this.generator = JsonSchemaGeneratorFactory.createGenerator(mapper, subtypeScanning);
+        this.generator = JsonSchemaGeneratorFactory.createGenerator(mapper);
         this.clock = requireNonNull(clock, "clock");
     }
 
     /**
      * Find and register any polymorphic subtypes required by the supplied {@code types} that need
      * to be registered.
+     *
+     * <p>This method is called automatically at the start of {@link #generateSchema} for the type
+     * being generated. Calling it explicitly with all types before generating schemas can improve
+     * accuracy when types share polymorphic base types.
      *
      * @param types the types to inspect, i.e. the types you intend to pass to {@link
      *     #generateSchema}.
@@ -85,8 +89,9 @@ public final class SchemaGenerator {
      * @return the schema
      */
     public <T> JsonSchema<T> generateSchema(final Class<T> type) {
+        registerSubTypes(List.of(type));
         try {
-            final JsonNode jsonSchema = generator.generateJsonSchema(type);
+            final ObjectNode jsonSchema = generator.generateSchema(type);
             final String yaml =
                     mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonSchema);
             return new JsonSchema<>(type, injectVersionTimestamp(yaml));
@@ -101,7 +106,8 @@ public final class SchemaGenerator {
                 "---", "---" + lineSeparator() + "# timestamp=" + clock.get().toEpochMilli());
     }
 
-    private static final class SchemaGeneratorException extends RuntimeException {
+    @VisibleForTesting
+    static final class SchemaGeneratorException extends RuntimeException {
 
         SchemaGeneratorException(final String msg, final Throwable cause) {
             super(msg, cause);

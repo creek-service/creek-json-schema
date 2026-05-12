@@ -17,7 +17,7 @@
 package org.creekservice.test.types
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.kjetland.jackson.jsonSchema.annotations.JsonSchemaDefault
+import io.swagger.v3.oas.annotations.media.Schema
 import org.creekservice.api.base.annotation.schema.GeneratesSchema
 
 @Suppress("unused")
@@ -33,6 +33,6 @@ class KotlinModel(
     @JsonProperty(required = true)
     fun getProp1(): String {return "";}
 
-    @JsonSchemaDefault("a default value")
+    @Schema(defaultValue = "a default value")
     var prop2: String? = null
 }

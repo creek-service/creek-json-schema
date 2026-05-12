@@ -1,9 +1,7 @@
 ---
-# timestamp=1706376038127
-$schema: http://json-schema.org/draft-07/schema#
-title: Require Model
+# timestamp=1777545029239
+$schema: https://json-schema.org/draft/2020-12/schema
 type: object
-additionalProperties: false
 properties:
   optionalProp:
     type: string
@@ -11,3 +9,5 @@ properties:
     type: string
 required:
 - requiredProp
+title: Require Model
+additionalProperties: false

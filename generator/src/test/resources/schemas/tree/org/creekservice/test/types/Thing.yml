@@ -1,36 +1,29 @@
 ---
-# timestamp=1706376038814
-$schema: http://json-schema.org/draft-07/schema#
-title: Thing
-oneOf:
-- $ref: "#/definitions/SmallThing"
-- $ref: "#/definitions/big"
-definitions:
+# timestamp=1777545029748
+$schema: https://json-schema.org/draft/2020-12/schema
+$defs:
   SmallThing:
     type: object
-    additionalProperties: false
     properties:
-      '@type':
-        type: string
-        enum:
-        - Thing$SmallThing
-        default: Thing$SmallThing
       prop2:
         type: string
-    title: Thing$SmallThing
+      '@type':
+        const: Thing$SmallThing
+    title: Small Thing
+    additionalProperties: false
     required:
     - '@type'
   big:
     type: object
-    additionalProperties: false
     properties:
-      '@type':
-        type: string
-        enum:
-        - big
-        default: big
       prop1:
         type: string
-    title: big
+      '@type':
+        const: big
+    title: Big Thing
+    additionalProperties: false
     required:
     - '@type'
+oneOf:
+- $ref: "#/$defs/big"
+- $ref: "#/$defs/SmallThing"

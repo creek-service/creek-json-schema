@@ -126,6 +126,12 @@ final class PolymorphicTypes {
     private void findPolymorphicTypes(final Class<?> type) {
         try {
             visitType(type);
+        } catch (LinkageError e) {
+            // Todo:
+            // Skip types whose transitive dependencies are not available at runtime
+            // (e.g., Kotlin types when kotlin-stdlib is absent). Polymorphic subtypes
+            // reachable only through such types won't be auto-discovered; callers may
+            // register them explicitly via registerSubTypes().
         } catch (Exception e) {
             throw new PolymorphicExtractorException(type, e);
         }
@@ -168,16 +174,20 @@ final class PolymorphicTypes {
     @SuppressWarnings({"unchecked", "rawtypes"})
     private <T> List<Class<? extends T>> implementationsOf(final Class<T> type) {
         final JsonTypeInfo typeInfo = type.getAnnotation(JsonTypeInfo.class);
-        if (typeInfo == null
-                || (typeInfo.use() != JsonTypeInfo.Id.NAME
-                        && typeInfo.use() != JsonTypeInfo.Id.SIMPLE_NAME)) {
-            // Not using registered types
+        if (typeInfo == null) {
+            // Not a polymorphic type
             return List.of();
         }
 
         final JsonSubTypes subTypes = type.getAnnotation(JsonSubTypes.class);
         if (subTypes != null) {
             // Using hard-coded subtypes.
+            return List.of();
+        }
+
+        final JsonTypeInfo.Id use = typeInfo.use();
+        if (use == JsonTypeInfo.Id.NONE || use == JsonTypeInfo.Id.CUSTOM) {
+            // No registered type scanning needed
             return List.of();
         }
 

@@ -1,0 +1,29 @@
+---
+# timestamp=1777545029733
+$schema: https://json-schema.org/draft/2020-12/schema
+type: object
+properties:
+  nonEmpty:
+    type: string
+    minLength: 1
+  set:
+    minItems: 1
+    uniqueItems: true
+    type: array
+    items:
+      type: integer
+      minimum: -2147483648
+      maximum: 2147483647
+  uuid:
+    type: string
+    format: uuid
+  withDescription:
+    type: string
+    description: This property has a text description.
+title: Custom Title
+additionalProperties: false
+anyOf:
+- required:
+  - uuid
+- required:
+  - withDescription

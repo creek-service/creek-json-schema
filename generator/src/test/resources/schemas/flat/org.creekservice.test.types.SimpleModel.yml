@@ -1,13 +1,15 @@
 ---
-# timestamp=1706376038151
-$schema: http://json-schema.org/draft-07/schema#
-title: Simple Model
+# timestamp=1777545029216
+$schema: https://json-schema.org/draft/2020-12/schema
 type: object
-additionalProperties: false
 properties:
   intProp:
     type: integer
+    minimum: -2147483648
+    maximum: 2147483647
   stringProp:
     type: string
 required:
 - intProp
+title: Simple Model
+additionalProperties: false

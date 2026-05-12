@@ -58,6 +58,9 @@ class JsonSchemaGeneratorFunctionalTest {
 
     private static final Path TEST_TYPES_LIB_DIR =
             TestPaths.moduleRoot("test-types").resolve("build//libs").toAbsolutePath();
+
+    // Todo: what is this?
+    private static final String KOTLIN_STDLIB_JARS = System.getProperty("kotlin.stdlib.jars", "");
     private static final Path EXPECTED_FLAT_SCHEMA_DIR =
             TestPaths.moduleRoot("generator").resolve("src/test/resources/schemas/flat");
     private static final Path EXPECTED_TREE_SCHEMA_DIR =
@@ -186,10 +189,17 @@ class JsonSchemaGeneratorFunctionalTest {
             cmd.addAll(remoteDebugArguments());
         }
         codeCoverageCmdLineArg().ifPresent(cmd::add);
+
+        // Todo: Why this?
+        String modulePath = LIB_DIR + System.getProperty("path.separator") + TEST_TYPES_LIB_DIR;
+        if (!KOTLIN_STDLIB_JARS.isEmpty()) {
+            modulePath += System.getProperty("path.separator") + KOTLIN_STDLIB_JARS;
+        }
+
         cmd.addAll(
                 List.of(
                         "--module-path",
-                        LIB_DIR + System.getProperty("path.separator") + TEST_TYPES_LIB_DIR,
+                        modulePath,
                         "--add-modules",
                         "creek.json.schema.test.types",
                         "--module",

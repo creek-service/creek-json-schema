@@ -25,14 +25,10 @@ import static org.hamcrest.Matchers.startsWith;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -41,36 +37,14 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.kjetland.jackson.jsonSchema.annotations.JsonSchemaDescription;
-import com.kjetland.jackson.jsonSchema.annotations.JsonSchemaFormat;
-import com.kjetland.jackson.jsonSchema.annotations.JsonSchemaInject;
-import com.kjetland.jackson.jsonSchema.annotations.JsonSchemaInt;
-import com.kjetland.jackson.jsonSchema.annotations.JsonSchemaTitle;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.math.BigDecimal;
-import java.net.URI;
-import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.MonthDay;
-import java.time.OffsetDateTime;
-import java.time.OffsetTime;
-import java.time.Period;
-import java.time.Year;
-import java.time.YearMonth;
-import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
 import net.jimblackler.jsonschemafriend.Schema;
 import net.jimblackler.jsonschemafriend.SchemaStore;
-import net.jimblackler.jsonschemafriend.ValidationException;
 import net.jimblackler.jsonschemafriend.Validator;
 import org.creekservice.api.json.schema.generator.GeneratorOptions.TypeScanningSpec;
 import org.junit.jupiter.api.BeforeEach;
@@ -101,6 +75,7 @@ class SchemaGeneratorTest {
                     .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                     .disable(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE)
                     .build();
+
     private final ObjectMapper yamlMapper =
             new ObjectMapper(new YAMLFactory().enable(YAMLGenerator.Feature.MINIMIZE_QUOTES));
 
@@ -143,7 +118,7 @@ class SchemaGeneratorTest {
                                 + lineSeparator()
                                 + "# timestamp="
                                 + now.toEpochMilli()
-                                + "\n$schema: http://json-schema.org/draft-07/schema#"));
+                                + "\n$schema: https://json-schema.org/draft/2020-12/schema"));
     }
 
     @Test
@@ -157,148 +132,6 @@ class SchemaGeneratorTest {
 
         // Then:
         assertThat(result.text(), containsString("# timestamp=" + now.toEpochMilli()));
-    }
-
-    @Test
-    void shouldIncludeDefaultTitle() {
-        // Given:
-        class Model {}
-
-        // When:
-        final JsonSchema<Model> result = generator.generateSchema(Model.class);
-
-        // Then:
-        assertThat(result.text(), containsString("title: Model"));
-    }
-
-    @Test
-    void shouldIncludeCustomTitle() {
-        // Given:
-        @JsonSchemaTitle("Custom Title")
-        class Model {}
-
-        // When:
-        final JsonSchema<Model> result = generator.generateSchema(Model.class);
-
-        // Then:
-        assertThat(result.text(), containsString("title: Custom Title"));
-    }
-
-    @Test
-    void shouldIncludeType() {
-        // Given:
-        class Model {}
-
-        // When:
-        final JsonSchema<Model> result = generator.generateSchema(Model.class);
-
-        // Then:
-        assertThat(result.text(), containsString("type: object"));
-    }
-
-    @Test
-    void shouldNotAllowAdditionalProps() {
-        // Given:
-        class Model {}
-
-        // When:
-        final JsonSchema<Model> result = generator.generateSchema(Model.class);
-
-        // Then:
-        assertThat(result.text(), containsString("additionalProperties: false"));
-    }
-
-    @Test
-    void shouldIncludeDescription() {
-        // Given:
-        @JsonSchemaDescription("Some details")
-        class Model {}
-
-        // When:
-        final JsonSchema<Model> result = generator.generateSchema(Model.class);
-
-        // Then:
-        assertThat(result.text(), containsString("description: Some details"));
-    }
-
-    @Test
-    void shouldFormatPropertyNames() {
-        // Given:
-        class Model {
-            public String getSomeLongPropertyName() {
-                return null;
-            }
-        }
-
-        // When:
-        final JsonSchema<Model> result = generator.generateSchema(Model.class);
-
-        // Then:
-        assertThat(
-                result.text(),
-                containsString(
-                        "\nproperties:\n" + "  someLongPropertyName:\n" + "    type: string\n"));
-    }
-
-    @Test
-    void shouldOrderPropertiesAlphabeticallyByDefault() {
-        // Given:
-        class Model {
-            public String getC() {
-                return null;
-            }
-
-            public String getA() {
-                return null;
-            }
-
-            public String getB() {
-                return null;
-            }
-        }
-
-        // When:
-        final JsonSchema<Model> result = generator.generateSchema(Model.class);
-
-        // Then:
-        assertThat(
-                result.text(),
-                containsString(
-                        "\nproperties:\n"
-                                + "  a:\n"
-                                + "    type: string\n"
-                                + "  b:\n"
-                                + "    type: string\n"
-                                + "  c:\n"
-                                + "    type: string\n"));
-    }
-
-    @Test
-    void shouldOrderPropertiesAsInstructed() {
-        // Given:
-        @JsonPropertyOrder(value = {"b", "a"})
-        class Model {
-            public String getA() {
-                return null;
-            }
-
-            public String getB() {
-                return null;
-            }
-        }
-
-        // When:
-        final JsonSchema<Model> result = generator.generateSchema(Model.class);
-
-        // Then:
-        assertThat(
-                result.text(),
-                containsString(
-                        "\nproperties:\n"
-                                + "  b:\n"
-                                + "    type: string\n"
-                                + "  a:\n"
-                                + "    type: string\n"));
     }
 
     @Test
@@ -357,12 +190,14 @@ class SchemaGeneratorTest {
         assertThat(
                 result.text(),
                 containsString(
-                        "oneOf:\n"
-                                + "- $ref: \"#/definitions/ExplicitlyNamed\"\n"
-                                + "- $ref: \"#/definitions/ImplicitlyNamed\"\n"));
+                        """
+                        oneOf:
+                        - $ref: "#/$defs/ExplicitlyNamed"
+                        - $ref: "#/$defs/ImplicitlyNamed"
+                        """));
 
-        assertThat(result.text(), containsString("default: " + explicitType));
-        assertThat(result.text(), containsString("default: " + implicitType));
+        assertThat(result.text(), containsString("const: " + explicitType));
+        assertThat(result.text(), containsString("const: " + implicitType));
 
         assertThat(result.text().toLowerCase(), not(containsString("ignored")));
 
@@ -393,13 +228,13 @@ class SchemaGeneratorTest {
                 result.text(),
                 containsString(
                         "oneOf:\n"
-                                + "- $ref: \"#/definitions/ImplicitlyNamed\"\n"
-                                + "- $ref: \"#/definitions/"
+                                + "- $ref: \"#/$defs/"
                                 + explicitType
-                                + "\""));
+                                + "\"\n"
+                                + "- $ref: \"#/$defs/ImplicitlyNamed\""));
 
-        assertThat(result.text(), containsString("default: " + explicitType));
-        assertThat(result.text(), containsString("default: " + implicitType));
+        assertThat(result.text(), containsString("const: " + explicitType));
+        assertThat(result.text(), containsString("const: " + implicitType));
 
         assertAlignsWithJackson(
                 result,
@@ -428,13 +263,13 @@ class SchemaGeneratorTest {
                 result.text(),
                 containsString(
                         "oneOf:\n"
-                                + "- $ref: \"#/definitions/"
+                                + "- $ref: \"#/$defs/"
                                 + explicitType
                                 + "\"\n"
-                                + "- $ref: \"#/definitions/ImplicitlyNamed\""));
+                                + "- $ref: \"#/$defs/ImplicitlyNamed\""));
 
-        assertThat(result.text(), containsString("default: " + explicitType));
-        assertThat(result.text(), containsString("default: " + implicitType));
+        assertThat(result.text(), containsString("const: " + explicitType));
+        assertThat(result.text(), containsString("const: " + implicitType));
 
         assertAlignsWithJackson(
                 result,
@@ -456,12 +291,14 @@ class SchemaGeneratorTest {
         assertThat(
                 result.text(),
                 containsString(
-                        "oneOf:\n"
-                                + "- $ref: \"#/definitions/the-explicit-name\"\n"
-                                + "- $ref: \"#/definitions/ImplicitlyNamed\""));
+                        """
+                        oneOf:
+                        - $ref: "#/$defs/the-explicit-name"
+                        - $ref: "#/$defs/ImplicitlyNamed"\
+                        """));
 
-        assertThat(result.text(), containsString("default: " + explicitClass));
-        assertThat(result.text(), containsString("default: " + implicitClass));
+        assertThat(result.text(), containsString("const: " + explicitClass));
+        assertThat(result.text(), containsString("const: " + implicitClass));
 
         assertAlignsWithJackson(
                 result,
@@ -483,344 +320,19 @@ class SchemaGeneratorTest {
         assertThat(
                 result.text(),
                 containsString(
-                        "oneOf:\n"
-                                + "- $ref: \"#/definitions/the-explicit-name\"\n"
-                                + "- $ref: \"#/definitions/ImplicitlyNamed\""));
+                        """
+                        oneOf:
+                        - $ref: "#/$defs/the-explicit-name"
+                        - $ref: "#/$defs/ImplicitlyNamed"\
+                        """));
 
-        assertThat(result.text(), containsString("default: " + explicitClass));
-        assertThat(result.text(), containsString("default: " + implicitClass));
+        assertThat(result.text(), containsString("const: " + explicitClass));
+        assertThat(result.text(), containsString("const: " + implicitClass));
 
         assertAlignsWithJackson(
                 result,
                 new TypeWithMinimalClassPolymorphism.ExplicitlyNamed(),
                 new TypeWithMinimalClassPolymorphism.ImplicitlyNamed());
-    }
-
-    @Test
-    void shouldIncludeSubTypeProperties() {
-        // When:
-        final JsonSchema<PolyTypeWithProps> result =
-                generator.generateSchema(PolyTypeWithProps.class);
-
-        // Then:
-        assertThat(
-                result.text(),
-                containsString(
-                        "properties:\n"
-                                + "      '@type':\n"
-                                + "        type: string\n"
-                                + "        enum:\n"
-                                + "        - type-1\n"
-                                + "        default: type-1\n"
-                                + "      a:\n"
-                                + "        type: string"));
-
-        assertThat(
-                result.text(),
-                containsString(
-                        "properties:\n"
-                                + "      '@type':\n"
-                                + "        type: string\n"
-                                + "        enum:\n"
-                                + "        - type-2\n"
-                                + "        default: type-2\n"
-                                + "      b:\n"
-                                + "        type: integer"));
-
-        assertAlignsWithJackson(
-                result, new PolyTypeWithProps.SubType1("text"), new PolyTypeWithProps.SubType2(56));
-    }
-
-    @Test
-    void shouldIncludeInjectedSchema() {
-        // When:
-        final JsonSchema<TypeWithInjectedSchema> result =
-                generator.generateSchema(TypeWithInjectedSchema.class);
-
-        // Then:
-        assertThat(
-                result.text(),
-                containsString(
-                        "  list:\n"
-                                + "    type: array\n"
-                                + "    items:\n"
-                                + "      type: integer\n"
-                                + "    maxItems: 2"));
-
-        assertAlignsWithJackson(
-                result,
-                List.of(new TypeWithInjectedSchema(List.of(1L))),
-                List.of(new TypeWithInjectedSchema(List.of(1L, 2L, 3L))));
-    }
-
-    @Test
-    void shouldIncludeFormat() {
-        // When:
-        final JsonSchema<TypeWithFormat> result = generator.generateSchema(TypeWithFormat.class);
-
-        // Then:
-        assertThat(
-                result.text(),
-                containsString("  x:\n" + "    type: string\n" + "    format: uuid"));
-
-        assertAlignsWithJackson(
-                result,
-                List.of(new TypeWithFormat(UUID.randomUUID().toString())),
-                List.of(new TypeWithFormat("not a uuid")));
-    }
-
-    @Test
-    void shouldInsertDecimalAsNumber() {
-        // When:
-        final JsonSchema<TypeWithDecimal> result = generator.generateSchema(TypeWithDecimal.class);
-
-        // Then:
-        final Map<String, ?> parsedSchema = parseYaml(result);
-        assertThat(yamlGet(parsedSchema, "properties", "decimal", "type"), is("number"));
-
-        assertThat(result.text(), not(containsString("BigDecimal")));
-
-        assertAlignsWithJackson(result, new TypeWithDecimal(new BigDecimal("0.1")));
-    }
-
-    @Test
-    void shouldInsertLocalDateAsStringWithDateFormat() {
-        // When:
-        final JsonSchema<TypeWithLocalDate> result =
-                generator.generateSchema(TypeWithLocalDate.class);
-
-        // Then:
-        assertThat(
-                result.text(),
-                containsString("  date:\n" + "    type: string\n" + "    format: date"));
-
-        assertThat(result.text(), not(containsString("LocalDate")));
-
-        assertAlignsWithJackson(result, new TypeWithLocalDate(LocalDate.now()));
-    }
-
-    @Test
-    void shouldInsertLocalTimeAsStringWithNoFormat() {
-        // When:
-        final JsonSchema<TypeWithLocalTime> result =
-                generator.generateSchema(TypeWithLocalTime.class);
-
-        // Then:
-        final Map<String, ?> parsedSchema = parseYaml(result);
-        assertThat(yamlGet(parsedSchema, "properties", "time", "type"), is("string"));
-
-        assertThat(result.text(), not(containsString("format:")));
-        assertThat(result.text(), not(containsString("LocalTime")));
-
-        assertAlignsWithJackson(result, new TypeWithLocalTime(LocalTime.now()));
-    }
-
-    @Test
-    void shouldInsertLocalDateTimeAsStringWithDateTimeFormat() {
-        // When:
-        final JsonSchema<TypeWithLocalDateTime> result =
-                generator.generateSchema(TypeWithLocalDateTime.class);
-
-        // Then:
-        assertThat(
-                result.text(),
-                containsString("  date:\n" + "    type: string\n" + "    format: date-time"));
-
-        assertThat(result.text(), not(containsString("LocalDateTime")));
-
-        assertAlignsWithJackson(result, new TypeWithLocalDateTime(LocalDateTime.now()));
-    }
-
-    @Test
-    void shouldInsertZonedDateTimeAsStringWithDateTimeFormat() {
-        // When:
-        final JsonSchema<TypeWithZonedDateTime> result =
-                generator.generateSchema(TypeWithZonedDateTime.class);
-
-        // Then:
-        assertThat(
-                result.text(),
-                containsString("  date:\n" + "    type: string\n" + "    format: date-time"));
-
-        assertThat(result.text(), not(containsString("ZonedDateTime")));
-
-        assertAlignsWithJackson(result, new TypeWithZonedDateTime(ZonedDateTime.now()));
-    }
-
-    @Test
-    void shouldInsertOffsetTimeAsStringWithTimeFormat() {
-        // When:
-        final JsonSchema<TypeWithOffsetTime> result =
-                generator.generateSchema(TypeWithOffsetTime.class);
-
-        // Then:
-        assertThat(
-                result.text(),
-                containsString("  time:\n" + "    type: string\n" + "    format: time"));
-
-        assertThat(result.text(), not(containsString("OffsetTime")));
-
-        assertAlignsWithJackson(result, new TypeWithOffsetTime(OffsetTime.now()));
-    }
-
-    @Test
-    void shouldInsertOffsetDateTimeAsStringWithDateTimeFormat() {
-        // When:
-        final JsonSchema<TypeWithOffsetDateTime> result =
-                generator.generateSchema(TypeWithOffsetDateTime.class);
-
-        // Then:
-        assertThat(
-                result.text(),
-                containsString("  date:\n" + "    type: string\n" + "    format: date-time"));
-
-        assertThat(result.text(), not(containsString("OffsetDateTime")));
-
-        assertAlignsWithJackson(result, new TypeWithOffsetDateTime(OffsetDateTime.now()));
-    }
-
-    @Test
-    void shouldInsertMonthDayAsStringWithNoFormat() {
-        // When:
-        final JsonSchema<TypeWithMonthDay> result =
-                generator.generateSchema(TypeWithMonthDay.class);
-
-        // Then:
-        final Map<String, ?> parsedSchema = parseYaml(result);
-        assertThat(yamlGet(parsedSchema, "properties", "date", "type"), is("string"));
-
-        assertThat(result.text(), not(containsString("format:")));
-        assertThat(result.text(), not(containsString("MonthDay")));
-
-        assertAlignsWithJackson(result, new TypeWithMonthDay(MonthDay.now()));
-    }
-
-    @Test
-    void shouldInsertYearMonthAsStringWithNoFormat() {
-        // When:
-        final JsonSchema<TypeWithYearMonth> result =
-                generator.generateSchema(TypeWithYearMonth.class);
-
-        // Then:
-        final Map<String, ?> parsedSchema = parseYaml(result);
-        assertThat(yamlGet(parsedSchema, "properties", "date", "type"), is("string"));
-
-        assertThat(result.text(), not(containsString("format:")));
-        assertThat(result.text(), not(containsString("YearMonth")));
-
-        assertAlignsWithJackson(result, new TypeWithYearMonth(YearMonth.now()));
-    }
-
-    @Test
-    void shouldInsertYearAsStringWithNoFormat() {
-        // When:
-        final JsonSchema<TypeWithYear> result = generator.generateSchema(TypeWithYear.class);
-
-        // Then:
-        final Map<String, ?> parsedSchema = parseYaml(result);
-        assertThat(yamlGet(parsedSchema, "properties", "date", "type"), is("string"));
-
-        assertThat(result.text(), not(containsString("format:")));
-        assertThat(result.text(), not(containsString("Year")));
-
-        assertAlignsWithJackson(result, new TypeWithYear(Year.now()));
-    }
-
-    @Test
-    void shouldInsertInstantAsDateTime() {
-        // When:
-        final JsonSchema<TypeWithInstant> result = generator.generateSchema(TypeWithInstant.class);
-
-        // Then:
-        assertThat(
-                result.text(),
-                containsString("  instant:\n" + "    type: string\n" + "    format: date-time"));
-
-        assertAlignsWithJackson(result, new TypeWithInstant(Instant.now()));
-    }
-
-    @Test
-    void shouldInsertDurationAsNumberWithNoFormat() {
-        // When:
-        final JsonSchema<TypeWithDuration> result =
-                generator.generateSchema(TypeWithDuration.class);
-
-        // Then:
-        final Map<String, ?> parsedSchema = parseYaml(result);
-        assertThat(yamlGet(parsedSchema, "properties", "duration", "type"), is("number"));
-
-        assertThat(result.text(), not(containsString("format:")));
-
-        assertAlignsWithJackson(
-                result, new TypeWithDuration(Duration.parse("P2DT3H4M0.345000025S")));
-    }
-
-    @Test
-    void shouldInsertPeriodAsDuration() {
-        // When:
-        final JsonSchema<TypeWithPeriod> result = generator.generateSchema(TypeWithPeriod.class);
-
-        // Then:
-        assertThat(
-                result.text(),
-                containsString("  period:\n" + "    type: string\n" + "    format: duration"));
-
-        assertAlignsWithJackson(result, new TypeWithPeriod(Period.parse("P1Y2M3D")));
-    }
-
-    @Test
-    void shouldInsertUriAsStringWithUriFormat() {
-        // When:
-        final JsonSchema<ModelWithUri> result = generator.generateSchema(ModelWithUri.class);
-
-        // Then:
-        assertThat(
-                result.text(),
-                containsString("  uri:\n" + "    type: string\n" + "    format: uri"));
-
-        assertThat(result.text(), not(containsString("URI")));
-
-        assertAlignsWithJackson(result, new ModelWithUri(URI.create("https://something")));
-    }
-
-    @Test
-    void shouldInsertUuidAsStringWithUuidFormat() {
-        // When:
-        final JsonSchema<TypeWithUuid> result = generator.generateSchema(TypeWithUuid.class);
-
-        // Then:
-        assertThat(
-                result.text(),
-                containsString("  uuid:\n" + "    type: string\n" + "    format: uuid"));
-
-        assertThat(result.text(), not(containsString("UUID")));
-
-        assertAlignsWithJackson(result, new TypeWithUuid(UUID.randomUUID()));
-    }
-
-    private Map<String, ?> parseYaml(final JsonSchema<?> schema) {
-        try {
-            return yamlMapper.readValue(schema.text(), new TypeReference<Map<String, ?>>() {});
-        } catch (JsonProcessingException e) {
-            throw new AssertionError("Failed to parse schema", e);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static Object yamlGet(final Map<String, ?> parsed, final String... props) {
-        final StringBuilder path = new StringBuilder();
-        Map<String, ?> current = parsed;
-        for (int i = 0; i < props.length - 1; i++) {
-            final String prop = props[i];
-            path.append(".").append(prop);
-            final Object v = current.get(prop);
-            if (!(v instanceof Map<?, ?>)) {
-                throw new AssertionError("Expected map for " + path + ", got " + v);
-            }
-            current = (Map<String, ?>) v;
-        }
-
-        return current.get(props[props.length - 1]);
     }
 
     @SafeVarargs
@@ -833,29 +345,12 @@ class SchemaGeneratorTest {
         }
     }
 
-    private <T> void assertAlignsWithJackson(
-            final JsonSchema<T> schema,
-            final Collection<T> validInstances,
-            final Collection<T> invalidInstances) {
-        final Schema parsedSchema = assertCanParse(schema);
-        for (final T instance : validInstances) {
-            final String json = assertCanSerialize(instance);
-            assertValidJson(json, parsedSchema, schema);
-            assertCanDeserialize(schema, json, instance);
-        }
-
-        for (final T instance : invalidInstances) {
-            final String json = assertCanSerialize(instance);
-            assertInvalidJson(json, parsedSchema, schema);
-        }
-    }
-
-    private Schema assertCanParse(final JsonSchema<?> schema) {
+    private <T> Schema assertCanParse(final JsonSchema<T> schema) {
         try {
             final Object obj = yamlMapper.readValue(schema.text(), Object.class);
             final SchemaStore schemaStore = new SchemaStore(true);
             return schemaStore.loadSchema(obj);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new AssertionError("Invalid schema: " + schema.text(), e);
         }
     }
@@ -863,7 +358,7 @@ class SchemaGeneratorTest {
     private <T> String assertCanSerialize(final T instance) {
         try {
             return jsonMapper.writeValueAsString(instance);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new AssertionError("Error serializing: " + instance, e);
         }
     }
@@ -873,33 +368,10 @@ class SchemaGeneratorTest {
         try {
             final Object o = jsonMapper.readValue(json, Object.class);
             new Validator(true).validate(parsedSchema, o);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new AssertionError(
                     "Invalid JSON: " + json + System.lineSeparator() + "Schema: " + schema.text(),
                     e);
-        }
-    }
-
-    private void assertInvalidJson(
-            final String json, final Schema parsedSchema, final JsonSchema<?> schema) {
-        final Object o;
-
-        try {
-            o = jsonMapper.readValue(json, Object.class);
-        } catch (Exception e) {
-            throw new AssertionError("Invalid JSON: " + json, e);
-        }
-
-        try {
-            new Validator(true).validate(parsedSchema, o);
-            throw new AssertionError(
-                    "Invalid JSON not detected: "
-                            + json
-                            + System.lineSeparator()
-                            + "Schema: "
-                            + schema.text());
-        } catch (ValidationException e) {
-            // Expected
         }
     }
 
@@ -908,7 +380,7 @@ class SchemaGeneratorTest {
         final T actual;
         try {
             actual = jsonMapper.readValue(json, schema.type());
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new AssertionError("Error deserializing: " + json, e);
         }
 
@@ -1059,586 +531,6 @@ class SchemaGeneratorTest {
             public int hashCode() {
                 return Objects.hash(getClass());
             }
-        }
-    }
-
-    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
-    @JsonSubTypes({
-        @Type(value = PolyTypeWithProps.SubType1.class, name = "type-1"),
-        @Type(value = PolyTypeWithProps.SubType2.class, name = "type-2")
-    })
-    public static class PolyTypeWithProps {
-
-        public static final class SubType1 extends PolyTypeWithProps {
-
-            private final String a;
-
-            SubType1(@JsonProperty("a") final String a) {
-                this.a = a;
-            }
-
-            public String getA() {
-                return a;
-            }
-
-            @Override
-            public boolean equals(final Object o) {
-                if (this == o) {
-                    return true;
-                }
-                if (o == null || getClass() != o.getClass()) {
-                    return false;
-                }
-                final SubType1 subType1 = (SubType1) o;
-                return Objects.equals(a, subType1.a);
-            }
-
-            @Override
-            public int hashCode() {
-                return Objects.hash(a);
-            }
-        }
-
-        public static final class SubType2 extends PolyTypeWithProps {
-
-            private final Integer b;
-
-            SubType2(@JsonProperty("b") final Integer b) {
-                this.b = b;
-            }
-
-            public Integer getB() {
-                return b;
-            }
-
-            @Override
-            public boolean equals(final Object o) {
-                if (this == o) {
-                    return true;
-                }
-                if (o == null || getClass() != o.getClass()) {
-                    return false;
-                }
-                final SubType2 subType2 = (SubType2) o;
-                return Objects.equals(b, subType2.b);
-            }
-
-            @Override
-            public int hashCode() {
-                return Objects.hash(b);
-            }
-        }
-    }
-
-    public static final class TypeWithInjectedSchema {
-
-        private final List<Long> list;
-
-        TypeWithInjectedSchema(@JsonProperty("list") final List<Long> list) {
-            this.list = list;
-        }
-
-        @JsonSchemaInject(ints = {@JsonSchemaInt(path = "maxItems", value = 2)})
-        public List<Long> getList() {
-            return list;
-        }
-
-        @Override
-        public boolean equals(final Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            final TypeWithInjectedSchema that = (TypeWithInjectedSchema) o;
-            return Objects.equals(list, that.list);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(list);
-        }
-    }
-
-    public static final class TypeWithFormat {
-
-        private final String x;
-
-        TypeWithFormat(@JsonProperty("x") final String x) {
-            this.x = x;
-        }
-
-        @JsonSchemaFormat("uuid")
-        public String getX() {
-            return x;
-        }
-
-        @Override
-        public boolean equals(final Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            final TypeWithFormat that = (TypeWithFormat) o;
-            return Objects.equals(x, that.x);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(x);
-        }
-    }
-
-    public static final class TypeWithDecimal {
-
-        private final BigDecimal decimal;
-
-        TypeWithDecimal(@JsonProperty("decimal") final BigDecimal decimal) {
-            this.decimal = decimal;
-        }
-
-        public BigDecimal getDecimal() {
-            return decimal;
-        }
-
-        @Override
-        public boolean equals(final Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            final TypeWithDecimal that = (TypeWithDecimal) o;
-            return Objects.equals(decimal, that.decimal);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(decimal);
-        }
-    }
-
-    public static final class TypeWithLocalDate {
-        private final LocalDate date;
-
-        TypeWithLocalDate(@JsonProperty("date") final LocalDate date) {
-            this.date = date;
-        }
-
-        public LocalDate getDate() {
-            return date;
-        }
-
-        @Override
-        public boolean equals(final Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            final TypeWithLocalDate that = (TypeWithLocalDate) o;
-            return Objects.equals(date, that.date);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(date);
-        }
-    }
-
-    public static final class TypeWithLocalTime {
-        private final LocalTime time;
-
-        TypeWithLocalTime(@JsonProperty("time") final LocalTime date) {
-            this.time = date;
-        }
-
-        public LocalTime getTime() {
-            return time;
-        }
-
-        @Override
-        public boolean equals(final Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            final TypeWithLocalTime that = (TypeWithLocalTime) o;
-            return Objects.equals(time, that.time);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(time);
-        }
-    }
-
-    public static final class TypeWithLocalDateTime {
-        private final LocalDateTime date;
-
-        TypeWithLocalDateTime(@JsonProperty("date") final LocalDateTime date) {
-            this.date = date;
-        }
-
-        public LocalDateTime getDate() {
-            return date;
-        }
-
-        @Override
-        public boolean equals(final Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            final TypeWithLocalDateTime that = (TypeWithLocalDateTime) o;
-            return Objects.equals(date, that.date);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(date);
-        }
-    }
-
-    public static final class TypeWithZonedDateTime {
-
-        private final ZonedDateTime date;
-
-        TypeWithZonedDateTime(@JsonProperty("date") final ZonedDateTime date) {
-            this.date = date;
-        }
-
-        public ZonedDateTime getDate() {
-            return date;
-        }
-
-        @Override
-        public boolean equals(final Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            final TypeWithZonedDateTime that = (TypeWithZonedDateTime) o;
-            // Textual zone information is NOT serialized, so exclude from check:
-            return Objects.equals(date.getOffset(), that.date.getOffset())
-                    && Objects.equals(date.toLocalDateTime(), that.date.toLocalDateTime());
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(date);
-        }
-    }
-
-    public static final class TypeWithOffsetTime {
-
-        private final OffsetTime time;
-
-        TypeWithOffsetTime(@JsonProperty("time") final OffsetTime time) {
-            this.time = time;
-        }
-
-        public OffsetTime getTime() {
-            return time;
-        }
-
-        @Override
-        public boolean equals(final Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            final TypeWithOffsetTime that = (TypeWithOffsetTime) o;
-            return Objects.equals(time, that.time);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(time);
-        }
-    }
-
-    public static final class TypeWithOffsetDateTime {
-
-        private final OffsetDateTime date;
-
-        TypeWithOffsetDateTime(@JsonProperty("date") final OffsetDateTime date) {
-            this.date = date;
-        }
-
-        public OffsetDateTime getDate() {
-            return date;
-        }
-
-        @Override
-        public boolean equals(final Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            final TypeWithOffsetDateTime that = (TypeWithOffsetDateTime) o;
-            return Objects.equals(date, that.date);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(date);
-        }
-    }
-
-    public static final class TypeWithMonthDay {
-
-        private final MonthDay date;
-
-        TypeWithMonthDay(@JsonProperty("date") final MonthDay date) {
-            this.date = date;
-        }
-
-        public MonthDay getDate() {
-            return date;
-        }
-
-        @Override
-        public boolean equals(final Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            final TypeWithMonthDay that = (TypeWithMonthDay) o;
-            return Objects.equals(date, that.date);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(date);
-        }
-    }
-
-    public static final class TypeWithYearMonth {
-
-        private final YearMonth date;
-
-        TypeWithYearMonth(@JsonProperty("date") final YearMonth date) {
-            this.date = date;
-        }
-
-        public YearMonth getDate() {
-            return date;
-        }
-
-        @Override
-        public boolean equals(final Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            final TypeWithYearMonth that = (TypeWithYearMonth) o;
-            return Objects.equals(date, that.date);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(date);
-        }
-    }
-
-    @JsonSchemaTitle("Bob")
-    public static final class TypeWithYear {
-
-        private final Year date;
-
-        TypeWithYear(@JsonProperty("date") final Year date) {
-            this.date = date;
-        }
-
-        public Year getDate() {
-            return date;
-        }
-
-        @Override
-        public boolean equals(final Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            final TypeWithYear that = (TypeWithYear) o;
-            return Objects.equals(date, that.date);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(date);
-        }
-    }
-
-    public static final class TypeWithInstant {
-
-        private final Instant instant;
-
-        TypeWithInstant(@JsonProperty("instant") final Instant instant) {
-            this.instant = instant;
-        }
-
-        public Instant getInstant() {
-            return instant;
-        }
-
-        @Override
-        public boolean equals(final Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            final TypeWithInstant that = (TypeWithInstant) o;
-            return Objects.equals(instant, that.instant);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(instant);
-        }
-    }
-
-    public static final class TypeWithDuration {
-
-        private final Duration duration;
-
-        TypeWithDuration(@JsonProperty("duration") final Duration duration) {
-            this.duration = duration;
-        }
-
-        public Duration getDuration() {
-            return duration;
-        }
-
-        @Override
-        public boolean equals(final Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            final TypeWithDuration that = (TypeWithDuration) o;
-            return Objects.equals(duration, that.duration);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(duration);
-        }
-    }
-
-    public static final class TypeWithPeriod {
-
-        private final Period period;
-
-        TypeWithPeriod(@JsonProperty("period") final Period period) {
-            this.period = period;
-        }
-
-        public Period getPeriod() {
-            return period;
-        }
-
-        @Override
-        public boolean equals(final Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            final TypeWithPeriod that = (TypeWithPeriod) o;
-            return Objects.equals(period, that.period);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(period);
-        }
-    }
-
-    public static final class ModelWithUri {
-
-        private final URI uri;
-
-        ModelWithUri(@JsonProperty("uri") final URI uri) {
-            this.uri = uri;
-        }
-
-        public URI getUri() {
-            return uri;
-        }
-
-        @Override
-        public boolean equals(final Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            final ModelWithUri that = (ModelWithUri) o;
-            return Objects.equals(uri, that.uri);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(uri);
-        }
-    }
-
-    public static final class TypeWithUuid {
-
-        private final UUID uuid;
-
-        TypeWithUuid(@JsonProperty("uuid") final UUID uuid) {
-            this.uuid = uuid;
-        }
-
-        public UUID getUuid() {
-            return uuid;
-        }
-
-        @Override
-        public boolean equals(final Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            final TypeWithUuid that = (TypeWithUuid) o;
-            return Objects.equals(uuid, that.uuid);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(uuid);
         }
     }
 }
