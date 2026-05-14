@@ -782,11 +782,14 @@ class JsonSchemaGeneratorFactoryTest {
                 new TypeWithDuration(Duration.ZERO),
                 new TypeWithDuration(Duration.ofSeconds(1)),
                 new TypeWithDuration(Duration.ofHours(1)),
-                // Note: Currently fails as SchemaFriend validator correctly rejects fractional seconds.
+                // Note: Currently fails as SchemaFriend validator correctly rejects fractional
+                // seconds.
                 // This matches RFC 3339 used by Json schema
-                // However, https://github.com/json-schema-org/json-schema-spec/issues/1603 is an ongoing discussion to support fractional seconds.
+                // However, https://github.com/json-schema-org/json-schema-spec/issues/1603 is an
+                // ongoing discussion to support fractional seconds.
                 // As ISO 8601 does, which is what Java / Jackson is using.
-                // Need to either go back to using number for duration or move to less string validator.
+                // Need to either go back to using number for duration or move to less string
+                // validator.
                 new TypeWithDuration(Duration.ofMillis(500)),
                 new TypeWithDuration(Duration.ofDays(1)),
                 new TypeWithDuration(Duration.ofSeconds(5)));
