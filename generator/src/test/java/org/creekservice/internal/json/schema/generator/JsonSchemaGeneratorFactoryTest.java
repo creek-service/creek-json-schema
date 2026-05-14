@@ -32,6 +32,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -39,6 +40,7 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.jsontype.NamedType;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
@@ -64,11 +66,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import net.jimblackler.jsonschemafriend.Schema;
 import net.jimblackler.jsonschemafriend.SchemaStore;
 import net.jimblackler.jsonschemafriend.ValidationException;
 import net.jimblackler.jsonschemafriend.Validator;
+import org.creek.test.MinimalClassSub;
 import org.creekservice.api.base.annotation.schema.JsonSchemaInject;
 import org.junit.jupiter.api.Test;
 
@@ -158,7 +162,7 @@ class JsonSchemaGeneratorFactoryTest {
         class Model {}
 
         // When:
-        final String result = generateYaml(Model.class);
+        final String result = generateSchema(Model.class);
 
         // Then:
         assertThat(result, containsString("title: Model"));
@@ -171,7 +175,7 @@ class JsonSchemaGeneratorFactoryTest {
         class Model {}
 
         // When:
-        final String result = generateYaml(Model.class);
+        final String result = generateSchema(Model.class);
 
         // Then:
         assertThat(result, containsString("title: Custom Title"));
@@ -183,7 +187,7 @@ class JsonSchemaGeneratorFactoryTest {
         class Model {}
 
         // When:
-        final String result = generateYaml(Model.class);
+        final String result = generateSchema(Model.class);
 
         // Then:
         assertThat(result, containsString("type: object"));
@@ -195,7 +199,7 @@ class JsonSchemaGeneratorFactoryTest {
         class Model {}
 
         // When:
-        final String result = generateYaml(Model.class);
+        final String result = generateSchema(Model.class);
 
         // Then:
         assertThat(result, containsString("additionalProperties: false"));
@@ -208,7 +212,7 @@ class JsonSchemaGeneratorFactoryTest {
         class Model {}
 
         // When:
-        final String result = generateYaml(Model.class);
+        final String result = generateSchema(Model.class);
 
         // Then:
         assertThat(result, containsString("description: Some details"));
@@ -224,7 +228,7 @@ class JsonSchemaGeneratorFactoryTest {
         }
 
         // When:
-        final String result = generateYaml(Model.class);
+        final String result = generateSchema(Model.class);
 
         // Then:
         assertThat(
@@ -256,7 +260,7 @@ class JsonSchemaGeneratorFactoryTest {
         }
 
         // When:
-        final String result = generateYaml(Model.class);
+        final String result = generateSchema(Model.class);
 
         // Then:
         assertThat(
@@ -289,7 +293,7 @@ class JsonSchemaGeneratorFactoryTest {
         }
 
         // When:
-        final String result = generateYaml(Model.class);
+        final String result = generateSchema(Model.class);
 
         // Then:
         assertThat(
@@ -308,7 +312,7 @@ class JsonSchemaGeneratorFactoryTest {
     @Test
     void shouldIncludeDiscriminatorForDeepSubtype() {
         // When:
-        final String result = generateYaml(ThreeLevelPolymorphism.class);
+        final String result = generateSchema(ThreeLevelPolymorphism.class);
 
         // Then:
         assertThat(result, containsString("const: ConcreteLeaf"));
@@ -332,7 +336,7 @@ class JsonSchemaGeneratorFactoryTest {
     @Test
     void shouldIncludeDiscriminatorForSubtypesOfPolymorphicInterface() {
         // When:
-        final String result = generateYaml(PolyInterface.class);
+        final String result = generateSchema(PolyInterface.class);
 
         // Then:
         assertThat(result, containsString("const: implA"));
@@ -353,14 +357,14 @@ class JsonSchemaGeneratorFactoryTest {
     @Test
     void shouldIncludeDiscriminatorForSubtypesOfSimpleNamePolymorphicInterface() {
         // When:
-        final String result = generateYaml(SimpleNamePolyInterface.class);
+        final String result = generateSchema(SimpleNamePolyInterface.class);
 
         // Then:
         assertThat(result, containsString("oneOf:"));
         assertThat(result, containsString("$ref: \"#/$defs/ImplX\""));
-        assertThat(result, containsString("$ref: \"#/$defs/ImplY\""));
+        assertThat(result, containsString("$ref: \"#/$defs/CustomY\""));
         assertThat(result, containsString("const: ImplX"));
-        assertThat(result, containsString("const: ImplY"));
+        assertThat(result, containsString("const: CustomY"));
 
         assertAlignsWithJackson(
                 result,
@@ -372,12 +376,12 @@ class JsonSchemaGeneratorFactoryTest {
     @Test
     void shouldIncludeDiscriminatorForSubtypesOfMinimalClassPolymorphicInterface() {
         // When:
-        final String result = generateYaml(MinimalClassPolyInterface.class);
+        final String result = generateSchema(MinimalClassPolyInterface.class);
 
         // Then:
         assertThat(result, containsString("oneOf:"));
         assertThat(result, containsString("$ref: \"#/$defs/ImplP\""));
-        assertThat(result, containsString("$ref: \"#/$defs/ImplQ\""));
+        assertThat(result, containsString("$ref: \"#/$defs/CustomQ\""));
 
         final String implP =
                 MinimalClassPolyInterface.ImplP.class
@@ -400,16 +404,21 @@ class JsonSchemaGeneratorFactoryTest {
     @Test
     void shouldHandleMinimalClassSubtypeFromDifferentPackage() {
         // When:
-        final String result = generateYaml(TypeWithMinimalClassCrossPackage.class);
+        final String result = generateSchema(TypeWithMinimalClassCrossPackageProperty.class);
 
         // Then:
         assertThat(result, containsString("const: org.creek.test.MinimalClassSub"));
+
+        assertAlignsWithJackson(
+                result,
+                TypeWithMinimalClassCrossPackageProperty.class,
+                new TypeWithMinimalClassCrossPackageProperty(new MinimalClassSub()));
     }
 
     @Test
     void shouldIncludeSubTypeProperties() {
         // When:
-        final String result = generateYaml(PolyTypeWithProps.class);
+        final String result = generateSchema(PolyTypeWithProps.class);
 
         // Then:
         assertThat(
@@ -446,7 +455,7 @@ class JsonSchemaGeneratorFactoryTest {
     @Test
     void shouldIncludeInjectedSchema() {
         // When:
-        final String result = generateYaml(TypeWithInjectedSchema.class);
+        final String result = generateSchema(TypeWithInjectedSchema.class);
 
         // Then:
         assertThat(
@@ -470,11 +479,24 @@ class JsonSchemaGeneratorFactoryTest {
     @Test
     void shouldApplyTypeLevelJsonSchemaInject() {
         // When:
-        final String result = generateYaml(TypeWithClassLevelInject.class);
+        final String result = generateSchema(TypeWithClassLevelInject.class);
 
         // Then:
         assertThat(result, containsString("deprecated: true"));
         assertThat(result, containsString("x-custom: value"));
+
+        assertAlignsWithJackson(
+                result, TypeWithClassLevelInject.class, new TypeWithClassLevelInject("test"));
+    }
+
+    @Test
+    void shouldHandleEmptyJsonSchemaInjectJson() {
+        // When:
+        final String result = generateSchema(TypeWithEmptyInjectedSchema.class);
+
+        // Then:
+        assertAlignsWithJackson(
+                result, TypeWithEmptyInjectedSchema.class, new TypeWithEmptyInjectedSchema(true));
     }
 
     @Test
@@ -483,7 +505,7 @@ class JsonSchemaGeneratorFactoryTest {
         final Exception e =
                 assertThrows(
                         IllegalArgumentException.class,
-                        () -> generateYaml(TypeWithInvalidInject.class));
+                        () -> generateSchema(TypeWithInvalidInject.class));
 
         // Then:
         assertThat(e.getMessage(), is("Invalid @JsonSchemaInject JSON: {not valid json}"));
@@ -492,7 +514,7 @@ class JsonSchemaGeneratorFactoryTest {
     @Test
     void shouldIncludeFormat() {
         // When:
-        final String result = generateYaml(TypeWithFormat.class);
+        final String result = generateSchema(TypeWithFormat.class);
 
         // Then:
         assertThat(
@@ -514,7 +536,7 @@ class JsonSchemaGeneratorFactoryTest {
     @Test
     void shouldInsertDecimalAsNumber() {
         // When:
-        final String result = generateYaml(TypeWithDecimal.class);
+        final String result = generateSchema(TypeWithDecimal.class);
 
         // Then:
         final Map<String, ?> parsedSchema = parseYaml(result);
@@ -529,7 +551,7 @@ class JsonSchemaGeneratorFactoryTest {
     @Test
     void shouldInsertLocalDateAsStringWithDateFormat() {
         // When:
-        final String result = generateYaml(TypeWithLocalDate.class);
+        final String result = generateSchema(TypeWithLocalDate.class);
 
         // Then:
         assertThat(
@@ -550,7 +572,7 @@ class JsonSchemaGeneratorFactoryTest {
     @Test
     void shouldInsertLocalTimeAsStringWithPatternButNoFormat() {
         // When:
-        final String result = generateYaml(TypeWithLocalTime.class);
+        final String result = generateSchema(TypeWithLocalTime.class);
 
         // Then:
         assertThat(
@@ -576,7 +598,7 @@ class JsonSchemaGeneratorFactoryTest {
     @Test
     void shouldInsertLocalDateTimeAsStringWithDateTimeFormat() {
         // When:
-        final String result = generateYaml(TypeWithLocalDateTime.class);
+        final String result = generateSchema(TypeWithLocalDateTime.class);
 
         // Then:
         assertThat(
@@ -599,7 +621,7 @@ class JsonSchemaGeneratorFactoryTest {
     @Test
     void shouldInsertZonedDateTimeAsStringWithDateTimeFormat() {
         // When:
-        final String result = generateYaml(TypeWithZonedDateTime.class);
+        final String result = generateSchema(TypeWithZonedDateTime.class);
 
         // Then:
         assertThat(
@@ -622,7 +644,7 @@ class JsonSchemaGeneratorFactoryTest {
     @Test
     void shouldInsertOffsetTimeAsStringWithTimeFormat() {
         // When:
-        final String result = generateYaml(TypeWithOffsetTime.class);
+        final String result = generateSchema(TypeWithOffsetTime.class);
 
         // Then:
         assertThat(
@@ -643,7 +665,7 @@ class JsonSchemaGeneratorFactoryTest {
     @Test
     void shouldInsertOffsetDateTimeAsStringWithDateTimeFormat() {
         // When:
-        final String result = generateYaml(TypeWithOffsetDateTime.class);
+        final String result = generateSchema(TypeWithOffsetDateTime.class);
 
         // Then:
         assertThat(
@@ -666,7 +688,7 @@ class JsonSchemaGeneratorFactoryTest {
     @Test
     void shouldInsertMonthDayAsStringWithPattern() {
         // When:
-        final String result = generateYaml(TypeWithMonthDay.class);
+        final String result = generateSchema(TypeWithMonthDay.class);
 
         // Then:
         final Map<String, ?> parsedSchema = parseYaml(result);
@@ -688,7 +710,7 @@ class JsonSchemaGeneratorFactoryTest {
     @Test
     void shouldInsertYearMonthAsStringWithPattern() {
         // When:
-        final String result = generateYaml(TypeWithYearMonth.class);
+        final String result = generateSchema(TypeWithYearMonth.class);
 
         // Then:
         final Map<String, ?> parsedSchema = parseYaml(result);
@@ -710,7 +732,7 @@ class JsonSchemaGeneratorFactoryTest {
     @Test
     void shouldInsertYearAsStringWithPattern() {
         // When:
-        final String result = generateYaml(TypeWithYear.class);
+        final String result = generateSchema(TypeWithYear.class);
 
         // Then:
         final Map<String, ?> parsedSchema = parseYaml(result);
@@ -731,7 +753,7 @@ class JsonSchemaGeneratorFactoryTest {
     @Test
     void shouldInsertInstantAsDateTime() {
         // When:
-        final String result = generateYaml(TypeWithInstant.class);
+        final String result = generateSchema(TypeWithInstant.class);
 
         // Then:
         assertThat(
@@ -749,7 +771,7 @@ class JsonSchemaGeneratorFactoryTest {
     @Test
     void shouldInsertDurationAsNumber() {
         // When:
-        final String result = generateYaml(TypeWithDuration.class);
+        final String result = generateSchema(TypeWithDuration.class);
 
         // Then:
         final Map<String, ?> parsedSchema = parseYaml(result);
@@ -772,7 +794,7 @@ class JsonSchemaGeneratorFactoryTest {
     @Test
     void shouldInsertPeriodAsDurationWithPattern() {
         // When:
-        final String result = generateYaml(TypeWithPeriod.class);
+        final String result = generateSchema(TypeWithPeriod.class);
 
         // Then:
         assertThat(
@@ -799,7 +821,7 @@ class JsonSchemaGeneratorFactoryTest {
     @Test
     void shouldInsertUriAsStringWithUriFormat() {
         // When:
-        final String result = generateYaml(ModelWithUri.class);
+        final String result = generateSchema(ModelWithUri.class);
 
         // Then:
         assertThat(
@@ -820,7 +842,7 @@ class JsonSchemaGeneratorFactoryTest {
     @Test
     void shouldInsertUuidAsStringWithUuidFormat() {
         // When:
-        final String result = generateYaml(TypeWithUuid.class);
+        final String result = generateSchema(TypeWithUuid.class);
 
         // Then:
         assertThat(
@@ -840,7 +862,7 @@ class JsonSchemaGeneratorFactoryTest {
     @Test
     void shouldInsertBigIntegerAsNumber() {
         // When:
-        final String result = generateYaml(TypeWithBigInteger.class);
+        final String result = generateSchema(TypeWithBigInteger.class);
 
         // Then:
         final Map<String, ?> parsedSchema = parseYaml(result);
@@ -855,7 +877,7 @@ class JsonSchemaGeneratorFactoryTest {
     @Test
     void shouldInsertIntAsIntegerWithMinMax() {
         // When:
-        final String result = generateYaml(TypeWithInt.class);
+        final String result = generateSchema(TypeWithInt.class);
 
         // Then:
         final Map<String, ?> parsedSchema = parseYaml(result);
@@ -869,7 +891,7 @@ class JsonSchemaGeneratorFactoryTest {
     @Test
     void shouldInsertLongAsIntegerWithMinMax() {
         // When:
-        final String result = generateYaml(TypeWithLong.class);
+        final String result = generateSchema(TypeWithLong.class);
 
         // Then:
         final Map<String, ?> parsedSchema = parseYaml(result);
@@ -885,7 +907,7 @@ class JsonSchemaGeneratorFactoryTest {
     @Test
     void shouldInsertShortAsIntegerWithMinMax() {
         // When:
-        final String result = generateYaml(TypeWithShort.class);
+        final String result = generateSchema(TypeWithShort.class);
 
         // Then:
         final Map<String, ?> parsedSchema = parseYaml(result);
@@ -899,7 +921,7 @@ class JsonSchemaGeneratorFactoryTest {
     @Test
     void shouldInsertByteAsIntegerWithMinMax() {
         // When:
-        final String result = generateYaml(TypeWithByte.class);
+        final String result = generateSchema(TypeWithByte.class);
 
         // Then:
         final Map<String, ?> parsedSchema = parseYaml(result);
@@ -913,7 +935,7 @@ class JsonSchemaGeneratorFactoryTest {
     @Test
     void shouldInsertBoxedIntAsIntegerWithMinMax() {
         // When:
-        final String result = generateYaml(TypeWithBoxedInt.class);
+        final String result = generateSchema(TypeWithBoxedInt.class);
 
         // Then:
         final Map<String, ?> parsedSchema = parseYaml(result);
@@ -927,7 +949,7 @@ class JsonSchemaGeneratorFactoryTest {
     @Test
     void shouldAllowSchemaAnnotationToOverrideDefaultFormat() {
         // When:
-        final String result = generateYaml(TypeWithOverriddenFormat.class);
+        final String result = generateSchema(TypeWithOverriddenFormat.class);
 
         // Then:
         assertThat(result, containsString("format: date"));
@@ -937,7 +959,7 @@ class JsonSchemaGeneratorFactoryTest {
     @Test
     void shouldAllowSchemaAnnotationToOverrideDefaultPattern() {
         // When:
-        final String result = generateYaml(TypeWithOverriddenPattern.class);
+        final String result = generateSchema(TypeWithOverriddenPattern.class);
 
         // Then:
         assertThat(result, containsString("pattern: \"^\\\\d{2}:\\\\d{2}$\""));
@@ -947,7 +969,7 @@ class JsonSchemaGeneratorFactoryTest {
     @Test
     void shouldAllowSchemaAnnotationToOverrideDefaultMinimum() {
         // When:
-        final String result = generateYaml(TypeWithOverriddenMinMax.class);
+        final String result = generateSchema(TypeWithOverriddenMinMax.class);
 
         // Then:
         final Map<String, ?> parsedSchema = parseYaml(result);
@@ -957,6 +979,15 @@ class JsonSchemaGeneratorFactoryTest {
 
         assertThat(result, not(containsString("minimum: -2147483648")));
         assertThat(result, not(containsString("maximum: 2147483647")));
+
+        assertAlignsWithJackson(
+                result,
+                TypeWithOverriddenMinMax.class,
+                List.of(
+                        new TypeWithOverriddenMinMax(0),
+                        new TypeWithOverriddenMinMax(50),
+                        new TypeWithOverriddenMinMax(100)),
+                List.of(new TypeWithOverriddenMinMax(-1), new TypeWithOverriddenMinMax(101)));
     }
 
     @Test
@@ -977,7 +1008,7 @@ class JsonSchemaGeneratorFactoryTest {
         }
 
         // When:
-        final String result = generateYaml(Model.class);
+        final String result = generateSchema(Model.class);
 
         // Then:
         assertThat(result, containsString("someProp"));
@@ -1000,7 +1031,7 @@ class JsonSchemaGeneratorFactoryTest {
         }
 
         // When:
-        final String result = generateYaml(Model.class);
+        final String result = generateSchema(Model.class);
 
         // Then:
         assertThat(result, containsString("included"));
@@ -1019,7 +1050,7 @@ class JsonSchemaGeneratorFactoryTest {
         }
 
         // When:
-        final String result = generateYaml(Model.class);
+        final String result = generateSchema(Model.class);
 
         // Then:
         assertThat(result, containsString("my_prop"));
@@ -1027,14 +1058,30 @@ class JsonSchemaGeneratorFactoryTest {
     }
 
     @Test
-    void shouldMarkJsonGetterRequiredWhenConstructorParamIsRequired() {
+    void shouldMarkPropertyRequiredWhenConstructorParamIsMarkedRequired() {
         // When:
-        final String result = generateYaml(TypeWithJsonGetter.class);
+        final String result = generateSchema(TypeWithJsonGetter.class);
 
         // Then:
         assertThat(result, containsString("required:\n- my_prop"));
         assertThat(result, not(containsString("- optional_prop")));
         assertThat(result, not(containsString("nonGetterMethod")));
+
+        assertAlignsWithJackson(
+                result, TypeWithJsonGetter.class, new TypeWithJsonGetter("value", null));
+    }
+
+    @Test
+    void shouldMarkPropertyRequiredWhenGetterIsMarkedRequired() {
+        // When:
+        final String result = generateSchema(TypeWithRequiredProperty.class);
+
+        // Then:
+        assertThat(result, containsString("required:\n- prop"));
+        assertThat(result, not(containsString("nonStandardName")));
+
+        assertAlignsWithJackson(
+                result, TypeWithRequiredProperty.class, new TypeWithRequiredProperty("value"));
     }
 
     @Test
@@ -1055,7 +1102,7 @@ class JsonSchemaGeneratorFactoryTest {
         }
 
         // When:
-        final String result = generateYaml(Model.class);
+        final String result = generateSchema(Model.class);
 
         // Then:
         assertThat(result, containsString("required:"));
@@ -1075,7 +1122,7 @@ class JsonSchemaGeneratorFactoryTest {
         }
 
         // When:
-        final String result = generateYaml(Model.class);
+        final String result = generateSchema(Model.class);
 
         // Then:
         assertThat(result, containsString("default: hello"));
@@ -1091,7 +1138,7 @@ class JsonSchemaGeneratorFactoryTest {
         }
 
         // When:
-        final String result = generateYaml(Model.class);
+        final String result = generateSchema(Model.class);
 
         // Then:
         assertThat(result, containsString("\n  a:\n"));
@@ -1108,7 +1155,7 @@ class JsonSchemaGeneratorFactoryTest {
         }
 
         // When:
-        final String result = generateYaml(Model.class);
+        final String result = generateSchema(Model.class);
 
         // Then:
         assertThat(result, containsString("\n  b:\n"));
@@ -1118,7 +1165,7 @@ class JsonSchemaGeneratorFactoryTest {
     @Test
     void shouldHandleBasicEnum() {
         // When:
-        final String result = generateYaml(ModelWithBasicEnum.class);
+        final String result = generateSchema(ModelWithBasicEnum.class);
 
         // Then:
         assertThat(
@@ -1132,12 +1179,17 @@ class JsonSchemaGeneratorFactoryTest {
                             - BETA
                             - GAMMA\
                         """));
+
+        assertAlignsWithJackson(
+                result,
+                ModelWithBasicEnum.class,
+                new ModelWithBasicEnum(ModelWithBasicEnum.BasicEnum.ALPHA));
     }
 
     @Test
     void shouldHandleEnumWithJsonProperty() {
         // When:
-        final String result = generateYaml(ModelWithJsonPropertyEnum.class);
+        final String result = generateSchema(ModelWithJsonPropertyEnum.class);
 
         // Then:
         assertThat(
@@ -1150,9 +1202,173 @@ class JsonSchemaGeneratorFactoryTest {
                             - x_ray
                             - y_axis\
                         """));
+
+        assertAlignsWithJackson(
+                result,
+                ModelWithJsonPropertyEnum.class,
+                new ModelWithJsonPropertyEnum(ModelWithJsonPropertyEnum.JsonPropertyEnum.X_RAY));
     }
 
-    private String generateYaml(final Class<?> type) {
+    @Test
+    void shouldHandleOptionalProperties() {
+        // When:
+        final String result = generateSchema(ModelWithOptionalProperty.class);
+
+        // Then:
+        assertThat(
+                result,
+                containsString(
+                        """
+                          thing:
+                            type: string
+                        """));
+
+        assertAlignsWithJackson(
+                result,
+                ModelWithOptionalProperty.class,
+                new ModelWithOptionalProperty(Optional.empty()),
+                new ModelWithOptionalProperty(Optional.of("thing")));
+    }
+
+    @Test
+    void shouldHandleWildcardOptionalProperties() {
+        // When:
+        final String result = generateSchema(ModelWithWildcardOptionalProperty.class);
+
+        // Then:
+        assertThat(
+                result,
+                containsString(
+                        """
+                        properties:
+                          thing: {}
+                        """));
+
+        assertAlignsWithJackson(
+                result,
+                ModelWithWildcardOptionalProperty.class,
+                new ModelWithWildcardOptionalProperty(Optional.empty()),
+                new ModelWithWildcardOptionalProperty(Optional.of("thing")),
+                new ModelWithWildcardOptionalProperty(Optional.of(123)));
+    }
+
+    @Test
+    void shouldHandleSingleCharGetters() {
+        // Given:
+        final String schema = generateSchema(TypeWithSingleCharGetters.class);
+
+        // Then:
+        assertThat(schema, containsString("a:"));
+        assertThat(schema, containsString("x:"));
+        assertThat(schema, containsString("\"y\":"));
+
+        assertThat(schema, not(containsString("b:")));
+        assertThat(schema, not(containsString("get:")));
+        assertThat(schema, not(containsString("is:")));
+
+        assertAlignsWithJackson(
+                schema,
+                TypeWithSingleCharGetters.class,
+                new TypeWithSingleCharGetters("a value", "x value", true));
+    }
+
+    @Test
+    void shouldUseJsonTypeNameForDefinitionKey() {
+        // When:
+        final String result = generateSchema(PolyWithJsonTypeName.class);
+
+        // Then:
+        assertThat(result, containsString("$ref: \"#/$defs/custom-def-key\""));
+        assertThat(result, not(containsString("$defs/Sub")));
+
+        assertAlignsWithJackson(result, PolyWithJsonTypeName.class, new PolyWithJsonTypeName.Sub());
+    }
+
+    @Test
+    void shouldExcludePublicFieldsFromSchema() {
+        // When:
+        final String result = generateSchema(TypeWithPublicField.class);
+
+        // Then:
+        assertThat(result, containsString("prop"));
+        assertThat(result, not(containsString("exposed")));
+    }
+
+    @Test
+    void shouldExcludePrivateFieldsWithoutGettersFromSchema() {
+        // When:
+        final String result = generateSchema(TypeWithPrivateFieldNoGetter.class);
+
+        // Then:
+        assertThat(result, containsString("visible"));
+        assertThat(result, not(containsString("hidden")));
+
+        assertAlignsWithJackson(
+                result, TypeWithPrivateFieldNoGetter.class, new TypeWithPrivateFieldNoGetter());
+    }
+
+    @Test
+    void shouldNotConstrainPropertiesFromStaticFinalConstants() {
+        // When:
+        final String result = generateSchema(TypeWithStaticFinalConstant.class);
+
+        // Then:
+        assertThat(result, containsString("someProp"));
+        assertThat(result, not(containsString("fixed")));
+        assertThat(result, not(containsString("enum")));
+        assertThat(result, not(containsString("const")));
+        assertThat(result, not(containsString("CONSTANT")));
+
+        assertAlignsWithJackson(
+                result,
+                TypeWithStaticFinalConstant.class,
+                new TypeWithStaticFinalConstant("some value"));
+    }
+
+    @Test
+    void shouldNotLeakMethodJsonSchemaInjectToContainerItems() {
+        // When:
+        final String result = generateSchema(TypeWithListInject.class);
+
+        // Then:
+        final Map<String, ?> schema = parseYaml(result);
+        assertThat(yamlGet(schema, "properties", "list", "minItems"), is(1));
+
+        @SuppressWarnings("unchecked")
+        final Map<String, ?> items =
+                (Map<String, ?>) yamlGet(schema, "properties", "list", "items");
+        assertThat(items.containsKey("minItems"), is(false));
+
+        assertAlignsWithJackson(
+                result, TypeWithListInject.class, new TypeWithListInject(List.of("a")));
+    }
+
+    @Test
+    void shouldFindSubtypesRegisteredOnMapper() throws Exception {
+        // Given:
+        final ObjectMapper mapper =
+                JsonMapper.builder(new YAMLFactory().enable(YAMLGenerator.Feature.MINIMIZE_QUOTES))
+                        .addModule(new Jdk8Module())
+                        .enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+                        .build();
+        mapper.registerSubtypes(
+                new NamedType(MapperRegisteredPoly.SubA.class, "subA"),
+                new NamedType(MapperRegisteredPoly.SubB.class, "subB"));
+
+        final com.github.victools.jsonschema.generator.SchemaGenerator gen =
+                JsonSchemaGeneratorFactory.createGenerator(mapper);
+
+        // When:
+        final String result =
+                yamlMapper.writeValueAsString(gen.generateSchema(MapperRegisteredPoly.class));
+
+        // Then:
+        assertThat(result, containsString("oneOf:"));
+        assertThat(result, containsString("SubA"));
+        assertThat(result, containsString("SubB"));
+    }
+
+    private String generateSchema(final Class<?> type) {
         final ObjectNode schema = generator.generateSchema(type);
         try {
             return yamlMapper.writeValueAsString(schema);
@@ -1163,7 +1379,7 @@ class JsonSchemaGeneratorFactoryTest {
 
     private Map<String, ?> parseYaml(final String yaml) {
         try {
-            return yamlMapper.readValue(yaml, new TypeReference<Map<String, ?>>() {});
+            return yamlMapper.readValue(yaml, new TypeReference<>() {});
         } catch (final JsonProcessingException e) {
             throw new AssertionError("Failed to parse schema", e);
         }
@@ -1305,29 +1521,9 @@ class JsonSchemaGeneratorFactoryTest {
         @Type(value = PolyInterface.ImplB.class, name = "implB")
     })
     public interface PolyInterface {
-        final class ImplA implements PolyInterface {
-            @Override
-            public boolean equals(final Object o) {
-                return o != null && getClass().equals(o.getClass());
-            }
+        record ImplA() implements PolyInterface {}
 
-            @Override
-            public int hashCode() {
-                return Objects.hash(getClass());
-            }
-        }
-
-        final class ImplB implements PolyInterface {
-            @Override
-            public boolean equals(final Object o) {
-                return o != null && getClass().equals(o.getClass());
-            }
-
-            @Override
-            public int hashCode() {
-                return Objects.hash(getClass());
-            }
-        }
+        record ImplB() implements PolyInterface {}
     }
 
     @JsonTypeInfo(use = JsonTypeInfo.Id.SIMPLE_NAME)
@@ -1336,29 +1532,10 @@ class JsonSchemaGeneratorFactoryTest {
         @Type(value = SimpleNamePolyInterface.ImplY.class)
     })
     public interface SimpleNamePolyInterface {
-        final class ImplX implements SimpleNamePolyInterface {
-            @Override
-            public boolean equals(final Object o) {
-                return o != null && getClass().equals(o.getClass());
-            }
+        record ImplX() implements SimpleNamePolyInterface {}
 
-            @Override
-            public int hashCode() {
-                return Objects.hash(getClass());
-            }
-        }
-
-        final class ImplY implements SimpleNamePolyInterface {
-            @Override
-            public boolean equals(final Object o) {
-                return o != null && getClass().equals(o.getClass());
-            }
-
-            @Override
-            public int hashCode() {
-                return Objects.hash(getClass());
-            }
-        }
+        @JsonTypeName("CustomY")
+        record ImplY() implements SimpleNamePolyInterface {}
     }
 
     @JsonTypeInfo(use = JsonTypeInfo.Id.MINIMAL_CLASS)
@@ -1367,29 +1544,10 @@ class JsonSchemaGeneratorFactoryTest {
         @Type(value = MinimalClassPolyInterface.ImplQ.class)
     })
     public interface MinimalClassPolyInterface {
-        final class ImplP implements MinimalClassPolyInterface {
-            @Override
-            public boolean equals(final Object o) {
-                return o != null && getClass().equals(o.getClass());
-            }
+        record ImplP() implements MinimalClassPolyInterface {}
 
-            @Override
-            public int hashCode() {
-                return Objects.hash(getClass());
-            }
-        }
-
-        final class ImplQ implements MinimalClassPolyInterface {
-            @Override
-            public boolean equals(final Object o) {
-                return o != null && getClass().equals(o.getClass());
-            }
-
-            @Override
-            public int hashCode() {
-                return Objects.hash(getClass());
-            }
-        }
+        @JsonTypeName("CustomQ")
+        record ImplQ() implements MinimalClassPolyInterface {}
     }
 
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
@@ -1464,20 +1622,13 @@ class JsonSchemaGeneratorFactoryTest {
             @JsonSchemaInject("{\"maxItems\":2}") @JsonProperty("list") List<Long> list) {}
 
     @JsonSchemaInject("{\"deprecated\": true, \"x-custom\": \"value\"}")
-    public static final class TypeWithClassLevelInject {
+    public record TypeWithClassLevelInject(String name) {}
 
-        public String getName() {
-            return null;
-        }
-    }
+    @JsonSchemaInject("")
+    public record TypeWithEmptyInjectedSchema(boolean flag) {}
 
     @JsonSchemaInject("{not valid json}")
-    public static final class TypeWithInvalidInject {
-
-        public String getX() {
-            return null;
-        }
-    }
+    public record TypeWithInvalidInject(String x) {}
 
     public record TypeWithFormat(
             @JsonProperty("x") @io.swagger.v3.oas.annotations.media.Schema(format = "uuid")
@@ -1491,18 +1642,7 @@ class JsonSchemaGeneratorFactoryTest {
 
     public record TypeWithLocalDateTime(@JsonProperty("date") LocalDateTime date) {}
 
-    public static final class TypeWithZonedDateTime {
-
-        private final ZonedDateTime date;
-
-        TypeWithZonedDateTime(@JsonProperty("date") final ZonedDateTime date) {
-            this.date = date;
-        }
-
-        public ZonedDateTime getDate() {
-            return date;
-        }
-
+    public record TypeWithZonedDateTime(@JsonProperty("date") ZonedDateTime date) {
         @Override
         public boolean equals(final Object o) {
             if (!(o instanceof TypeWithZonedDateTime that)) {
@@ -1515,7 +1655,7 @@ class JsonSchemaGeneratorFactoryTest {
 
         @Override
         public int hashCode() {
-            return Objects.hash(date);
+            return Objects.hash(date.getOffset(), date.toLocalDateTime());
         }
     }
 
@@ -1583,20 +1723,159 @@ class JsonSchemaGeneratorFactoryTest {
         }
     }
 
+    public record ModelWithOptionalProperty(Optional<String> thing) {}
+
+    public record ModelWithWildcardOptionalProperty(Optional<?> thing) {}
+
+    @SuppressWarnings("ClassCanBeRecord")
     public static final class TypeWithJsonGetter {
+
+        private final String requiredProp;
+        private final String optionalProp;
 
         TypeWithJsonGetter(
                 @JsonProperty(value = "my_prop", required = true) final String requiredProp,
-                @JsonProperty("optional_prop") final String optionalProp) {}
+                @JsonProperty("optional_prop") final String optionalProp) {
+            this.requiredProp = requiredProp;
+            this.optionalProp = optionalProp;
+        }
 
         @JsonGetter("my_prop")
         public String nonGetterNamedRequired() {
-            return null;
+            return requiredProp;
         }
 
         @JsonGetter("optional_prop")
         public String nonGetterNamedOptional() {
+            return optionalProp;
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (!(o instanceof final TypeWithJsonGetter that)) {
+                return false;
+            }
+            return Objects.equals(requiredProp, that.requiredProp)
+                    && Objects.equals(optionalProp, that.optionalProp);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(requiredProp, optionalProp);
+        }
+    }
+
+    public record TypeWithRequiredProperty(String prop) {
+
+        @JsonProperty(value = "prop", required = true)
+        public String nonStandardName() {
+            return prop;
+        }
+    }
+
+    @SuppressWarnings("ClassCanBeRecord")
+    public static final class TypeWithSingleCharGetters {
+
+        private final String a;
+        private final String x;
+        private final boolean y;
+
+        TypeWithSingleCharGetters(
+                @JsonProperty("a") final String a,
+                @JsonProperty("x") final String x,
+                @JsonProperty("y") final boolean y) {
+            this.a = a;
+            this.x = x;
+            this.y = y;
+        }
+
+        public String get() {
+            return "should be ignored, as invalid getter name";
+        }
+
+        public String is() {
+            return "should be ignored, as invalid getter name";
+        }
+
+        public String geta() {
+            return a;
+        }
+
+        public String isb() {
+            return "should ignore b as not valid getter name";
+        }
+
+        public String getX() {
+            return x;
+        }
+
+        public boolean isY() {
+            return y;
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (!(o instanceof final TypeWithSingleCharGetters that)) {
+                return false;
+            }
+            return y == that.y && Objects.equals(x, that.x);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(x, y);
+        }
+    }
+
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "@type")
+    @JsonSubTypes({@Type(value = PolyWithJsonTypeName.Sub.class)})
+    public interface PolyWithJsonTypeName {
+
+        @JsonTypeName("custom-def-key")
+        record Sub() implements PolyWithJsonTypeName {}
+    }
+
+    public static final class TypeWithPublicField {
+        public String exposed = "value";
+
+        public String getProp() {
             return null;
         }
+    }
+
+    public static final class TypeWithPrivateFieldNoGetter {
+        private final String hidden = "secret";
+
+        public String getVisible() {
+            return null;
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            return o != null && getClass().equals(o.getClass());
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(getClass());
+        }
+    }
+
+    public record TypeWithStaticFinalConstant(String someProp) {
+        public static final String CONSTANT = "fixed";
+    }
+
+    public record TypeWithMinimalClassCrossPackageProperty(
+            @JsonProperty("poly") TypeWithMinimalClassCrossPackage poly) {}
+
+    public record TypeWithListInject(
+            @JsonSchemaInject("{\"minItems\":1}") @JsonProperty("list") List<String> list) {}
+
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "@type")
+    public interface MapperRegisteredPoly {
+
+        record SubA() implements MapperRegisteredPoly {}
+
+        record SubB() implements MapperRegisteredPoly {}
     }
 }

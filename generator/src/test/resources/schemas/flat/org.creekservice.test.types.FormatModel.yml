@@ -3,9 +3,6 @@
 $schema: https://json-schema.org/draft/2020-12/schema
 type: object
 properties:
-  URI:
-    type: string
-    format: uri
   date:
     type: string
     format: date
@@ -22,5 +19,8 @@ properties:
   time:
     type: string
     format: time
+  uri:
+    type: string
+    format: uri
 title: Format Model
 additionalProperties: false

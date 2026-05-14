@@ -117,6 +117,19 @@ class PolymorphicTypesTest {
     }
 
     @Test
+    void shouldIgnoreTypesUsingNoneId() {
+        // Given:
+        @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
+        class UsingNone {}
+
+        // When:
+        final Collection<?> result = findPolymorphicTypes(UsingNone.class);
+
+        // Then:
+        assertThat(result, is(empty()));
+    }
+
+    @Test
     void shouldIgnoreTypesWithExplicitListOfTypes() {
         // Given:
         @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)

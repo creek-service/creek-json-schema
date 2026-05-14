@@ -16,6 +16,7 @@
 
 package org.creek.test;
 
+import java.util.Objects;
 import org.creekservice.internal.json.schema.generator.TypeWithMinimalClassCrossPackage;
 
 /**
@@ -29,4 +30,14 @@ import org.creekservice.internal.json.schema.generator.TypeWithMinimalClassCross
  * {@link StringIndexOutOfBoundsException} when the subtype FQN is shorter than the base package
  * name.
  */
-public final class MinimalClassSub extends TypeWithMinimalClassCrossPackage {}
+public final class MinimalClassSub extends TypeWithMinimalClassCrossPackage {
+    @Override
+    public boolean equals(final Object o) {
+        return o != null && getClass().equals(o.getClass());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getClass());
+    }
+}

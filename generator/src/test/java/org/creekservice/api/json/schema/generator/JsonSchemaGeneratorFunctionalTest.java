@@ -26,6 +26,7 @@ import static org.hamcrest.Matchers.matchesPattern;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -101,7 +102,7 @@ class JsonSchemaGeneratorFunctionalTest {
                         + actualSchemaPath.toUri()
                         + lineSeparator()
                         + "Does not match expected schema: "
-                        + expectedSchemaPath.toUri(),
+                        + EXPECTED_FLAT_SCHEMA_DIR.resolve(expectedSchemaPath).toUri(),
                 actualSchema,
                 is(expectedSchema));
     }
@@ -123,7 +124,7 @@ class JsonSchemaGeneratorFunctionalTest {
                         + actualSchemaPath.toUri()
                         + lineSeparator()
                         + "Does not match expected schema: "
-                        + expectedSchemaPath.toUri(),
+                        + EXPECTED_TREE_SCHEMA_DIR.resolve(expectedSchemaPath).toUri(),
                 actualSchema,
                 is(expectedSchema));
     }
@@ -190,9 +191,9 @@ class JsonSchemaGeneratorFunctionalTest {
         }
         codeCoverageCmdLineArg().ifPresent(cmd::add);
 
-        String modulePath = LIB_DIR + System.getProperty("path.separator") + TEST_TYPES_LIB_DIR;
+        String modulePath = LIB_DIR + File.pathSeparator + TEST_TYPES_LIB_DIR;
         if (!TEST_TYPE_DEPS.isEmpty()) {
-            modulePath += System.getProperty("path.separator") + TEST_TYPE_DEPS;
+            modulePath += File.pathSeparator + TEST_TYPE_DEPS;
         }
 
         cmd.addAll(

@@ -64,13 +64,10 @@ import java.time.YearMonth;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import org.creekservice.api.base.annotation.schema.JsonSchemaInject;
 
 final class JsonSchemaGeneratorFactory {
@@ -187,9 +184,7 @@ final class JsonSchemaGeneratorFactory {
         configBuilder
                 .with(
                         new JacksonModule(
-                                JacksonOption.FLATTENED_ENUMS_FROM_JSONVALUE,
                                 JacksonOption.FLATTENED_ENUMS_FROM_JSONPROPERTY,
-                                JacksonOption.RESPECT_JSONPROPERTY_REQUIRED,
                                 JacksonOption.RESPECT_JSONPROPERTY_ORDER,
                                 JacksonOption.ALWAYS_REF_SUBTYPES))
                 .with(new Swagger2Module())
@@ -204,7 +199,6 @@ final class JsonSchemaGeneratorFactory {
                         Option.PUBLIC_NONSTATIC_FIELDS,
                         Option.NONPUBLIC_NONSTATIC_FIELDS_WITH_GETTERS,
                         Option.NONPUBLIC_NONSTATIC_FIELDS_WITHOUT_GETTERS,
-                        Option.VALUES_FROM_CONSTANT_FIELDS,
                         Option.FLATTENED_OPTIONALS);
 
         configureMethodResolvers(configBuilder, mapper);
@@ -217,11 +211,6 @@ final class JsonSchemaGeneratorFactory {
 
     private static void configureMethodResolvers(
             final SchemaGeneratorConfigBuilder configBuilder, final ObjectMapper mapper) {
-        // Workaround: victools crashes on single-char getter names. Must be first.
-        configBuilder
-                .forMethods()
-                .withPropertyNameOverrideResolver(JsonSchemaGeneratorFactory::singleCharGetterName);
-
         // Delegate visibility, naming, required, defaults to Jackson's BeanDescription.
         configBuilder.forMethods().withIgnoreCheck(method -> shouldIgnoreMethod(method, mapper));
         configBuilder
@@ -240,33 +229,13 @@ final class JsonSchemaGeneratorFactory {
                         JsonSchemaGeneratorFactory::unwrapOptionalReturnType);
     }
 
-    private static java.util.List<com.fasterxml.classmate.ResolvedType> unwrapOptionalReturnType(
-            final MethodScope method) {
-        if (!method.getType().isInstanceOf(Optional.class)) {
-            return null;
-        }
-        final com.fasterxml.classmate.ResolvedType inner =
-                method.getTypeParameterFor(Optional.class, 0);
-        return inner == null ? null : Collections.singletonList(inner);
+    private static List<ResolvedType> unwrapOptionalReturnType(final MethodScope method) {
+        return method.getType().isInstanceOf(Optional.class)
+                ? List.of(method.getTypeParameterFor(Optional.class, 0))
+                : null;
     }
 
-    private static String singleCharGetterName(final MethodScope method) {
-        final String name = method.getDeclaredName();
-        if (name.startsWith("get") && name.length() == 4 && Character.isUpperCase(name.charAt(3))) {
-            return String.valueOf(Character.toLowerCase(name.charAt(3)));
-        }
-        if (name.startsWith("is") && name.length() == 3 && Character.isUpperCase(name.charAt(2))) {
-            return String.valueOf(Character.toLowerCase(name.charAt(2)));
-        }
-        return null;
-    }
-
-    /**
-     * Looks up the Jackson {@link BeanPropertyDefinition} for the given method within its declaring
-     * type. Returns {@code null} if the method does not correspond to any Jackson-visible
-     * serializable property (e.g. it is {@code @JsonIgnore}d, or not a recognised getter).
-     */
-    private static BeanPropertyDefinition findJacksonProperty(
+    private static Optional<BeanPropertyDefinition> findJacksonProperty(
             final MethodScope method, final ObjectMapper mapper) {
         final BeanDescription desc =
                 mapper.getSerializationConfig()
@@ -274,52 +243,32 @@ final class JsonSchemaGeneratorFactory {
                                 mapper.constructType(method.getDeclaringType().getErasedType()));
         final java.lang.reflect.Method rawMethod = method.getRawMember();
         return desc.findProperties().stream()
-                .filter(
-                        prop ->
-                                prop.getGetter() != null
-                                        && rawMethod.equals(prop.getGetter().getAnnotated()))
-                .findFirst()
-                .orElse(null);
+                .filter(prop -> prop.getGetter() != null)
+                .filter(prop -> rawMethod.equals(prop.getGetter().getAnnotated()))
+                .findFirst();
     }
 
     private static boolean shouldIgnoreMethod(final MethodScope method, final ObjectMapper mapper) {
-        return findJacksonProperty(method, mapper) == null;
+        return findJacksonProperty(method, mapper).isEmpty();
     }
 
     private static String jacksonPropertyName(final MethodScope method, final ObjectMapper mapper) {
-        final BeanPropertyDefinition prop = findJacksonProperty(method, mapper);
-        if (prop == null) {
-            return null;
-        }
-        // Only override name for non-getter methods (e.g. @JsonGetter); let victools
-        // derive standard getter names (handles acronyms like getURI() → "URI").
-        return isStandardGetterName(method.getDeclaredName()) ? null : prop.getName();
-    }
-
-    private static boolean isStandardGetterName(final String name) {
-        return isGetStyleGetter(name) || isIsStyleGetter(name);
-    }
-
-    private static boolean isGetStyleGetter(final String name) {
-        return name.startsWith("get") && name.length() > 3 && Character.isUpperCase(name.charAt(3));
-    }
-
-    private static boolean isIsStyleGetter(final String name) {
-        return name.startsWith("is") && name.length() > 2 && Character.isUpperCase(name.charAt(2));
+        return findJacksonProperty(method, mapper)
+                .map(BeanPropertyDefinition::getName)
+                .orElse(null);
     }
 
     private static boolean isJacksonRequired(final MethodScope method, final ObjectMapper mapper) {
-        final BeanPropertyDefinition prop = findJacksonProperty(method, mapper);
-        return prop != null && prop.isRequired();
+        return findJacksonProperty(method, mapper)
+                .map(BeanPropertyDefinition::isRequired)
+                .orElse(false);
     }
 
     private static Object jacksonDefault(final MethodScope method, final ObjectMapper mapper) {
-        final BeanPropertyDefinition prop = findJacksonProperty(method, mapper);
-        if (prop == null) {
-            return null;
-        }
-        final String defaultValue = prop.getMetadata().getDefaultValue();
-        return defaultValue == null || defaultValue.isEmpty() ? null : defaultValue;
+        return findJacksonProperty(method, mapper)
+                .map(prop -> prop.getMetadata().getDefaultValue())
+                .filter(value -> !value.isEmpty())
+                .orElse(null);
     }
 
     /**
@@ -338,12 +287,6 @@ final class JsonSchemaGeneratorFactory {
                 .withTitleResolver(
                         scope -> {
                             final Class<?> clazz = scope.getType().getErasedType();
-                            if (clazz.isPrimitive()) {
-                                return null;
-                            }
-                            if (TYPE_MAPPINGS.containsKey(clazz)) {
-                                return null;
-                            }
                             if (isSystemPackage(clazz.getPackageName())) {
                                 return null;
                             }
@@ -377,12 +320,6 @@ final class JsonSchemaGeneratorFactory {
                         });
 
         // Defaults applied after Swagger2Module; putIfAbsent lets @Schema win.
-        configBuilder
-                .forFields()
-                .withInstanceAttributeOverride(
-                        (node, field, ctx) ->
-                                applyMappingDefaults(node, field.getType().getErasedType(), ctx));
-
         configBuilder
                 .forMethods()
                 .withInstanceAttributeOverride(
@@ -428,7 +365,11 @@ final class JsonSchemaGeneratorFactory {
                 .forTypesInGeneral()
                 .withTypeAttributeOverride(
                         (node, scope, ctx) ->
-                                findInjectJson(scope.getType().getErasedType())
+                                Optional.ofNullable(
+                                                scope.getType()
+                                                        .getErasedType()
+                                                        .getAnnotation(JsonSchemaInject.class))
+                                        .map(JsonSchemaInject::value)
                                         .ifPresent(json -> mergeJson(node, json)));
 
         // Skip fake container-item scopes (prevents List getter inject leaking to items).
@@ -439,18 +380,10 @@ final class JsonSchemaGeneratorFactory {
                             if (scope.isFakeContainerItemScope()) {
                                 return;
                             }
-                            findInjectJson(scope).ifPresent(json -> mergeJson(node, json));
+                            Optional.ofNullable(scope.getAnnotation(JsonSchemaInject.class))
+                                    .map(JsonSchemaInject::value)
+                                    .ifPresent(json -> mergeJson(node, json));
                         });
-    }
-
-    private static Optional<String> findInjectJson(final Class<?> type) {
-        return Optional.ofNullable(type.getAnnotation(JsonSchemaInject.class))
-                .map(JsonSchemaInject::value);
-    }
-
-    private static Optional<String> findInjectJson(final MethodScope scope) {
-        return Optional.ofNullable(scope.getAnnotation(JsonSchemaInject.class))
-                .map(JsonSchemaInject::value);
     }
 
     private static void mergeJson(final ObjectNode node, final String json) {
@@ -546,9 +479,6 @@ final class JsonSchemaGeneratorFactory {
         @Override
         public CustomDefinition provideCustomSchemaDefinition(
                 final ResolvedType javaType, final SchemaGenerationContext context) {
-            if (javaType == null) {
-                return null;
-            }
             final Class<?> erasedType = javaType.getErasedType();
 
             // Only direct @JsonTypeInfo; subtypes defer to JsonSubTypesResolver.
@@ -566,7 +496,7 @@ final class JsonSchemaGeneratorFactory {
 
             final List<ResolvedType> subtypes = findSubtypes(erasedType, context.getTypeContext());
 
-            if (subtypes != null && !subtypes.isEmpty()) {
+            if (!subtypes.isEmpty()) {
                 final ObjectNode definition = context.getGeneratorConfig().createObjectNode();
                 final ArrayNode oneOf =
                         definition.withArray(context.getKeyword(SchemaKeyword.TAG_ONEOF));
@@ -659,7 +589,7 @@ final class JsonSchemaGeneratorFactory {
                     yield typeName != null ? typeName.value() : subtype.getSimpleName();
                 }
                 case MINIMAL_CLASS -> {
-                    // Strip base package prefix; fall back to FQCN if different package.
+                    // Strip base package prefix; fall back to FQCN if package different.
                     final String subtypeName = subtype.getName();
                     final String basePackage = baseType.getPackageName();
                     yield subtypeName.length() > basePackage.length()
@@ -721,7 +651,7 @@ final class JsonSchemaGeneratorFactory {
             if (subTypesAnnotation != null) {
                 return Arrays.stream(subTypesAnnotation.value())
                         .map(entry -> typeContext.resolve(entry.value()))
-                        .collect(Collectors.toList());
+                        .toList();
             }
 
             // Fall back to mapper-registered subtypes; deduplicate and sort for stability.
@@ -732,50 +662,29 @@ final class JsonSchemaGeneratorFactory {
                             .collectAndResolveSubtypesByClass(
                                     mapper.getSerializationConfig(), beanDesc.getClassInfo());
 
-            if (registered == null || registered.isEmpty()) {
-                return null;
-            }
-
-            final Map<Class<?>, ResolvedType> unique = new LinkedHashMap<>();
-            registered.stream()
-                    .filter(nt -> nt.getType() != null && !nt.getType().equals(erasedType))
-                    .forEach(
-                            nt ->
-                                    unique.putIfAbsent(
-                                            nt.getType(), typeContext.resolve(nt.getType())));
-
-            final List<ResolvedType> subtypes =
-                    unique.entrySet().stream()
-                            .sorted(Comparator.comparing(e -> e.getKey().getName()))
-                            .map(Map.Entry::getValue)
-                            .collect(Collectors.toList());
-
-            return subtypes.isEmpty() ? null : subtypes;
+            return registered.stream()
+                    .filter(nt -> !erasedType.equals(nt.getType()))
+                    .sorted(Comparator.comparing(nt -> nt.getType().getName()))
+                    .map(nt -> typeContext.resolve(nt.getType()))
+                    .toList();
         }
     }
 
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    private static final class Mapping {
+    private record Mapping(
+            String jsonType,
+            Optional<String> format,
+            Optional<String> pattern,
+            Optional<Long> minimum,
+            Optional<Long> maximum) {
 
-        private final String jsonType;
-        private final Optional<String> format;
-        private final Optional<String> pattern;
-        private final Optional<Long> minimum;
-        private final Optional<Long> maximum;
-
-        private Mapping(
-                final String jsonType,
-                final Optional<String> format,
-                final Optional<String> pattern,
-                final Optional<Long> minimum,
-                final Optional<Long> maximum) {
-            this.jsonType = requireNonBlank(jsonType, "jsonType");
-            this.format = requireNonNull(format, "format");
-            this.format.ifPresent(f -> requireNonBlank(f, "format"));
-            this.pattern = requireNonNull(pattern, "pattern");
-            this.pattern.ifPresent(p -> requireNonBlank(p, "pattern"));
-            this.minimum = requireNonNull(minimum, "minimum");
-            this.maximum = requireNonNull(maximum, "maximum");
+        private Mapping {
+            requireNonBlank(jsonType, "jsonType");
+            requireNonNull(format, "format");
+            format.ifPresent(f -> requireNonBlank(f, "format"));
+            requireNonNull(pattern, "pattern");
+            pattern.ifPresent(p -> requireNonBlank(p, "pattern"));
+            requireNonNull(minimum, "minimum");
+            requireNonNull(maximum, "maximum");
         }
 
         static Mapping toType(final String jsonType) {
@@ -801,26 +710,6 @@ final class JsonSchemaGeneratorFactory {
 
         Mapping withDefaultMaximum(final long maximum) {
             return new Mapping(jsonType, format, pattern, minimum, Optional.of(maximum));
-        }
-
-        String jsonType() {
-            return jsonType;
-        }
-
-        Optional<String> format() {
-            return format;
-        }
-
-        Optional<String> pattern() {
-            return pattern;
-        }
-
-        Optional<Long> minimum() {
-            return minimum;
-        }
-
-        Optional<Long> maximum() {
-            return maximum;
         }
     }
 }

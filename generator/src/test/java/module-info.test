@@ -15,3 +15,6 @@
 
 --add-opens
   creek.json.schema.generator/org.creekservice.internal.json.schema.generator=com.fasterxml.jackson.databind
+
+--add-opens
+  creek.json.schema.generator/org.creek.test=com.fasterxml.jackson.databind
