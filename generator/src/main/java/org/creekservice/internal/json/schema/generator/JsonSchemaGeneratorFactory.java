@@ -24,13 +24,6 @@ import com.fasterxml.classmate.ResolvedType;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.databind.BeanDescription;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.introspect.BeanPropertyDefinition;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.databind.jsontype.NamedType;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.victools.jsonschema.generator.CustomDefinition;
 import com.github.victools.jsonschema.generator.CustomDefinitionProviderV2;
 import com.github.victools.jsonschema.generator.MethodScope;
@@ -44,8 +37,8 @@ import com.github.victools.jsonschema.generator.SchemaVersion;
 import com.github.victools.jsonschema.generator.TypeContext;
 import com.github.victools.jsonschema.generator.impl.DefinitionKey;
 import com.github.victools.jsonschema.generator.naming.SchemaDefinitionNamingStrategy;
-import com.github.victools.jsonschema.module.jackson.JacksonModule;
 import com.github.victools.jsonschema.module.jackson.JacksonOption;
+import com.github.victools.jsonschema.module.jackson.JacksonSchemaModule;
 import com.github.victools.jsonschema.module.swagger2.Swagger2Module;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -69,6 +62,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.creekservice.api.base.annotation.schema.JsonSchemaInject;
+import tools.jackson.databind.BeanDescription;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationConfig;
+import tools.jackson.databind.introspect.AnnotatedClass;
+import tools.jackson.databind.introspect.BeanPropertyDefinition;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.jsontype.NamedType;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.StringNode;
 
 final class JsonSchemaGeneratorFactory {
 
@@ -100,7 +103,7 @@ final class JsonSchemaGeneratorFactory {
                             ZonedDateTime.class,
                             Mapping.toType(STRING).withDefaultFormat("date-time")),
                     entry(Instant.class, Mapping.toType(STRING).withDefaultFormat("date-time")),
-                    entry(Duration.class, Mapping.toType(NUMBER)),
+                    entry(Duration.class, Mapping.toType(STRING).withDefaultFormat("duration")),
                     entry(
                             Period.class,
                             Mapping.toType(STRING)
@@ -116,7 +119,7 @@ final class JsonSchemaGeneratorFactory {
                             YearMonth.class,
                             Mapping.toType(STRING)
                                     .withDefaultPattern("^-?\\d{4,}-(?:0[1-9]|1[0-2])$")),
-                    entry(Year.class, Mapping.toType(STRING).withDefaultPattern("^-?\\d+$")),
+                    entry(Year.class, Mapping.toType(INTEGER)),
                     entry(
                             byte.class,
                             Mapping.toType(INTEGER)
@@ -176,14 +179,14 @@ final class JsonSchemaGeneratorFactory {
                 .forTypesInGeneral()
                 .withDefinitionNamingStrategy(new JsonTypeNameNamingStrategy());
 
-        // Must precede JacksonModule: prevents JsonSubTypesResolver self-referential schemas.
+        // Must precede JacksonSchemaModule: prevents JsonSubTypesResolver self-referential schemas.
         configBuilder
                 .forTypesInGeneral()
                 .withCustomDefinitionProvider(new PolymorphicOneOfDefinitionProvider(mapper));
 
         configBuilder
                 .with(
-                        new JacksonModule(
+                        new JacksonSchemaModule(
                                 JacksonOption.FLATTENED_ENUMS_FROM_JSONPROPERTY,
                                 JacksonOption.RESPECT_JSONPROPERTY_ORDER,
                                 JacksonOption.ALWAYS_REF_SUBTYPES))
@@ -237,10 +240,13 @@ final class JsonSchemaGeneratorFactory {
 
     private static Optional<BeanPropertyDefinition> findJacksonProperty(
             final MethodScope method, final ObjectMapper mapper) {
+        final SerializationConfig config = mapper.serializationConfig();
+        final tools.jackson.databind.JavaType javaType =
+                mapper.constructType(method.getDeclaringType().getErasedType());
+        final AnnotatedClass ac =
+                config.classIntrospectorInstance().introspectClassAnnotations(javaType);
         final BeanDescription desc =
-                mapper.getSerializationConfig()
-                        .introspect(
-                                mapper.constructType(method.getDeclaringType().getErasedType()));
+                config.classIntrospectorInstance().introspectForSerialization(javaType, ac);
         final java.lang.reflect.Method rawMethod = method.getRawMember();
         return desc.findProperties().stream()
                 .filter(prop -> prop.getGetter() != null)
@@ -267,7 +273,6 @@ final class JsonSchemaGeneratorFactory {
     private static Object jacksonDefault(final MethodScope method, final ObjectMapper mapper) {
         return findJacksonProperty(method, mapper)
                 .map(prop -> prop.getMetadata().getDefaultValue())
-                .filter(value -> !value.isEmpty())
                 .orElse(null);
     }
 
@@ -338,13 +343,13 @@ final class JsonSchemaGeneratorFactory {
                         fmt ->
                                 node.putIfAbsent(
                                         ctx.getKeyword(SchemaKeyword.TAG_FORMAT),
-                                        node.textNode(fmt)));
+                                        StringNode.valueOf(fmt)));
         mapping.pattern()
                 .ifPresent(
                         pat ->
                                 node.putIfAbsent(
                                         ctx.getKeyword(SchemaKeyword.TAG_PATTERN),
-                                        node.textNode(pat)));
+                                        StringNode.valueOf(pat)));
         mapping.minimum()
                 .ifPresent(
                         min ->
@@ -434,7 +439,7 @@ final class JsonSchemaGeneratorFactory {
                 final DefinitionKey key, final SchemaGenerationContext context) {
             final JsonTypeName typeName =
                     key.getType().getErasedType().getAnnotation(JsonTypeName.class);
-            if (typeName != null && !typeName.value().isEmpty()) {
+            if (typeName != null) {
                 return typeName.value();
             }
             return context.getTypeContext().getSimpleTypeDescription(key.getType());
@@ -455,17 +460,19 @@ final class JsonSchemaGeneratorFactory {
      * with a direct {@link JsonTypeInfo} annotation) and generates a {@code oneOf} schema listing
      * all known subtypes.
      *
-     * <p>Must be registered <em>before</em> the JacksonModule so that this provider runs first in
-     * the chain and prevents {@code JsonSubTypesResolver} from generating a circular reference for
-     * implicit base types (those with {@link JsonTypeInfo} but no {@link JsonSubTypes}).
+     * <p>Must be registered <em>before</em> the JacksonSchemaModule so that this provider runs
+     * first in the chain and prevents {@code JsonSubTypesResolver} from generating a circular
+     * reference for implicit base types (those with {@link JsonTypeInfo} but no {@link
+     * JsonSubTypes}).
      *
      * <p>For types with known subtypes, returns a {@code oneOf} schema. For types with no subtypes,
      * returns a plain {@code {type: object}} schema.
      *
      * <p>Also intercepts subtypes of bases that use {@link JsonTypeInfo.Id#SIMPLE_NAME} or {@link
-     * JsonTypeInfo.Id#MINIMAL_CLASS}, since the JacksonModule's {@code JsonSubTypesResolver} does
-     * not handle those modes. For {@link JsonTypeInfo.Id#NAME} and {@link JsonTypeInfo.Id#CLASS}
-     * subtypes, returns {@code null} so that JacksonModule handles them.
+     * JsonTypeInfo.Id#MINIMAL_CLASS}, since the JacksonSchemaModule's {@code JsonSubTypesResolver}
+     * does not handle those modes. For {@link JsonTypeInfo.Id#NAME} and {@link
+     * JsonTypeInfo.Id#CLASS} subtypes, returns {@code null} so that JacksonSchemaModule handles
+     * them.
      */
     private static final class PolymorphicOneOfDefinitionProvider
             implements CustomDefinitionProviderV2 {
@@ -525,7 +532,7 @@ final class JsonSchemaGeneratorFactory {
         /**
          * If this type is a subtype of a SIMPLE_NAME or MINIMAL_CLASS polymorphic base, generates a
          * discriminator schema (allOf with standard def + discriminator property). Returns {@code
-         * null} for NAME and CLASS subtypes so JacksonModule handles them.
+         * null} for NAME and CLASS subtypes so JacksonSchemaModule handles them.
          */
         private CustomDefinition handleSubtypeIfNeeded(
                 final ResolvedType javaType,
@@ -537,7 +544,7 @@ final class JsonSchemaGeneratorFactory {
                                 final JsonTypeInfo.Id use = parentInfo.typeInfo().use();
                                 if (use != JsonTypeInfo.Id.SIMPLE_NAME
                                         && use != JsonTypeInfo.Id.MINIMAL_CLASS) {
-                                    // NAME and CLASS are handled by JacksonModule
+                                    // NAME and CLASS are handled by JacksonSchemaModule
                                     return Optional.empty();
                                 }
                                 return Optional.of(
@@ -655,12 +662,13 @@ final class JsonSchemaGeneratorFactory {
             }
 
             // Fall back to mapper-registered subtypes; deduplicate and sort for stability.
-            final BeanDescription beanDesc =
-                    mapper.getSerializationConfig().introspectClassAnnotations(erasedType);
+            final SerializationConfig config = mapper.serializationConfig();
+            final AnnotatedClass annotatedClass =
+                    config.classIntrospectorInstance()
+                            .introspectClassAnnotations(mapper.constructType(erasedType));
             final Collection<NamedType> registered =
-                    mapper.getSubtypeResolver()
-                            .collectAndResolveSubtypesByClass(
-                                    mapper.getSerializationConfig(), beanDesc.getClassInfo());
+                    config.getSubtypeResolver()
+                            .collectAndResolveSubtypesByClass(config, annotatedClass);
 
             return registered.stream()
                     .filter(nt -> !erasedType.equals(nt.getType()))
