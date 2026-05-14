@@ -1,9 +1,7 @@
 ---
-# timestamp=1706376038793
-$schema: http://json-schema.org/draft-07/schema#
-title: Format Model
+# timestamp=1777545029760
+$schema: https://json-schema.org/draft/2020-12/schema
 type: object
-additionalProperties: false
 properties:
   date:
     type: string
@@ -17,9 +15,12 @@ properties:
   period:
     type: string
     format: duration
+    pattern: ^P(?=\d)(?:\d+Y)?(?:\d+M)?(?:\d+W)?(?:\d+D)?$
   time:
     type: string
     format: time
   uri:
     type: string
     format: uri
+title: Format Model
+additionalProperties: false

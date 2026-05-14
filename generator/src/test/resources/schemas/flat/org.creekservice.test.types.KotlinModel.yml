@@ -1,9 +1,7 @@
 ---
-# timestamp=1706376038137
-$schema: http://json-schema.org/draft-07/schema#
-title: Kotlin Model
+# timestamp=1777545029244
+$schema: https://json-schema.org/draft/2020-12/schema
 type: object
-additionalProperties: false
 properties:
   prop1:
     type: string
@@ -15,3 +13,5 @@ properties:
     default: another default
 required:
 - prop1
+title: Kotlin Model
+additionalProperties: false

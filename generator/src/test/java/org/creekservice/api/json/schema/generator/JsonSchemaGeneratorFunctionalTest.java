@@ -26,6 +26,7 @@ import static org.hamcrest.Matchers.matchesPattern;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -58,6 +59,9 @@ class JsonSchemaGeneratorFunctionalTest {
 
     private static final Path TEST_TYPES_LIB_DIR =
             TestPaths.moduleRoot("test-types").resolve("build//libs").toAbsolutePath();
+
+    private static final String TEST_TYPE_DEPS =
+            System.getProperty("test.types.dependency.jars", "");
     private static final Path EXPECTED_FLAT_SCHEMA_DIR =
             TestPaths.moduleRoot("generator").resolve("src/test/resources/schemas/flat");
     private static final Path EXPECTED_TREE_SCHEMA_DIR =
@@ -98,7 +102,7 @@ class JsonSchemaGeneratorFunctionalTest {
                         + actualSchemaPath.toUri()
                         + lineSeparator()
                         + "Does not match expected schema: "
-                        + expectedSchemaPath.toUri(),
+                        + EXPECTED_FLAT_SCHEMA_DIR.resolve(expectedSchemaPath).toUri(),
                 actualSchema,
                 is(expectedSchema));
     }
@@ -120,7 +124,7 @@ class JsonSchemaGeneratorFunctionalTest {
                         + actualSchemaPath.toUri()
                         + lineSeparator()
                         + "Does not match expected schema: "
-                        + expectedSchemaPath.toUri(),
+                        + EXPECTED_TREE_SCHEMA_DIR.resolve(expectedSchemaPath).toUri(),
                 actualSchema,
                 is(expectedSchema));
     }
@@ -186,10 +190,16 @@ class JsonSchemaGeneratorFunctionalTest {
             cmd.addAll(remoteDebugArguments());
         }
         codeCoverageCmdLineArg().ifPresent(cmd::add);
+
+        String modulePath = LIB_DIR + File.pathSeparator + TEST_TYPES_LIB_DIR;
+        if (!TEST_TYPE_DEPS.isEmpty()) {
+            modulePath += File.pathSeparator + TEST_TYPE_DEPS;
+        }
+
         cmd.addAll(
                 List.of(
                         "--module-path",
-                        LIB_DIR + System.getProperty("path.separator") + TEST_TYPES_LIB_DIR,
+                        modulePath,
                         "--add-modules",
                         "creek.json.schema.test.types",
                         "--module",

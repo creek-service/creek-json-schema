@@ -25,8 +25,8 @@ However, it can be run directly as a command line tool:
 ## Schema generation
 
 The generator searches the class and module path for types annotated with `@GeneratesSchema` and writes out a 
-JSON schema for each. Internally it is using the [Jackson JSON Schema Generator][3]. It honours
-both [Jackson's][4] annotations and the [generator's][3] annotations.
+JSON schema for each. Internally it uses the [victools JSON Schema Generator][3]. It honours
+both [Jackson's][4] annotations, [Swagger v2][8] annotations, and Creek's own [`@JsonSchemaInject`][9] annotation.
 
 The generator should work with any JVM based language. See the [Kotlin example](#non-java-types) below for a non-Java example.
 
@@ -45,7 +45,7 @@ For example:
 
 ##### [SimpleModel Java Class](../test-types/src/main/java/org/creekservice/test/types/SimpleModel.java)
 ```java
-@GeneatesSchema
+@GeneratesSchema
 public class SimpleModel {
    public int getIntProp() {
       // ...
@@ -59,38 +59,36 @@ public class SimpleModel {
 
 ...will produce the schema:
 
-##### [SimpleModel Schema](src/test/resources/test/types/org.creekservice.test.types.simple_model.yml)
+##### [SimpleModel Schema](src/test/resources/schemas/flat/org.creekservice.test.types.SimpleModel.yml)
 ```yaml
 ---
-$schema: http://json-schema.org/draft-07/schema#
-title: Simple Model
+$schema: https://json-schema.org/draft/2020-12/schema
 type: object
-additionalProperties: false
 properties:
   intProp:
     type: integer
+    minimum: -2147483648
+    maximum: 2147483647
   stringProp:
     type: string
 required:
 - intProp
+title: Simple Model
+additionalProperties: false
 ```
 
-Properties for both the getters have been included in the above schema. 
+Properties for both the getters have been included in the above schema.
 
 The integer property is marked as required, as primitive types can't be `null`.
 
-The string property is not marked as required, as non-primitive types can be null. 
-However, the schema intentionally does not allow the string property to be explicitly set to `null`.
-(Defaults in Creek encourage developers away from using `null` values).
-Instead, any JSON that omits the string property is valid, 
-i.e. rather than setting `stringProp` to `null` if it's not provided, the `stringProp` property should just not be set.
-
-While Creek strongly recommends avoiding the use of `null` in JSON documents, just as it recommends avoiding `null` in 
-Java code, it is still possible to build a schema that accepts `null` values. 
-See [allowing `null` values](#allowing-null-values) for more info.
+The string property is not marked as required. `Optional<String>` properties are absent-or-present:
+when the `Optional` is empty, the property is simply omitted from the document.
+The schema does not allow `null` values for `Optional` properties by design.
+See [allowing `null` values](#allowing-null-values) if you explicitly need to permit `null`.
 
 > ## NOTE
-> It is important to ensure properties with `null` values are excluded when serialising data to JSON.
+> Ensure Jackson is configured to exclude empty `Optional` values when serialising to JSON
+> (e.g. by setting `@JsonInclude(JsonInclude.Include.NON_EMPTY)` or configuring the `ObjectMapper`).
 > Failure to do so may result in schema validation failure.
 > Creek's own serializers do this by default.
 
@@ -105,26 +103,40 @@ to their JSON schema counterparts.
 
 The generator will also leverage the [JSON Schema's `format` specifier][5] to convert the types below:
 
-| Java type        | Schema Type                                               | 
-|------------------|-----------------------------------------------------------|
-| `URI`            | type: string <br> format: uri                             |
-| `UUID`           | type: string <br> format: uuid                            |
-| `OffsetTime`     | type: string <br> format: time                            |
-| `OffsetDateTime` | type: string <br> format: date-time                       |
-| `LocalDate`      | type: string <br> format: date                            |
-| `LocalTime`      | type: string <br> format: none <br> see note 1 below      |
-| `LocalDateTime`  | type: string <br> format: date-time                       |
-| `ZonedDateTime`  | type: string <br> format: date-time <br> see note 2 below |
-| `MonthDay`       | type: string <br> format: none <br> see note 3 below      |
-| `YearMonth`      | type: string <br> format: none <br> see note 3 below      |
-| `Year`           | type: string <br> format: none <br> see note 3 below      |
-| `Instant`        | type: string <br> format: date-time                       |
-| `Duration`       | type: number <br> format: none <br> see note 4 below      |
-| `Period`         | type: string <br> format: duration                        |
+| Java type         | Schema type | format      | pattern                                                           | minimum              | maximum             | Notes  |
+|-------------------|-------------|-------------|-------------------------------------------------------------------|----------------------|---------------------|--------|
+| `URI`             | `string`    | `uri`       |                                                                   |                      |                     |        |
+| `UUID`            | `string`    | `uuid`      |                                                                   |                      |                     |        |
+| `OffsetTime`      | `string`    | `time`      |                                                                   |                      |                     |        |
+| `OffsetDateTime`  | `string`    | `date-time` |                                                                   |                      |                     |        |
+| `LocalDate`       | `string`    | `date`      |                                                                   |                      |                     |        |
+| `LocalTime`       | `string`    |             | `^(?:[01]\d\|2[0-3]):(?:[0-5]\d)(?::(?:[0-5]\d)(?:\.\d{1,9})?)?$` |                      |                     | note 1 |
+| `LocalDateTime`   | `string`    | `date-time` |                                                                   |                      |                     |        |
+| `ZonedDateTime`   | `string`    | `date-time` |                                                                   |                      |                     | note 2 |
+| `MonthDay`        | `string`    |             | `^--(?:0[1-9]\|1[0-2])-(?:0[1-9]\|[12]\d\|3[01])$`                |                      |                     | note 3 |
+| `YearMonth`       | `string`    |             | `^-?\d{4,}-(?:0[1-9]\|1[0-2])$`                                   |                      |                     | note 3 |
+| `Year`            | `string`    |             | `^-?\d+$`                                                         |                      |                     | note 3 |
+| `Instant`         | `string`    | `date-time` |                                                                   |                      |                     |        |
+| `Duration`        | `number`    |             |                                                                   |                      |                     | note 4 |
+| `Period`          | `string`    | `duration`  | `^P(?=\d)(?:\d+Y)?(?:\d+M)?(?:\d+W)?(?:\d+D)?$`                   |                      |                     |        |
+| `byte` / `Byte`   | `integer`   |             |                                                                   | -128                 | 127                 |        |
+| `short` / `Short` | `integer`   |             |                                                                   | -32768               | 32767               |        |
+| `int` / `Integer` | `integer`   |             |                                                                   | -2147483648          | 2147483647          |        |
+| `long` / `Long`   | `integer`   |             |                                                                   | -9223372036854775808 | 9223372036854775807 |        |
 
-**Note 1:** 
-`LocateTime` properties will be of type `string` in the generated schema, but will not have a `time` format set.
-This is because, Jackson serialization does not include an offset when serializing `LocalTime` and the `time` format requires an offset.
+All defaults in the table above can be overridden on individual properties using Swagger's `@Schema` annotation.
+For example, to restrict an `int` property to a custom range:
+
+```java
+@Schema(minimum = "0", maximum = "100")
+public int getPercentage() {
+    // ...
+}
+```
+
+**Note 1:**
+`LocalTime` properties will be of type `string` in the generated schema, but will not have a `time` format set.
+This is because Jackson serialization does not include an offset when serializing `LocalTime` and the `time` format requires an offset.
 For this reason, the use of `LocalTime` is discouraged: use `OffsetTime` instead.
 
 **Note 2:**
@@ -135,13 +147,14 @@ The serialized form is the same as `OffsetDateTime`.
 For this reason, the use of `ZonedDateTime` is discouraged: use `OffsetDateTime` instead.
 
 **Note 3:**
-Properties of type `MonthDay`, `YearMonth` & `Year` will be of type `string`, but with no format, in the generated schema.
+Properties of type `MonthDay`, `YearMonth` & `Year` will be of type `string` with a pattern constraint, but no format, in the generated schema.
 Jackson will serialize these types as strings, assuming the `JavaTimeModule` module is installed.
-However, there is no defined JSON format to match these types.
+There is no defined JSON format to match these types, so a regex pattern is used to validate the serialized form instead.
 
 **Note 4:**
-`Duration` properties are serialized by Jackson as numbers, therefore the generated schema will define the property
-as type `number` with no format.
+`Duration` properties are serialized by Jackson as decimal numbers representing the number of seconds, 
+therefore the generated schema will define the property as type `number` with no format.
+Do not enable `SerializationFeature.WRITE_DURATIONS_AS_TIMESTAMPS` if using your own mapper.
 
 For example:
 
@@ -150,14 +163,26 @@ For example:
 @GeneratesSchema
 public class FormatModel {
     public URI getURI() {
-        // ...
+        return null;
     }
-    
+
     public Instant getInstant() {
         // ...
     }
 
-    public OffsetDateTime getDateTime() { 
+    public OffsetDateTime getDateTime() {
+        // ...
+    }
+
+    public LocalDate getDate() {
+        // ...
+    }
+
+    public OffsetTime getTime() {
+        // ...
+    }
+
+    public Period getPeriod() {
         // ...
     }
 }
@@ -165,30 +190,40 @@ public class FormatModel {
 
 ...will produce the schema:
 
-##### [FormatModel Schema](src/test/resources/test/types/org.creekservice.test.types.format_model.yml)
+##### [FormatModel Schema](src/test/resources/schemas/flat/org.creekservice.test.types.FormatModel.yml)
 ```yaml
 ---
-$schema: http://json-schema.org/draft-07/schema#
-title: Format Model
+$schema: https://json-schema.org/draft/2020-12/schema
 type: object
-additionalProperties: false
 properties:
+  URI:
+    type: string
+    format: uri
+  date:
+    type: string
+    format: date
   dateTime:
     type: string
     format: date-time
   instant:
-     type: string
-     format: date-time
-  uri:
     type: string
-    format: uri
+    format: date-time
+  period:
+    type: string
+    format: duration
+    pattern: ^P(?=\d)(?:\d+Y)?(?:\d+M)?(?:\d+W)?(?:\d+D)?$
+  time:
+    type: string
+    format: time
+title: Format Model
+additionalProperties: false
 ```
 
 ### Compatible Jackson configuration
 
 The above type mapping is not automatically compatible with Jackson's default JSON serialization.
 
-// The minimal configuration for Jackson is shown below:
+The minimal configuration for Jackson is shown below:
 
 ```java
 class Example {
@@ -261,20 +296,20 @@ public class JacksonModel {
 
 ...will produce the schema:
 
-##### [JacksonModel Schema](src/test/resources/test/types/org.creekservice.test.types.jackson_model.yml)
+##### [JacksonModel Schema](src/test/resources/schemas/flat/org.creekservice.test.types.JacksonModel.yml)
 ```yaml
 ---
-$schema: http://json-schema.org/draft-07/schema#
-title: Jackson Model
+$schema: https://json-schema.org/draft/2020-12/schema
 type: object
-additionalProperties: false
 properties:
   optional_prop:
     type: string
   required_prop:
     type: string
 required:
-  - required_prop
+- required_prop
+title: Jackson Model
+additionalProperties: false
 ```
 
 #### Polymorphic types
@@ -283,68 +318,62 @@ Polymorphism is supported via the standard Jackson [`@JsonTypeInfo`][7] annotati
 
 For example:
 
-##### [Polymorphic Java Class](../test-types/src/main/java/org/creekservice/test/types/PolymorphicModel.java)
+##### [Polymorphic Java Class](../test-types/src/main/java/org/creekservice/test/types/more/PolymorphicModel.java)
 ```java
 @GeneratesSchema
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = ExplicitlyNamedType.class, name = "type_1"),
-        @JsonSubTypes.Type(value = ImplicitlyNamedType.class)
+        @JsonSubTypes.Type(value = SubType1.class, name = "type_1"),
+        @JsonSubTypes.Type(value = SubType2.class, name = "type_2")
 })
-public interface PolymorphicModel {}
+public interface PolymorphicModel {
 
-public class ExplicitlyNamedType implements PolymorphicModel {
-    public String getProp1() {
-        // ...
+    class SubType1 implements PolymorphicModel {
+        public String getProp1() {
+            // ...
+        }
     }
-}
 
-private class SubType2 implements PolymorphicModel {
-    public String getProp2() {
-        // ...
+    class SubType2 implements PolymorphicModel {
+        public String getProp2() {
+            // ...
+        }
     }
 }
 ```
 
 ...will produce the schema:
 
-##### [Polymorphic Schema](src/test/resources/test/types/org.creekservice.test.types.polymorphic_model.yml)
+##### [Polymorphic Schema](src/test/resources/schemas/flat/org.creekservice.test.types.more.PolymorphicModel.yml)
 ```yaml
 ---
-$schema: http://json-schema.org/draft-07/schema#
-title: Polymorphic Model
-oneOf:
-  - $ref: '#/definitions/ExplicitlyNamedType'
-  - $ref: '#/definitions/ImplicitlyNamedType'
-definitions:
+$schema: https://json-schema.org/draft/2020-12/schema
+$defs:
   SubType1:
     type: object
-    additionalProperties: false
     properties:
-      '@type':
-        type: string
-        enum:
-          - type_1
-        default: type_1
       prop1:
         type: string
-    title: type_1
+      '@type':
+        const: type_1
+    title: Sub Type1
+    additionalProperties: false
     required:
-      - '@type'
+    - '@type'
   SubType2:
     type: object
-    additionalProperties: false
     properties:
-      '@type':
-        type: string
-        enum:
-          - ImplicitlyNamedType
-        default: ImplicitlyNamedType
       prop2:
         type: string
-    title: ImplicitlyNamedType
+      '@type':
+        const: type_2
+    title: Sub Type2
+    additionalProperties: false
     required:
-      - '@type'
+    - '@type'
+oneOf:
+- $ref: "#/$defs/SubType1"
+- $ref: "#/$defs/SubType2"
 ```
 
 ##### Subtype discovery
@@ -376,123 +405,106 @@ private class SmallThing implements Thing {
 
 ...will produce the schema: 
 
-##### [Thing Schema](src/test/resources/test/types/org.creekservice.test.types.thing.yml)
+##### [Thing Schema](src/test/resources/schemas/flat/org.creekservice.test.types.Thing.yml)
 ```yaml
 ---
-$schema: http://json-schema.org/draft-07/schema#
-title: Thing
-oneOf:
-  - $ref: '#/definitions/SmallThing'
-  - $ref: '#/definitions/big'
-definitions:
-  SmallThing:
+$schema: https://json-schema.org/draft/2020-12/schema
+$defs:
+  big:
     type: object
-    additionalProperties: false
     properties:
-      '@type':
-        type: string
-        enum:
-          - SmallThing
-        default: SmallThing
-      prop2:
-        type: SmallThing
-    title: small
-    required:
-      - '@type'
-  BigThing:
-    type: object
-    additionalProperties: false
-    properties:
-      '@type':
-        type: string
-        enum:
-          - big
-        default: big
       prop1:
         type: string
-    title: big
+      '@type':
+        const: big
+    title: Big Thing
+    additionalProperties: false
     required:
-      - '@type'
+    - '@type'
+  SmallThing:
+    type: object
+    properties:
+      prop2:
+        type: string
+      '@type':
+        const: Thing$SmallThing
+    title: Small Thing
+    additionalProperties: false
+    required:
+    - '@type'
+oneOf:
+- $ref: "#/$defs/big"
+- $ref: "#/$defs/SmallThing"
 ```
 
 This behavior can be customised. See the [type scanning](#type-scanning) section for more information.
 
-### JsonSchema Annotations
+### Schema Annotations
 
-The generator also supports the [JsonSchema annotations][3]. These allow much more control of the generated schema, 
-including allowing for arbitrary schema elements to be injected.
+The generator supports [Swagger v2 `@Schema` / `@ArraySchema`][8] annotations for additional schema control,
+and Creek's own [`@JsonSchemaInject`][9] annotation for injecting arbitrary JSON fragments.
 
 For example:
 
-##### [JsonSchemaModel Java Class](../test-types/src/main/java/org/creekservice/test/types/JsonSchemaModel.java)
+##### [SwaggerModel Java Class](../test-types/src/main/java/org/creekservice/test/types/SwaggerModel.java)
 ```java
 @GeneratesSchema
-// Inject requirement for `thing` OR `listProp`:
-@JsonSchemaInject(json =  "{\"anyOf\":[" +
-        "{\"required\":[\"uuid\"]}," +
-        "{\"required\":[\"with_description\"]}" +
-        "]}")
-@JsonSchemaTitle("Custom Title")
-public final class JsonSchemaModel {
-
-    // Add a description:
-    @JsonSchemaDescription("This property has a text description.")
-    public String getWithDescription() {
-        // ..
-    }
-
-    // Inject minLength requirement,  i.e. if supplied, it can't be empty:
-    @JsonSchemaInject(ints = @JsonSchemaInt(path = "minLength", value = 1))
-    public String getNonEmpty() {
-        // ...
-    }
-
-    // Specify a format:
-    @JsonSchemaFormat("uuid")
-    public String getUuid() {
-        // ...
-    }
-    
-    // Specify in schema that items are unique and collection is not empty:
-    @JsonSchemaInject(
-            ints = {@JsonSchemaInt(path = "minItems", value = 1)},
-            bools = {@JsonSchemaBool(path = "uniqueItems", value = true)})
-    public Set<Integer> getSet() {
-        // ...
-    }
-}
+@JsonSchemaInject(
+        "{\"anyOf\":["
+        + "{\"required\":[\"uuid\"]},"
+        + "{\"required\":[\"withDescription\"]}"
+        + "]}")
+@Schema(title = "Custom Title")
+public record SwaggerModel(
+        @Schema(description = "This property has a text description.") String withDescription,
+        @Schema(minLength = 1) String nonEmpty,
+        @Schema(format = "uuid") String uuid,
+        @ArraySchema(minItems = 1, uniqueItems = true) Set<Integer> set) {}
 ```
 
 ...will produce the schema:
 
-##### [JsonSchemaModel Schema](src/test/resources/test/types/org.creekservice.test.types.json_schema_model.yml)
+##### [SwaggerModel Schema](src/test/resources/schemas/flat/org.creekservice.test.types.SwaggerModel.yml)
 ```yaml
 ---
-$schema: http://json-schema.org/draft-07/schema#
-title: Custom Title
+$schema: https://json-schema.org/draft/2020-12/schema
 type: object
-additionalProperties: false
-anyOf:
-  - required:
-      - uuid
-  - required:
-      - with_description
 properties:
   nonEmpty:
     type: string
     minLength: 1
   set:
+    minItems: 1
+    uniqueItems: true
     type: array
     items:
       type: integer
-    minItems: 1
-    uniqueItems: true
+      minimum: -2147483648
+      maximum: 2147483647
   uuid:
     type: string
     format: uuid
   withDescription:
     type: string
     description: This property has a text description.
+title: Custom Title
+additionalProperties: false
+anyOf:
+- required:
+  - uuid
+- required:
+  - withDescription
+```
+
+Creek's `@JsonSchemaInject` annotation can be used to merge arbitrary JSON into any schema node.
+For example, to inject an `anyOf` constraint at the type level:
+
+```java
+@GeneratesSchema
+@JsonSchemaInject("{\"anyOf\":[{\"required\":[\"uuid\"]},{\"required\":[\"withDescription\"]}]}")
+public class MyModel {
+    // ...
+}
 ```
 
 #### Non-Java types
@@ -513,20 +525,18 @@ class KotlinModel(
    @JsonProperty(required = true)
    fun getProp1(): String {return "";}
 
-   @JsonSchemaDefault("a default value")
+   @Schema(defaultValue = "a default value")
    var prop2: String? = null
 }
 ```
 
 ...will produce the schema:
 
-##### [JsonSchemaModel Schema](src/test/resources/test/types/org.creekservice.test.types.kotlin_model.yml)
+##### [KotlinModel Schema](src/test/resources/schemas/flat/org.creekservice.test.types.KotlinModel.yml)
 ```yaml
 ---
-$schema: http://json-schema.org/draft-07/schema#
-title: Kotlin Model
+$schema: https://json-schema.org/draft/2020-12/schema
 type: object
-additionalProperties: false
 properties:
    prop1:
       type: string
@@ -537,7 +547,9 @@ properties:
       type: string
       default: another default
 required:
-   - prop1
+- prop1
+title: Kotlin Model
+additionalProperties: false
 ```
 
 ### Type Scanning
@@ -579,12 +591,12 @@ For example, given types that generate schemas in an `acme.finance.model` packag
 
 ```java
 module acme.model {
-    // Creek annotations, e.g. @GeneratesSchema
+    // Creek annotations, e.g. @GeneratesSchema, @JsonSchemaInject
     requires transitive creek.base.annotation;
     // Jackson annotations, e.g. @JsonProperty
     requires transitive com.fasterxml.jackson.annotation;
-    // Optionally, JSON Schema annotations, e.g. @JsonSchemaInject
-    requires transitive mbknor.jackson.jsonschema;
+    // Optionally, Swagger annotations, e.g. @Schema(description = ...)
+    requires transitive io.swagger.v3.oas.annotations;
 
     // Export the model to Jackson:
     exports acme.finance.model to com.fasterxml.jackson.databind;
@@ -610,8 +622,8 @@ types:
 ```java
 @GeneratesSchema
 class Model {
- 
-   @JsonSchemaInject(json = "{\"type\": [\"null\", \"string\"]}")
+
+   @JsonSchemaInject("{\"type\": [\"null\", \"string\"]}")
    public Optional<String> getFoo() {
       return s;
    }
@@ -636,9 +648,10 @@ Meaning, documents can have `foo` set to either a string or `null` value.
 
 [1]: https://github.com/creek-service/creek-json-schema-gradle-plugin
 [2]: src/main/java/org/creekservice/api/json/schema/generator/JsonSchemaGenerator.java
-[3]: https://github.com/mbknor/mbknor-jackson-jsonSchema
+[3]: https://github.com/victools/jsonschema-generator
 [4]: https://github.com/FasterXML/jackson
 [5]: https://json-schema.org/understanding-json-schema/reference/string.html#built-in-formats
 [6]: https://github.com/FasterXML/jackson-annotations
 [7]: https://fasterxml.github.io/jackson-annotations/javadoc/2.13/com/fasterxml/jackson/annotation/JsonTypeInfo.html
-
+[8]: https://github.com/swagger-api/swagger-core/tree/master/modules/swagger-annotations
+[9]: https://github.com/creek-service/creek-base/blob/main/annotation/src/main/java/org/creekservice/api/base/annotation/schema/JsonSchemaInject.java

@@ -11,9 +11,12 @@ module creek.json.schema.generator {
     requires com.fasterxml.jackson.databind;
     requires com.fasterxml.jackson.dataformat.yaml;
     requires com.fasterxml.jackson.datatype.jdk8;
-    requires mbknor.jackson.jsonschema;
+    requires com.fasterxml.classmate;
+    requires com.github.victools.jsonschema.generator;
+    requires com.github.victools.jsonschema.module.jackson;
+    requires com.github.victools.jsonschema.module.swagger.two;
+    requires io.swagger.v3.oas.annotations;
     requires io.github.classgraph;
-    requires scala.library;
     requires com.github.spotbugs.annotations;
 
     exports org.creekservice.api.json.schema.generator;

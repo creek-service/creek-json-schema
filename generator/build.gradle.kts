@@ -29,10 +29,9 @@ val picoCliVersion : String by extra
 val spotBugsVersion : String by extra
 val log4jVersion : String by extra
 val jacksonVersion : String by extra
-val jsonSchemaVersion : String by extra
+val victoolsVersion : String by extra
+val swaggerAnnotationsVersion : String by extra
 val classGraphVersion : String by extra
-val scalaVersion : String by extra
-val kotlinVersion : String by extra
 
 dependencies {
     implementation("org.creekservice:creek-base-annotation:$creekVersion")
@@ -43,18 +42,13 @@ dependencies {
     implementation("info.picocli:picocli:$picoCliVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$jacksonVersion")
-    implementation("com.kjetland:mbknor-jackson-jsonschema_2.13:$jsonSchemaVersion")
+    implementation("com.github.victools:jsonschema-generator:$victoolsVersion")
+    implementation("com.github.victools:jsonschema-module-jackson:$victoolsVersion")
+    implementation("com.github.victools:jsonschema-module-swagger-2:$victoolsVersion")
+    implementation("io.swagger.core.v3:swagger-annotations:$swaggerAnnotationsVersion")
     implementation("io.github.classgraph:classgraph:$classGraphVersion")
     implementation("org.apache.logging.log4j:log4j-slf4j2-impl:$log4jVersion")
     implementation("org.slf4j:slf4j-api:2.0.17")
-
-    // The following are set to bring in dependency versions beyond known security vulnerabilities:
-    // The following can be removed once https://github.com/mbknor/mbknor-jackson-jsonSchema/issues/174 is resolved:
-    // Also see: https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-36944
-    implementation("org.scala-lang:scala-library:$scalaVersion")
-    // The following can be removed once https://github.com/mbknor/mbknor-jackson-jsonSchema/issues/178 is resolved:
-    // Also see: https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-24329
-    implementation("org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:$kotlinVersion")
 
     testImplementation(project(":test-types"))
     testImplementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
@@ -69,4 +63,20 @@ application {
 tasks.test {
     dependsOn("installDist")
     dependsOn(":test-types:jar")
+
+    doFirst {
+        val generatorLibJars = file("build/install/generator/lib")
+            .listFiles()?.map { it.name }?.toSet() ?: emptySet()
+
+        // generator's test dependencies includes test-types production dependencies:
+        val testTypeDeps = configurations.getByName("testRuntimeClasspath")
+            .resolvedConfiguration.resolvedArtifacts
+            .filter { it.file.name !in generatorLibJars }
+            .filter { !it.file.absolutePath.contains("/test-types/") }
+            .joinToString(File.pathSeparator) { it.file.absolutePath }
+
+        if (testTypeDeps.isNotEmpty()) {
+            systemProperty("test.types.dependency.jars", testTypeDeps)
+        }
+    }
 }

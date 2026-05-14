@@ -1,9 +1,7 @@
 ---
-# timestamp=1706376038822
-$schema: http://json-schema.org/draft-07/schema#
-title: Optional Model
+# timestamp=1777545029736
+$schema: https://json-schema.org/draft/2020-12/schema
 type: object
-additionalProperties: false
 properties:
   nonOptional:
     type: string
@@ -14,3 +12,5 @@ properties:
 required:
 - nonOptional
 - requiredOptional
+title: Optional Model
+additionalProperties: false
