@@ -68,12 +68,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-import net.jimblackler.jsonschemafriend.Schema;
-import net.jimblackler.jsonschemafriend.SchemaStore;
-import net.jimblackler.jsonschemafriend.ValidationException;
-import net.jimblackler.jsonschemafriend.Validator;
 import org.creek.test.MinimalClassSub;
 import org.creekservice.api.base.annotation.schema.JsonSchemaInject;
+import org.creekservice.api.json.schema.validator.JsonSchemaValidator;
+import org.creekservice.api.json.schema.validator.SchemaValidationException;
 import org.junit.jupiter.api.Test;
 
 @SuppressFBWarnings()
@@ -596,21 +594,23 @@ class JsonSchemaGeneratorFactoryTest {
     }
 
     @Test
-    void shouldInsertLocalDateTimeAsStringWithDateTimeFormat() {
+    void shouldInsertLocalDateTimeAsStringWithPatternButNoFormat() {
         // When:
         final String result = generateSchema(TypeWithLocalDateTime.class);
 
         // Then:
+        // Todo: Include the expected pattern here:
         assertThat(
                 result,
                 containsString(
                         """
                           date:
                             type: string
-                            format: date-time\
+                            pattern:\
                         """));
 
         assertThat(result, not(containsString("LocalDateTime")));
+        assertThat(result, not(containsString("format: date-time")));
 
         assertAlignsWithJackson(
                 result,
@@ -1403,14 +1403,10 @@ class JsonSchemaGeneratorFactoryTest {
     }
 
     @SafeVarargs
+    @SuppressWarnings("varargs")
     private <T> void assertAlignsWithJackson(
             final String yaml, final Class<T> type, final T... instances) {
-        final Schema parsedSchema = assertCanParse(yaml);
-        for (final T instance : instances) {
-            final String json = assertCanSerialize(instance);
-            assertValidJson(json, parsedSchema, yaml);
-            assertCanDeserialize(type, json, instance);
-        }
+        assertAlignsWithJackson(yaml, type, List.of(instances), List.of());
     }
 
     private <T> void assertAlignsWithJackson(
@@ -1418,24 +1414,22 @@ class JsonSchemaGeneratorFactoryTest {
             final Class<T> type,
             final Collection<T> validInstances,
             final Collection<T> invalidInstances) {
-        final Schema parsedSchema = assertCanParse(yaml);
+        final JsonSchemaValidator validator = assertCanParseSchema(yaml);
         for (final T instance : validInstances) {
             final String json = assertCanSerialize(instance);
-            assertValidJson(json, parsedSchema, yaml);
+            assertValidJson(json, validator, yaml);
             assertCanDeserialize(type, json, instance);
         }
 
         for (final T instance : invalidInstances) {
             final String json = assertCanSerialize(instance);
-            assertInvalidJson(json, parsedSchema, yaml);
+            assertInvalidJson(json, validator, yaml);
         }
     }
 
-    private Schema assertCanParse(final String yaml) {
+    private JsonSchemaValidator assertCanParseSchema(final String yaml) {
         try {
-            final Object obj = yamlMapper.readValue(yaml, Object.class);
-            final SchemaStore schemaStore = new SchemaStore(true);
-            return schemaStore.loadSchema(obj);
+            return JsonSchemaValidator.fromSchema(yaml);
         } catch (final Exception e) {
             throw new AssertionError("Invalid schema: " + yaml, e);
         }
@@ -1449,10 +1443,12 @@ class JsonSchemaGeneratorFactoryTest {
         }
     }
 
-    private void assertValidJson(final String json, final Schema parsedSchema, final String yaml) {
+    private void assertValidJson(
+            final String json, final JsonSchemaValidator validator, final String yaml) {
         try {
-            final Object o = jsonMapper.readValue(json, Object.class);
-            new Validator(true).validate(parsedSchema, o);
+            final Map<String, ?> props =
+                    jsonMapper.readValue(json, new TypeReference<Map<String, Object>>() {});
+            validator.validate(props);
         } catch (final Exception e) {
             throw new AssertionError(
                     "Invalid JSON: " + json + System.lineSeparator() + "Schema: " + yaml, e);
@@ -1460,24 +1456,24 @@ class JsonSchemaGeneratorFactoryTest {
     }
 
     private void assertInvalidJson(
-            final String json, final Schema parsedSchema, final String yaml) {
-        final Object o;
+            final String json, final JsonSchemaValidator validator, final String yaml) {
+        final Map<String, ?> props;
 
         try {
-            o = jsonMapper.readValue(json, Object.class);
+            props = jsonMapper.readValue(json, new TypeReference<Map<String, Object>>() {});
         } catch (final Exception e) {
             throw new AssertionError("Invalid JSON: " + json, e);
         }
 
         try {
-            new Validator(true).validate(parsedSchema, o);
+            validator.validate(props);
             throw new AssertionError(
                     "Invalid JSON not detected: "
                             + json
                             + System.lineSeparator()
                             + "Schema: "
                             + yaml);
-        } catch (final ValidationException e) {
+        } catch (final SchemaValidationException e) {
             // Expected
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025-2026 Creek Contributors (https://github.com/creek-service)
+ * Copyright 2026 Creek Contributors (https://github.com/creek-service)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-rootProject.name = "creek-json-schema"
+plugins {
+    `java-library`
+}
 
-include(
-    "generator",
-    "test-types",
-    "validator"
-)
+val jacksonVersion : String by extra
+
+dependencies {
+    implementation("com.networknt:json-schema-validator:2.0.1")
+    implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
+}
