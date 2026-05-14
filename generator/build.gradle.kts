@@ -36,8 +36,7 @@ dependencies {
 
     implementation("com.github.spotbugs:spotbugs-annotations:$spotBugsVersion")
     implementation("info.picocli:picocli:$picoCliVersion")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$jacksonVersion")
+    implementation("tools.jackson.dataformat:jackson-dataformat-yaml:$jacksonVersion")
     implementation("com.github.victools:jsonschema-generator:$victoolsVersion")
     implementation("com.github.victools:jsonschema-module-jackson:$victoolsVersion")
     implementation("com.github.victools:jsonschema-module-swagger-2:$victoolsVersion")
@@ -47,7 +46,6 @@ dependencies {
     implementation("org.slf4j:slf4j-api:2.0.17")
 
     testImplementation(project(":test-types"))
-    testImplementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
     testImplementation(project(":validator"))
 }
 

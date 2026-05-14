@@ -29,13 +29,6 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -52,6 +45,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.dataformat.yaml.YAMLWriteFeature;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -64,15 +62,18 @@ class SchemaGeneratorTest {
 
     private final ObjectMapper jsonMapper =
             JsonMapper.builder()
-                    .addModule(new Jdk8Module())
-                    .addModule(new JavaTimeModule())
-                    .defaultPropertyInclusion(
-                            JsonInclude.Value.construct(
-                                    JsonInclude.Include.NON_EMPTY,
-                                    JsonInclude.Include.USE_DEFAULTS))
-                    .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-                    .disable(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE)
+                    .changeDefaultPropertyInclusion(
+                            v ->
+                                    JsonInclude.Value.construct(
+                                            JsonInclude.Include.NON_EMPTY,
+                                            JsonInclude.Include.USE_DEFAULTS))
+                    .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+                    .disable(DateTimeFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE)
                     .build();
+
+    private final ObjectMapper yamlMapper =
+            new ObjectMapper(
+                    YAMLFactory.builder().enable(YAMLWriteFeature.MINIMIZE_QUOTES).build());
 
     private SchemaGenerator generator;
 
@@ -207,8 +208,14 @@ class SchemaGeneratorTest {
         // Given:
         generator.registerSubTypes(List.of(TypeWithImplicitPolymorphism.class));
 
-        jsonMapper.registerSubtypes(TypeWithImplicitPolymorphism.ExplicitlyNamed.class);
-        jsonMapper.registerSubtypes(TypeWithImplicitPolymorphism.ImplicitlyNamed.class);
+        jsonMapper
+                .serializationConfig()
+                .getSubtypeResolver()
+                .registerSubtypes(TypeWithImplicitPolymorphism.ExplicitlyNamed.class);
+        jsonMapper
+                .serializationConfig()
+                .getSubtypeResolver()
+                .registerSubtypes(TypeWithImplicitPolymorphism.ImplicitlyNamed.class);
 
         final String implicitType =
                 "SchemaGeneratorTest$TypeWithImplicitPolymorphism$ImplicitlyNamed";
@@ -242,8 +249,14 @@ class SchemaGeneratorTest {
         // Given:
         generator.registerSubTypes(List.of(TypeWithImplicitSimplePolymorphism.class));
 
-        jsonMapper.registerSubtypes(TypeWithImplicitSimplePolymorphism.ExplicitlyNamed.class);
-        jsonMapper.registerSubtypes(TypeWithImplicitSimplePolymorphism.ImplicitlyNamed.class);
+        jsonMapper
+                .serializationConfig()
+                .getSubtypeResolver()
+                .registerSubtypes(TypeWithImplicitSimplePolymorphism.ExplicitlyNamed.class);
+        jsonMapper
+                .serializationConfig()
+                .getSubtypeResolver()
+                .registerSubtypes(TypeWithImplicitSimplePolymorphism.ImplicitlyNamed.class);
 
         final String implicitType =
                 TypeWithImplicitSimplePolymorphism.ImplicitlyNamed.class.getSimpleName();

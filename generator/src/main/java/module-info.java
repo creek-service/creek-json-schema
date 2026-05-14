@@ -8,9 +8,8 @@ module creek.json.schema.generator {
     requires org.slf4j;
     requires java.management;
     requires com.fasterxml.jackson.annotation;
-    requires com.fasterxml.jackson.databind;
-    requires com.fasterxml.jackson.dataformat.yaml;
-    requires com.fasterxml.jackson.datatype.jdk8;
+    requires tools.jackson.databind;
+    requires tools.jackson.dataformat.yaml;
     requires com.fasterxml.classmate;
     requires com.github.victools.jsonschema.generator;
     requires com.github.victools.jsonschema.module.jackson;

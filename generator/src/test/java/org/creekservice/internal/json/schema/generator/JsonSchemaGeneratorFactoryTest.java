@@ -33,19 +33,6 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.databind.jsontype.NamedType;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -73,14 +60,24 @@ import org.creekservice.api.base.annotation.schema.JsonSchemaInject;
 import org.creekservice.api.json.schema.validator.JsonSchemaValidator;
 import org.creekservice.api.json.schema.validator.SchemaValidationException;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.jsontype.NamedType;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.dataformat.yaml.YAMLMapper;
+import tools.jackson.dataformat.yaml.YAMLWriteFeature;
 
 @SuppressFBWarnings()
 @SuppressWarnings("unused")
 class JsonSchemaGeneratorFactoryTest {
 
     private final ObjectMapper yamlMapper =
-            JsonMapper.builder(new YAMLFactory().enable(YAMLGenerator.Feature.MINIMIZE_QUOTES))
-                    .addModule(new Jdk8Module())
+            YAMLMapper.builder(
+                            YAMLFactory.builder().enable(YAMLWriteFeature.MINIMIZE_QUOTES).build())
                     .enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
                     .build();
 
@@ -89,14 +86,13 @@ class JsonSchemaGeneratorFactoryTest {
 
     private final ObjectMapper jsonMapper =
             JsonMapper.builder()
-                    .addModule(new Jdk8Module())
-                    .addModule(new JavaTimeModule())
-                    .defaultPropertyInclusion(
-                            JsonInclude.Value.construct(
-                                    JsonInclude.Include.NON_EMPTY,
-                                    JsonInclude.Include.USE_DEFAULTS))
-                    .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-                    .disable(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE)
+                    .changeDefaultPropertyInclusion(
+                            v ->
+                                    JsonInclude.Value.construct(
+                                            JsonInclude.Include.NON_EMPTY,
+                                            JsonInclude.Include.USE_DEFAULTS))
+                    .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+                    .disable(DateTimeFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE)
                     .build();
 
     @Test
@@ -730,14 +726,14 @@ class JsonSchemaGeneratorFactoryTest {
     }
 
     @Test
-    void shouldInsertYearAsStringWithPattern() {
+    void shouldInsertYearAsInteger() {
         // When:
         final String result = generateSchema(TypeWithYear.class);
 
         // Then:
         final Map<String, ?> parsedSchema = parseYaml(result);
-        assertThat(yamlGet(parsedSchema, "properties", "date", "type"), is("string"));
-        assertThat(result, containsString("pattern:"));
+        assertThat(yamlGet(parsedSchema, "properties", "date", "type"), is("integer"));
+        assertThat(result, not(containsString("pattern:")));
         assertThat(result, not(containsString("format:")));
 
         assertAlignsWithJackson(
@@ -769,15 +765,15 @@ class JsonSchemaGeneratorFactoryTest {
     }
 
     @Test
-    void shouldInsertDurationAsNumber() {
+    void shouldInsertDurationAsIso8601String() {
         // When:
         final String result = generateSchema(TypeWithDuration.class);
 
         // Then:
         final Map<String, ?> parsedSchema = parseYaml(result);
-        assertThat(yamlGet(parsedSchema, "properties", "duration", "type"), is("number"));
+        assertThat(yamlGet(parsedSchema, "properties", "duration", "type"), is("string"));
 
-        assertThat(result, not(containsString("format:")));
+        assertThat(result, containsString("format: duration"));
         assertThat(result, not(containsString("pattern:")));
 
         assertAlignsWithJackson(
@@ -786,6 +782,11 @@ class JsonSchemaGeneratorFactoryTest {
                 new TypeWithDuration(Duration.ZERO),
                 new TypeWithDuration(Duration.ofSeconds(1)),
                 new TypeWithDuration(Duration.ofHours(1)),
+                // Note: Currently fails as SchemaFriend validator correctly rejects fractional seconds.
+                // This matches RFC 3339 used by Json schema
+                // However, https://github.com/json-schema-org/json-schema-spec/issues/1603 is an ongoing discussion to support fractional seconds.
+                // As ISO 8601 does, which is what Java / Jackson is using.
+                // Need to either go back to using number for duration or move to less string validator.
                 new TypeWithDuration(Duration.ofMillis(500)),
                 new TypeWithDuration(Duration.ofDays(1)),
                 new TypeWithDuration(Duration.ofSeconds(5)));
@@ -1344,16 +1345,18 @@ class JsonSchemaGeneratorFactoryTest {
     }
 
     @Test
-    void shouldFindSubtypesRegisteredOnMapper() throws Exception {
+    void shouldFindSubtypesRegisteredOnMapper() {
         // Given:
         final ObjectMapper mapper =
-                JsonMapper.builder(new YAMLFactory().enable(YAMLGenerator.Feature.MINIMIZE_QUOTES))
-                        .addModule(new Jdk8Module())
+                YAMLMapper.builder(
+                                YAMLFactory.builder()
+                                        .enable(YAMLWriteFeature.MINIMIZE_QUOTES)
+                                        .build())
                         .enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+                        .registerSubtypes(
+                                new NamedType(MapperRegisteredPoly.SubA.class, "subA"),
+                                new NamedType(MapperRegisteredPoly.SubB.class, "subB"))
                         .build();
-        mapper.registerSubtypes(
-                new NamedType(MapperRegisteredPoly.SubA.class, "subA"),
-                new NamedType(MapperRegisteredPoly.SubB.class, "subB"));
 
         final com.github.victools.jsonschema.generator.SchemaGenerator gen =
                 JsonSchemaGeneratorFactory.createGenerator(mapper);
@@ -1370,19 +1373,11 @@ class JsonSchemaGeneratorFactoryTest {
 
     private String generateSchema(final Class<?> type) {
         final ObjectNode schema = generator.generateSchema(type);
-        try {
-            return yamlMapper.writeValueAsString(schema);
-        } catch (final JsonProcessingException e) {
-            throw new AssertionError("Failed to convert schema to YAML", e);
-        }
+        return yamlMapper.writeValueAsString(schema);
     }
 
     private Map<String, ?> parseYaml(final String yaml) {
-        try {
-            return yamlMapper.readValue(yaml, new TypeReference<>() {});
-        } catch (final JsonProcessingException e) {
-            throw new AssertionError("Failed to parse schema", e);
-        }
+        return yamlMapper.readValue(yaml, new TypeReference<>() {});
     }
 
     @SuppressWarnings("unchecked")

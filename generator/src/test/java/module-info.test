@@ -1,8 +1,8 @@
 --add-modules
-  org.junitpioneer,org.mockito.junit.jupiter,org.hamcrest,com.google.common.testlib,creek.test.util,creek.test.hamcrest,creek.test.conformity,creek.json.schema.test.types,creek.json.schema.validator,com.fasterxml.jackson.datatype.jsr310
+  org.junitpioneer,org.mockito.junit.jupiter,org.hamcrest,com.google.common.testlib,creek.test.util,creek.test.hamcrest,creek.test.conformity,creek.json.schema.test.types,creek.json.schema.validator
 
 --add-reads
-  creek.json.schema.generator=org.junitpioneer,org.mockito.junit.jupiter,org.hamcrest,com.google.common.testlib,creek.test.util,creek.test.hamcrest,creek.test.conformity,creek.json.schema.test.types,creek.json.schema.validator,com.fasterxml.jackson.datatype.jsr310
+  creek.json.schema.generator=org.junitpioneer,org.mockito.junit.jupiter,org.hamcrest,com.google.common.testlib,creek.test.util,creek.test.hamcrest,creek.test.conformity,creek.json.schema.test.types,creek.json.schema.validator
 
 --add-opens
   org.junitpioneer/org.junitpioneer.jupiter=org.junit.platform.commons
@@ -14,7 +14,7 @@
   java.base/java.util=org.junitpioneer
 
 --add-opens
-  creek.json.schema.generator/org.creekservice.internal.json.schema.generator=com.fasterxml.jackson.databind
+  creek.json.schema.generator/org.creekservice.internal.json.schema.generator=tools.jackson.databind
 
 --add-opens
-  creek.json.schema.generator/org.creek.test=com.fasterxml.jackson.databind
+  creek.json.schema.generator/org.creek.test=tools.jackson.databind

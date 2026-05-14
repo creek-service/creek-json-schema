@@ -6,7 +6,7 @@ module creek.json.schema.test.types {
     requires kotlin.stdlib;
 
     exports org.creekservice.test.types to
-            com.fasterxml.jackson.databind;
+            tools.jackson.databind;
     exports org.creekservice.test.types.more to
-            com.fasterxml.jackson.databind;
+            tools.jackson.databind;
 }
