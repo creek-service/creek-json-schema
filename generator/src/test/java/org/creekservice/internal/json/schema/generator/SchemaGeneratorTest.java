@@ -29,24 +29,22 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import net.jimblackler.jsonschemafriend.Schema;
-import net.jimblackler.jsonschemafriend.SchemaStore;
-import net.jimblackler.jsonschemafriend.Validator;
 import org.creekservice.api.json.schema.generator.GeneratorOptions.TypeScanningSpec;
+import org.creekservice.api.json.schema.validator.JsonSchemaValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -75,9 +73,6 @@ class SchemaGeneratorTest {
                     .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                     .disable(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE)
                     .build();
-
-    private final ObjectMapper yamlMapper =
-            new ObjectMapper(new YAMLFactory().enable(YAMLGenerator.Feature.MINIMIZE_QUOTES));
 
     private SchemaGenerator generator;
 
@@ -337,19 +332,17 @@ class SchemaGeneratorTest {
 
     @SafeVarargs
     private <T> void assertAlignsWithJackson(final JsonSchema<T> schema, final T... instances) {
-        final Schema parsedSchema = assertCanParse(schema);
+        final JsonSchemaValidator validator = assertCanParse(schema);
         for (final T instance : instances) {
             final String json = assertCanSerialize(instance);
-            assertValidJson(json, parsedSchema, schema);
+            assertValidJson(json, validator, schema);
             assertCanDeserialize(schema, json, instance);
         }
     }
 
-    private <T> Schema assertCanParse(final JsonSchema<T> schema) {
+    private <T> JsonSchemaValidator assertCanParse(final JsonSchema<T> schema) {
         try {
-            final Object obj = yamlMapper.readValue(schema.text(), Object.class);
-            final SchemaStore schemaStore = new SchemaStore(true);
-            return schemaStore.loadSchema(obj);
+            return JsonSchemaValidator.fromSchema(schema.text());
         } catch (final Exception e) {
             throw new AssertionError("Invalid schema: " + schema.text(), e);
         }
@@ -364,10 +357,11 @@ class SchemaGeneratorTest {
     }
 
     private void assertValidJson(
-            final String json, final Schema parsedSchema, final JsonSchema<?> schema) {
+            final String json, final JsonSchemaValidator validator, final JsonSchema<?> schema) {
         try {
-            final Object o = jsonMapper.readValue(json, Object.class);
-            new Validator(true).validate(parsedSchema, o);
+            final Map<String, ?> props =
+                    jsonMapper.readValue(json, new TypeReference<Map<String, Object>>() {});
+            validator.validate(props);
         } catch (final Exception e) {
             throw new AssertionError(
                     "Invalid JSON: " + json + System.lineSeparator() + "Schema: " + schema.text(),

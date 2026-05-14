@@ -1,5 +1,5 @@
 /*
- * Copyright 2025-2026 Creek Contributors (https://github.com/creek-service)
+ * Copyright 2026 Creek Contributors (https://github.com/creek-service)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-rootProject.name = "creek-json-schema"
+package org.creekservice;
 
-include(
-    "generator",
-    "test-types",
-    "validator"
-)
+import org.creekservice.api.test.conformity.ConformityTester;
+import org.junit.jupiter.api.Test;
+
+class ModuleTest {
+
+    @Test
+    void shouldConform() {
+        ConformityTester.test(ModuleTest.class);
+    }
+}

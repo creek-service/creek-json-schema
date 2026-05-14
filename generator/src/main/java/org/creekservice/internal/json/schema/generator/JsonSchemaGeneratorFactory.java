@@ -76,6 +76,29 @@ final class JsonSchemaGeneratorFactory {
     private static final String NUMBER = "number";
     private static final String STRING = "string";
 
+    /** ISO 8601 local time pattern (no date/timezone): e.g. {@code 14:30:00.5} */
+    private static final String LOCAL_TIME_PATTERN =
+            "^(?:[01]\\d|2[0-3]):(?:[0-5]\\d)(?::(?:[0-5]\\d)(?:\\.\\d{1,9})?)?$";
+
+    /** ISO 8601 local date-time pattern (no timezone): e.g. {@code 2026-05-14T15:34:56.466} */
+    private static final String LOCAL_DATE_TIME_PATTERN =
+            "^\\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\\d|3[01])"
+                    + "T(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d{1,9})?)?$";
+
+    /** ISO 8601 period pattern (date part only, no time): e.g. {@code P1Y2M3D} */
+    private static final String PERIOD_PATTERN =
+            "^P(?=\\d)(?:\\d+Y)?(?:\\d+M)?(?:\\d+W)?(?:\\d+D)?$";
+
+    /** ISO 8601 month-day pattern: e.g. {@code --05-14} */
+    private static final String MONTH_DAY_PATTERN =
+            "^--(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\\d|3[01])$";
+
+    /** ISO 8601 year-month pattern: e.g. {@code 2026-05} */
+    private static final String YEAR_MONTH_PATTERN = "^-?\\d{4,}-(?:0[1-9]|1[0-2])$";
+
+    /** ISO 8601 year pattern: e.g. {@code 2026} */
+    private static final String YEAR_PATTERN = "^-?\\d+$";
+
     private static final ObjectMapper JSON_MAPPER = JsonMapper.builder().build();
 
     private static final Map<Class<?>, Mapping> TYPE_MAPPINGS =
@@ -85,14 +108,12 @@ final class JsonSchemaGeneratorFactory {
                     entry(URI.class, Mapping.toType(STRING).withDefaultFormat("uri")),
                     entry(
                             LocalTime.class,
-                            Mapping.toType(STRING)
-                                    .withDefaultPattern(
-                                            "^(?:[01]\\d|2[0-3]):(?:[0-5]\\d)(?::(?:[0-5]\\d)(?:\\.\\d{1,9})?)?$")),
+                            Mapping.toType(STRING).withDefaultPattern(LOCAL_TIME_PATTERN)),
                     entry(OffsetTime.class, Mapping.toType(STRING).withDefaultFormat("time")),
                     entry(LocalDate.class, Mapping.toType(STRING).withDefaultFormat("date")),
                     entry(
                             LocalDateTime.class,
-                            Mapping.toType(STRING).withDefaultFormat("date-time")),
+                            Mapping.toType(STRING).withDefaultPattern(LOCAL_DATE_TIME_PATTERN)),
                     entry(
                             OffsetDateTime.class,
                             Mapping.toType(STRING).withDefaultFormat("date-time")),
@@ -105,18 +126,14 @@ final class JsonSchemaGeneratorFactory {
                             Period.class,
                             Mapping.toType(STRING)
                                     .withDefaultFormat("duration")
-                                    .withDefaultPattern(
-                                            "^P(?=\\d)(?:\\d+Y)?(?:\\d+M)?(?:\\d+W)?(?:\\d+D)?$")),
+                                    .withDefaultPattern(PERIOD_PATTERN)),
                     entry(
                             MonthDay.class,
-                            Mapping.toType(STRING)
-                                    .withDefaultPattern(
-                                            "^--(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\\d|3[01])$")),
+                            Mapping.toType(STRING).withDefaultPattern(MONTH_DAY_PATTERN)),
                     entry(
                             YearMonth.class,
-                            Mapping.toType(STRING)
-                                    .withDefaultPattern("^-?\\d{4,}-(?:0[1-9]|1[0-2])$")),
-                    entry(Year.class, Mapping.toType(STRING).withDefaultPattern("^-?\\d+$")),
+                            Mapping.toType(STRING).withDefaultPattern(YEAR_MONTH_PATTERN)),
+                    entry(Year.class, Mapping.toType(STRING).withDefaultPattern(YEAR_PATTERN)),
                     entry(
                             byte.class,
                             Mapping.toType(INTEGER)
