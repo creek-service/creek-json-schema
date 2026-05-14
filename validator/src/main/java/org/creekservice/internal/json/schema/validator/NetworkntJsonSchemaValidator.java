@@ -66,8 +66,6 @@ public final class NetworkntJsonSchemaValidator {
                     new ByteArrayInputStream(schemaContent.getBytes(StandardCharsets.UTF_8));
             return new NetworkntJsonSchemaValidator(
                     REGISTRY.getSchema(inputStream, InputFormat.YAML));
-        } catch (final SchemaValidationException e) {
-            throw e;
         } catch (final Exception e) {
             throw SchemaValidationException.of("Failed to parse schema", e);
         }
@@ -80,16 +78,18 @@ public final class NetworkntJsonSchemaValidator {
      * @throws SchemaValidationException if validation fails.
      */
     public void validate(final Map<String, ?> objectProperties) {
+        final List<Error> errors = doValidate(objectProperties);
+        if (!errors.isEmpty()) {
+            final String errorMsg =
+                    errors.stream().map(Error::getMessage).collect(Collectors.joining(", "));
+            throw SchemaValidationException.of("Validation failed: " + errorMsg);
+        }
+    }
+
+    private List<Error> doValidate(final Map<String, ?> objectProperties) {
         try {
             final JsonNode node = JSON_MAPPER.valueToTree(objectProperties);
-            final List<Error> errors = schema.validate(node);
-            if (!errors.isEmpty()) {
-                final String errorMsg =
-                        errors.stream().map(Error::getMessage).collect(Collectors.joining(", "));
-                throw SchemaValidationException.of("Validation failed: " + errorMsg);
-            }
-        } catch (final SchemaValidationException e) {
-            throw e;
+            return schema.validate(node);
         } catch (final Exception e) {
             throw SchemaValidationException.of("Validation error", e);
         }
