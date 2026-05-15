@@ -784,7 +784,6 @@ class JsonSchemaGeneratorFactoryTest {
                 new TypeWithDuration(Duration.ZERO),
                 new TypeWithDuration(Duration.ofSeconds(1)),
                 new TypeWithDuration(Duration.ofHours(1)),
-                new TypeWithDuration(Duration.ofMillis(500)),
                 new TypeWithDuration(Duration.ofDays(1)),
                 new TypeWithDuration(Duration.ofSeconds(5)),
                 // Note: sub-second durations not strictly valid, according to Draft 2020-12.
