@@ -573,10 +573,10 @@ class JsonSchemaGeneratorFactoryTest {
                 result,
                 containsString(
                         """
-                          time:
-                            type: string
-                            pattern:\
-                        """));
+  time:
+    type: string
+    pattern: "^(?:[01]\\\\d|2[0-3]):(?:[0-5]\\\\d)(?::(?:[0-5]\\\\d)(?:\\\\.\\\\d{1,9})?)?$"\
+"""));
         assertThat(result, not(containsString("format:")));
         assertThat(result, not(containsString("LocalTime")));
 
@@ -595,15 +595,15 @@ class JsonSchemaGeneratorFactoryTest {
         final String result = generateSchema(TypeWithLocalDateTime.class);
 
         // Then:
-        // Todo: Include the expected pattern here:
         assertThat(
                 result,
                 containsString(
                         """
-                          date:
-                            type: string
-                            pattern:\
-                        """));
+  date:
+    type: string
+    pattern: "^\\\\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\\\\d|3[01])T(?:[01]\\\\d|2[0-3]):[0-5]\\\\\\
+      d(?::[0-5]\\\\d(?:\\\\.\\\\d{1,9})?)?$"\
+"""));
 
         assertThat(result, not(containsString("LocalDateTime")));
         assertThat(result, not(containsString("format: date-time")));
@@ -689,7 +689,9 @@ class JsonSchemaGeneratorFactoryTest {
         // Then:
         final Map<String, ?> parsedSchema = parseYaml(result);
         assertThat(yamlGet(parsedSchema, "properties", "date", "type"), is("string"));
-        assertThat(result, containsString("pattern:"));
+        assertThat(
+                result,
+                containsString("pattern: \"^--(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\\\\d|3[01])$\""));
         assertThat(result, not(containsString("format:")));
         assertThat(result, not(containsString("MonthDay")));
 
@@ -711,7 +713,7 @@ class JsonSchemaGeneratorFactoryTest {
         // Then:
         final Map<String, ?> parsedSchema = parseYaml(result);
         assertThat(yamlGet(parsedSchema, "properties", "date", "type"), is("string"));
-        assertThat(result, containsString("pattern:"));
+        assertThat(result, containsString("pattern: \"^-?\\\\d{4,}-(?:0[1-9]|1[0-2])$\""));
         assertThat(result, not(containsString("format:")));
         assertThat(result, not(containsString("YearMonth")));
 
@@ -782,17 +784,13 @@ class JsonSchemaGeneratorFactoryTest {
                 new TypeWithDuration(Duration.ZERO),
                 new TypeWithDuration(Duration.ofSeconds(1)),
                 new TypeWithDuration(Duration.ofHours(1)),
-                // Note: Currently fails as SchemaFriend validator correctly rejects fractional
-                // seconds.
-                // This matches RFC 3339 used by Json schema
-                // However, https://github.com/json-schema-org/json-schema-spec/issues/1603 is an
-                // ongoing discussion to support fractional seconds.
-                // As ISO 8601 does, which is what Java / Jackson is using.
-                // Need to either go back to using number for duration or move to less string
-                // validator.
-                new TypeWithDuration(Duration.ofMillis(500)),
                 new TypeWithDuration(Duration.ofDays(1)),
-                new TypeWithDuration(Duration.ofSeconds(5)));
+                new TypeWithDuration(Duration.ofSeconds(5)),
+                // Note: sub-second durations not strictly valid, according to Draft 2020-12.
+                // Alternatives not pretty / worse. Subsecond widely accepted.
+                // Discussion: https://github.com/json-schema-org/json-schema-spec/issues/1603
+                // Hopefully, resolved in the next draft.
+                new TypeWithDuration(Duration.ofMillis(500)));
     }
 
     @Test
@@ -808,7 +806,7 @@ class JsonSchemaGeneratorFactoryTest {
                           period:
                             type: string
                             format: duration
-                            pattern:\
+                            pattern: ^P(?=\\d)(?:\\d+Y)?(?:\\d+M)?(?:\\d+W)?(?:\\d+D)?$\
                         """));
 
         assertAlignsWithJackson(
