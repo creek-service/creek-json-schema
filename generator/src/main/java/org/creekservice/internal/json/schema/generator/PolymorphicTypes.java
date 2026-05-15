@@ -20,16 +20,6 @@ import static java.util.Objects.requireNonNull;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.databind.BeanProperty;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonAnyFormatVisitor;
-import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonArrayFormatVisitor;
-import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitable;
-import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitorWrapper;
-import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonMapFormatVisitor;
-import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonObjectFormatVisitor;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ClassInfoList;
@@ -43,6 +33,16 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.creekservice.api.json.schema.generator.GeneratorOptions.TypeScanningSpec;
+import tools.jackson.databind.BeanProperty;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.jsonFormatVisitors.JsonAnyFormatVisitor;
+import tools.jackson.databind.jsonFormatVisitors.JsonArrayFormatVisitor;
+import tools.jackson.databind.jsonFormatVisitors.JsonFormatVisitable;
+import tools.jackson.databind.jsonFormatVisitors.JsonFormatVisitorWrapper;
+import tools.jackson.databind.jsonFormatVisitors.JsonMapFormatVisitor;
+import tools.jackson.databind.jsonFormatVisitors.JsonObjectFormatVisitor;
 
 /**
  * Helper for finding subtypes of any polymorphic type annotated with {@code @JsonTypeInfo(use =
@@ -131,15 +131,15 @@ final class PolymorphicTypes {
         }
     }
 
-    private void visitType(final Class<?> type) throws JsonMappingException {
+    private void visitType(final Class<?> type) {
         visitType(objectMapper.constructType(type));
     }
 
-    private void visitType(final JavaType type) throws JsonMappingException {
+    private void visitType(final JavaType type) {
         objectMapper.acceptJsonFormatVisitor(type, new FormatVisitor());
     }
 
-    private void process(final JavaType type) throws JsonMappingException {
+    private void process(final JavaType type) {
         extractPolyInfo(type.getRawClass());
 
         for (int i = 0; i < type.containedTypeCount(); i++) {
@@ -148,7 +148,7 @@ final class PolymorphicTypes {
         }
     }
 
-    private <T> void extractPolyInfo(final Class<T> type) throws JsonMappingException {
+    private <T> void extractPolyInfo(final Class<T> type) {
         if (found.containsKey(type)) {
             return;
         }
@@ -205,29 +205,25 @@ final class PolymorphicTypes {
     private final class FormatVisitor extends JsonFormatVisitorWrapper.Base {
 
         @Override
-        public JsonObjectFormatVisitor expectObjectFormat(final JavaType type)
-                throws JsonMappingException {
+        public JsonObjectFormatVisitor expectObjectFormat(final JavaType type) {
             process(type);
-            return new ObjectVisitor();
+            return new ObjectVisitor(getContext());
         }
 
         @Override
-        public JsonArrayFormatVisitor expectArrayFormat(final JavaType type)
-                throws JsonMappingException {
+        public JsonArrayFormatVisitor expectArrayFormat(final JavaType type) {
             process(type);
             return null;
         }
 
         @Override
-        public JsonMapFormatVisitor expectMapFormat(final JavaType type)
-                throws JsonMappingException {
+        public JsonMapFormatVisitor expectMapFormat(final JavaType type) {
             process(type);
             return null;
         }
 
         @Override
-        public JsonAnyFormatVisitor expectAnyFormat(final JavaType type)
-                throws JsonMappingException {
+        public JsonAnyFormatVisitor expectAnyFormat(final JavaType type) {
             process(type);
             return null;
         }
@@ -235,8 +231,12 @@ final class PolymorphicTypes {
 
     private final class ObjectVisitor extends JsonObjectFormatVisitor.Base {
 
+        ObjectVisitor(final SerializationContext ctx) {
+            super(ctx);
+        }
+
         @Override
-        public void property(final BeanProperty prop) throws JsonMappingException {
+        public void property(final BeanProperty prop) {
             process(prop.getType());
         }
 
@@ -244,13 +244,12 @@ final class PolymorphicTypes {
         public void property(
                 final String name,
                 final JsonFormatVisitable handler,
-                final JavaType propertyTypeHint)
-                throws JsonMappingException {
+                final JavaType propertyTypeHint) {
             process(propertyTypeHint);
         }
 
         @Override
-        public void optionalProperty(final BeanProperty prop) throws JsonMappingException {
+        public void optionalProperty(final BeanProperty prop) {
             process(prop.getType());
         }
 
@@ -258,8 +257,7 @@ final class PolymorphicTypes {
         public void optionalProperty(
                 final String name,
                 final JsonFormatVisitable handler,
-                final JavaType propertyTypeHint)
-                throws JsonMappingException {
+                final JavaType propertyTypeHint) {
             process(propertyTypeHint);
         }
     }

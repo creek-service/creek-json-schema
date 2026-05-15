@@ -16,6 +16,7 @@
 
 package org.creekservice.test.types;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -27,6 +28,7 @@ import org.creekservice.api.base.annotation.schema.GeneratesSchema;
 @SuppressWarnings("unused") // Invoked via reflection
 @GeneratesSchema
 public class FormatModel {
+    @JsonProperty("uri")
     public URI getURI() {
         return null;
     }

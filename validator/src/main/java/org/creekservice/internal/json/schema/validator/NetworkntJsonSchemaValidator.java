@@ -16,8 +16,6 @@
 
 package org.creekservice.internal.json.schema.validator;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.schema.Error;
 import com.networknt.schema.InputFormat;
 import com.networknt.schema.Schema;
@@ -31,11 +29,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.creekservice.api.json.schema.validator.SchemaValidationException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 /** Internal networknt-based implementation of JSON schema validation. */
 public final class NetworkntJsonSchemaValidator {
 
-    private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
+    private static final JsonMapper JSON_MAPPER = JsonMapper.builder().build();
 
     private static final SchemaRegistry REGISTRY =
             SchemaRegistry.withDefaultDialect(

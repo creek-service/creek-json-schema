@@ -19,13 +19,6 @@ package org.creekservice.internal.json.schema.generator;
 import static java.lang.System.lineSeparator;
 import static java.util.Objects.requireNonNull;
 
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
@@ -33,13 +26,19 @@ import java.util.Set;
 import org.creekservice.api.base.annotation.VisibleForTesting;
 import org.creekservice.api.base.type.temporal.Clock;
 import org.creekservice.api.json.schema.generator.GeneratorOptions.TypeScanningSpec;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.dataformat.yaml.YAMLFactory;
+import tools.jackson.dataformat.yaml.YAMLMapper;
+import tools.jackson.dataformat.yaml.YAMLWriteFeature;
 
 /** Generates a YAML schema file. */
 public final class SchemaGenerator {
 
     private final ObjectMapper mapper =
-            JsonMapper.builder(new YAMLFactory().enable(YAMLGenerator.Feature.MINIMIZE_QUOTES))
-                    .addModule(new Jdk8Module())
+            YAMLMapper.builder(
+                            YAMLFactory.builder().enable(YAMLWriteFeature.MINIMIZE_QUOTES).build())
                     // Ensure consistent ordering of properties in the schema:
                     // Otherwise, ordering can change from one run of the application to the next.
                     .enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
@@ -78,7 +77,11 @@ public final class SchemaGenerator {
         PolymorphicTypes.findPolymorphicTypes(types, subtypeScanning, mapper).stream()
                 .map(PolymorphicTypes.PolymorphicType::subTypes)
                 .flatMap(Set::stream)
-                .forEach(mapper::registerSubtypes);
+                .forEach(
+                        subType ->
+                                mapper.serializationConfig()
+                                        .getSubtypeResolver()
+                                        .registerSubtypes(subType));
     }
 
     /**
