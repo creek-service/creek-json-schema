@@ -18,6 +18,8 @@ rootProject.name = "creek-json-schema"
 
 include(
     "generator",
+    "test-generator-module",
     "test-types",
+    "test-validator-module",
     "validator"
 )
