@@ -56,7 +56,7 @@ subprojects {
         set("spotBugsVersion", "4.9.8")         // https://mvnrepository.com/artifact/com.github.spotbugs/spotbugs-annotations
         set("picoCliVersion", "4.7.7")          // https://mvnrepository.com/artifact/info.picocli/picocli
         set("jacksonVersion", "3.1.4")          // https://mvnrepository.com/artifact/tools.jackson.core/jackson-databind
-        set("jacksonAnnotationVersion", "2.20") // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations
+        set("jacksonAnnotationVersion", "2.22") // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations
         set("victoolsVersion", "5.0.0")         // https://mvnrepository.com/artifact/com.github.victools/jsonschema-generator
         set("swaggerAnnotationsVersion", "2.2.49") // https://mvnrepository.com/artifact/io.swagger.core.v3/swagger-annotations
         set("classGraphVersion", "4.8.184")     // https://mvnrepository.com/artifact/io.github.classgraph/classgraph
