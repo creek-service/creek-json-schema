@@ -43,7 +43,7 @@ dependencies {
     implementation("io.swagger.core.v3:swagger-annotations:$swaggerAnnotationsVersion")
     implementation("io.github.classgraph:classgraph:$classGraphVersion")
     implementation("org.apache.logging.log4j:log4j-slf4j2-impl:$log4jVersion")
-    implementation("org.slf4j:slf4j-api:2.0.17")
+    implementation("org.slf4j:slf4j-api:2.0.18")
 
     testImplementation(project(":test-types"))
     testImplementation(project(":validator"))
