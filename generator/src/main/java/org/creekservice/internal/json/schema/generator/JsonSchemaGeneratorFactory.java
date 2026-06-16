@@ -61,6 +61,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 import org.creekservice.api.base.annotation.schema.JsonSchemaInject;
 import tools.jackson.databind.BeanDescription;
 import tools.jackson.databind.ObjectMapper;
@@ -247,9 +250,20 @@ final class JsonSchemaGeneratorFactory {
     }
 
     private static List<ResolvedType> unwrapOptionalReturnType(final MethodScope method) {
-        return method.getType().isInstanceOf(Optional.class)
-                ? List.of(method.getTypeParameterFor(Optional.class, 0))
-                : null;
+        final Class<?> erasedType = method.getType().getErasedType();
+        if (erasedType == Optional.class) {
+            return List.of(method.getTypeParameterFor(Optional.class, 0));
+        }
+        if (erasedType == OptionalInt.class) {
+            return List.of(method.getContext().resolve(int.class));
+        }
+        if (erasedType == OptionalLong.class) {
+            return List.of(method.getContext().resolve(long.class));
+        }
+        if (erasedType == OptionalDouble.class) {
+            return List.of(method.getContext().resolve(double.class));
+        }
+        return null;
     }
 
     private static Optional<BeanPropertyDefinition> findJacksonProperty(
