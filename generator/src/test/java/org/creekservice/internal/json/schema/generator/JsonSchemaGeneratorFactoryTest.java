@@ -54,6 +54,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 import java.util.UUID;
 import org.creek.test.MinimalClassSub;
 import org.creekservice.api.base.annotation.schema.JsonSchemaInject;
@@ -1255,6 +1258,35 @@ class JsonSchemaGeneratorFactoryTest {
     }
 
     @Test
+    void shouldHandleOptionalPrimitiveProperties() {
+        // When:
+        final String result = generateSchema(ModelWithOptionalPrimitives.class);
+
+        // Then:
+        final Map<String, ?> parsedSchema = parseYaml(result);
+        assertThat(yamlGet(parsedSchema, "properties", "intVal", "type"), is("integer"));
+        assertThat(yamlGet(parsedSchema, "properties", "intVal", "minimum"), is(-2147483648));
+        assertThat(yamlGet(parsedSchema, "properties", "intVal", "maximum"), is(2147483647));
+        assertThat(yamlGet(parsedSchema, "properties", "longVal", "type"), is("integer"));
+        assertThat(
+                yamlGet(parsedSchema, "properties", "longVal", "minimum"),
+                is(-9223372036854775808L));
+        assertThat(
+                yamlGet(parsedSchema, "properties", "longVal", "maximum"),
+                is(9223372036854775807L));
+        assertThat(yamlGet(parsedSchema, "properties", "doubleVal", "type"), is("number"));
+        assertThat(result, not(containsString("required")));
+
+        assertAlignsWithJackson(
+                result,
+                ModelWithOptionalPrimitives.class,
+                new ModelWithOptionalPrimitives(
+                        OptionalInt.empty(), OptionalLong.empty(), OptionalDouble.empty()),
+                new ModelWithOptionalPrimitives(
+                        OptionalInt.of(42), OptionalLong.of(42L), OptionalDouble.of(3.14)));
+    }
+
+    @Test
     void shouldHandleSingleCharGetters() {
         // Given:
         final String schema = generateSchema(TypeWithSingleCharGetters.class);
@@ -1718,6 +1750,9 @@ class JsonSchemaGeneratorFactoryTest {
     public record ModelWithOptionalProperty(Optional<String> thing) {}
 
     public record ModelWithWildcardOptionalProperty(Optional<?> thing) {}
+
+    public record ModelWithOptionalPrimitives(
+            OptionalInt intVal, OptionalLong longVal, OptionalDouble doubleVal) {}
 
     @SuppressWarnings("ClassCanBeRecord")
     public static final class TypeWithJsonGetter {

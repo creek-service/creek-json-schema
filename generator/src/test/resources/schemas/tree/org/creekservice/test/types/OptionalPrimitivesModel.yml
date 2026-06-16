@@ -1,0 +1,17 @@
+---
+# timestamp=0
+$schema: https://json-schema.org/draft/2020-12/schema
+type: object
+properties:
+  optionalDouble:
+    type: number
+  optionalInt:
+    type: integer
+    minimum: -2147483648
+    maximum: 2147483647
+  optionalLong:
+    type: integer
+    minimum: -9223372036854775808
+    maximum: 9223372036854775807
+title: Optional Primitives Model
+additionalProperties: false
