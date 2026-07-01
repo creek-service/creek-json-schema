@@ -60,7 +60,7 @@ subprojects {
         set("victoolsVersion", "5.0.0")         // https://mvnrepository.com/artifact/com.github.victools/jsonschema-generator
         set("swaggerAnnotationsVersion", "2.2.50") // https://mvnrepository.com/artifact/io.swagger.core.v3/swagger-annotations
         set("classGraphVersion", "4.8.184")     // https://mvnrepository.com/artifact/io.github.classgraph/classgraph
-        set("kotlinVersion", "2.3.21")          // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-stdlib-common
+        set("kotlinVersion", "2.4.0")          // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-stdlib-common
 
         set("log4jVersion", "2.26.0")           // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
         set("guavaVersion", "33.6.0-jre")         // https://mvnrepository.com/artifact/com.google.guava/guava
