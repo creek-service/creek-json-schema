@@ -21,7 +21,7 @@ plugins {
 val jacksonVersion : String by extra
 
 dependencies {
-    implementation("com.networknt:json-schema-validator:3.0.3")
+    implementation("com.networknt:json-schema-validator:3.0.5")
     implementation("tools.jackson.core:jackson-databind:$jacksonVersion")
     implementation("tools.jackson.dataformat:jackson-dataformat-yaml:$jacksonVersion")
 }
