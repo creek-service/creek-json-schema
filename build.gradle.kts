@@ -59,7 +59,7 @@ subprojects {
         set("jacksonAnnotationVersion", "2.22") // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations
         set("victoolsVersion", "5.0.0")         // https://mvnrepository.com/artifact/com.github.victools/jsonschema-generator
         set("swaggerAnnotationsVersion", "2.2.52") // https://mvnrepository.com/artifact/io.swagger.core.v3/swagger-annotations
-        set("classGraphVersion", "4.8.184")     // https://mvnrepository.com/artifact/io.github.classgraph/classgraph
+        set("classGraphVersion", "4.8.186")     // https://mvnrepository.com/artifact/io.github.classgraph/classgraph
         set("kotlinVersion", "2.4.10")          // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-stdlib-common
 
         set("log4jVersion", "2.26.1")           // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
