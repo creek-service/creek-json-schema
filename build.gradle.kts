@@ -55,7 +55,7 @@ subprojects {
         set("creekVersion", project.version)
         set("spotBugsVersion", "4.10.3")         // https://mvnrepository.com/artifact/com.github.spotbugs/spotbugs-annotations
         set("picoCliVersion", "4.7.7")          // https://mvnrepository.com/artifact/info.picocli/picocli
-        set("jacksonVersion", "3.2.1")          // https://mvnrepository.com/artifact/tools.jackson.core/jackson-databind
+        set("jacksonVersion", "3.2.2")          // https://mvnrepository.com/artifact/tools.jackson.core/jackson-databind
         set("jacksonAnnotationVersion", "2.22") // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations
         set("victoolsVersion", "5.0.0")         // https://mvnrepository.com/artifact/com.github.victools/jsonschema-generator
         set("swaggerAnnotationsVersion", "2.2.52") // https://mvnrepository.com/artifact/io.swagger.core.v3/swagger-annotations
