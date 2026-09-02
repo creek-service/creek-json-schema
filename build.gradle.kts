@@ -22,7 +22,7 @@ plugins {
     `creek-coverage-convention`
     `creek-publishing-convention` apply false
     `creek-sonatype-publishing-convention`
-    id("pl.allegro.tech.build.axion-release") version "1.21.2" // https://plugins.gradle.org/plugin/pl.allegro.tech.build.axion-release
+    id("pl.allegro.tech.build.axion-release") version "1.21.3" // https://plugins.gradle.org/plugin/pl.allegro.tech.build.axion-release
 }
 
 scmVersion {
@@ -53,18 +53,18 @@ subprojects {
 
     extra.apply {
         set("creekVersion", project.version)
-        set("spotBugsVersion", "4.10.3")         // https://mvnrepository.com/artifact/com.github.spotbugs/spotbugs-annotations
+        set("spotBugsVersion", "4.10.4")         // https://mvnrepository.com/artifact/com.github.spotbugs/spotbugs-annotations
         set("picoCliVersion", "4.7.7")          // https://mvnrepository.com/artifact/info.picocli/picocli
-        set("jacksonVersion", "3.2.1")          // https://mvnrepository.com/artifact/tools.jackson.core/jackson-databind
+        set("jacksonVersion", "3.2.2")          // https://mvnrepository.com/artifact/tools.jackson.core/jackson-databind
         set("jacksonAnnotationVersion", "2.22") // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations
         set("victoolsVersion", "5.0.0")         // https://mvnrepository.com/artifact/com.github.victools/jsonschema-generator
-        set("swaggerAnnotationsVersion", "2.2.52") // https://mvnrepository.com/artifact/io.swagger.core.v3/swagger-annotations
-        set("classGraphVersion", "4.8.186")     // https://mvnrepository.com/artifact/io.github.classgraph/classgraph
+        set("swaggerAnnotationsVersion", "2.2.54") // https://mvnrepository.com/artifact/io.swagger.core.v3/swagger-annotations
+        set("classGraphVersion", "4.8.194")     // https://mvnrepository.com/artifact/io.github.classgraph/classgraph
         set("kotlinVersion", "2.4.10")          // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-stdlib-common
 
         set("log4jVersion", "2.26.1")           // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
-        set("guavaVersion", "33.6.0-jre")         // https://mvnrepository.com/artifact/com.google.guava/guava
-        set("junitVersion", "6.1.2")            // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
+        set("guavaVersion", "33.7.1-jre")         // https://mvnrepository.com/artifact/com.google.guava/guava
+        set("junitVersion", "6.1.3")            // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
         set("junitPioneerVersion", "2.3.0")     // https://mvnrepository.com/artifact/org.junit-pioneer/junit-pioneer
         set("mockitoVersion", "5.23.0")         // https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter
     }
