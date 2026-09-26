@@ -21,13 +21,13 @@ plugins {
 
 
 val creekVersion : String by extra
-val picoCliVersion : String by extra
-val spotBugsVersion : String by extra
-val log4jVersion : String by extra
-val jacksonVersion : String by extra
-val victoolsVersion : String by extra
-val swaggerAnnotationsVersion : String by extra
-val classGraphVersion : String by extra
+val picoCliVersion : String by project
+val spotBugsVersion : String by project
+val log4jVersion : String by project
+val jacksonVersion : String by project
+val victoolsVersion : String by project
+val swaggerAnnotationsVersion : String by project
+val classGraphVersion : String by project
 
 dependencies {
     implementation("org.creekservice:creek-base-annotation:$creekVersion")
