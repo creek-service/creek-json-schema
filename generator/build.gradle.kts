@@ -21,13 +21,13 @@ plugins {
 
 
 val creekVersion : String by extra
-val picoCliVersion : String by project
-val spotBugsVersion : String by project
-val log4jVersion : String by project
-val jacksonVersion : String by project
-val victoolsVersion : String by project
-val swaggerAnnotationsVersion : String by project
-val classGraphVersion : String by project
+val picoCliVersion = project.property("picoCliVersion") as String
+val spotBugsVersion = project.property("spotBugsVersion") as String
+val log4jVersion = project.property("log4jVersion") as String
+val jacksonVersion = project.property("jacksonVersion") as String
+val victoolsVersion = project.property("victoolsVersion") as String
+val swaggerAnnotationsVersion = project.property("swaggerAnnotationsVersion") as String
+val classGraphVersion = project.property("classGraphVersion") as String
 
 dependencies {
     implementation("org.creekservice:creek-base-annotation:$creekVersion")

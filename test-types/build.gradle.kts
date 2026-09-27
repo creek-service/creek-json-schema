@@ -20,10 +20,10 @@ plugins {
 }
 
 val creekVersion : String by extra
-val jacksonAnnotationVersion : String by project
-val swaggerAnnotationsVersion : String by project
-val spotBugsVersion : String by project
-val kotlinVersion : String by project
+val jacksonAnnotationVersion = project.property("jacksonAnnotationVersion") as String
+val swaggerAnnotationsVersion = project.property("swaggerAnnotationsVersion") as String
+val spotBugsVersion = project.property("spotBugsVersion") as String
+val kotlinVersion = project.property("kotlinVersion") as String
 
 dependencies {
     implementation("org.creekservice:creek-base-annotation:$creekVersion")

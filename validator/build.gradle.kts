@@ -18,7 +18,7 @@ plugins {
     `java-library`
 }
 
-val jacksonVersion : String by project
+val jacksonVersion = project.property("jacksonVersion") as String
 
 dependencies {
     implementation("com.networknt:json-schema-validator:3.0.7")
