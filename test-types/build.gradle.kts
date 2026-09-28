@@ -19,17 +19,13 @@ plugins {
     `java-library`
 }
 
-val creekVersion : String by extra
-val jacksonAnnotationVersion : String by extra
-val swaggerAnnotationsVersion : String by extra
-val spotBugsVersion : String by extra
-val kotlinVersion : String by extra
+val creekVersion = property("creekVersion") as String
 
 dependencies {
     implementation("org.creekservice:creek-base-annotation:$creekVersion")
-    implementation("com.fasterxml.jackson.core:jackson-annotations:$jacksonAnnotationVersion")
-    implementation("io.swagger.core.v3:swagger-annotations:$swaggerAnnotationsVersion")
-    implementation("com.github.spotbugs:spotbugs-annotations:$spotBugsVersion")
+    implementation("com.fasterxml.jackson.core:jackson-annotations:${property("jacksonAnnotationVersion")}")
+    implementation("io.swagger.core.v3:swagger-annotations:${property("swaggerAnnotationsVersion")}")
+    implementation("com.github.spotbugs:spotbugs-annotations:${property("spotBugsVersion")}")
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${property("kotlinVersion")}")
 }

@@ -19,30 +19,23 @@ plugins {
     application
 }
 
-
-val creekVersion : String by extra
-val picoCliVersion : String by extra
-val spotBugsVersion : String by extra
-val log4jVersion : String by extra
-val jacksonVersion : String by extra
-val victoolsVersion : String by extra
-val swaggerAnnotationsVersion : String by extra
-val classGraphVersion : String by extra
+val creekVersion = property("creekVersion") as String
+val victoolsVersion = property("victoolsVersion") as String
 
 dependencies {
     implementation("org.creekservice:creek-base-annotation:$creekVersion")
     implementation("org.creekservice:creek-base-type:$creekVersion")
     implementation("org.creekservice:creek-base-schema:$creekVersion")
 
-    implementation("com.github.spotbugs:spotbugs-annotations:$spotBugsVersion")
-    implementation("info.picocli:picocli:$picoCliVersion")
-    implementation("tools.jackson.dataformat:jackson-dataformat-yaml:$jacksonVersion")
+    implementation("com.github.spotbugs:spotbugs-annotations:${property("spotBugsVersion")}")
+    implementation("info.picocli:picocli:${property("picoCliVersion")}")
+    implementation("tools.jackson.dataformat:jackson-dataformat-yaml:${property("jacksonVersion")}")
     implementation("com.github.victools:jsonschema-generator:$victoolsVersion")
     implementation("com.github.victools:jsonschema-module-jackson:$victoolsVersion")
     implementation("com.github.victools:jsonschema-module-swagger-2:$victoolsVersion")
-    implementation("io.swagger.core.v3:swagger-annotations:$swaggerAnnotationsVersion")
-    implementation("io.github.classgraph:classgraph:$classGraphVersion")
-    implementation("org.apache.logging.log4j:log4j-slf4j2-impl:$log4jVersion")
+    implementation("io.swagger.core.v3:swagger-annotations:${property("swaggerAnnotationsVersion")}")
+    implementation("io.github.classgraph:classgraph:${property("classGraphVersion")}")
+    implementation("org.apache.logging.log4j:log4j-slf4j2-impl:${property("log4jVersion")}")
     implementation("org.slf4j:slf4j-api:2.0.18")
 
     testImplementation(project(":test-types"))
