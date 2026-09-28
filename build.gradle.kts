@@ -54,7 +54,7 @@ subprojects {
     extra.apply { set("creekVersion", project.version) }
 
     val creekVersion : String by extra
-    val junitVersion = project.property("junitVersion") as String
+    val junitVersion = property("junitVersion") as String
 
     dependencies {
         testImplementation("org.creekservice:creek-test-hamcrest:$creekVersion")

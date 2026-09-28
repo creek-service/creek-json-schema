@@ -20,7 +20,7 @@ plugins {
 }
 
 val creekVersion : String by extra
-val victoolsVersion = project.property("victoolsVersion") as String
+val victoolsVersion = property("victoolsVersion") as String
 
 dependencies {
     implementation("org.creekservice:creek-base-annotation:$creekVersion")
