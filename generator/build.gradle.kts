@@ -19,7 +19,7 @@ plugins {
     application
 }
 
-val creekVersion : String by extra
+val creekVersion = property("creekVersion") as String
 val victoolsVersion = property("victoolsVersion") as String
 
 dependencies {

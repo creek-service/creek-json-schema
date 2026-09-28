@@ -19,7 +19,7 @@ plugins {
     `java-library`
 }
 
-val creekVersion : String by extra
+val creekVersion = property("creekVersion") as String
 
 dependencies {
     implementation("org.creekservice:creek-base-annotation:$creekVersion")
