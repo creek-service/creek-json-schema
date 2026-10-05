@@ -11,11 +11,6 @@ registries:
   maven-snapshots:
     type: maven-repository
     url: https://s01.oss.sonatype.org/content/repositories/snapshots/
-  creek-github-packages:
-    type: maven-repository
-    url: https://maven.pkg.github.com/creek-service/
-    username: x-access-token
-    password: ${{secrets.CREEK_PACKAGES_TOKEN}}
 updates:
   - package-ecosystem: github-actions
     directory: /
@@ -27,7 +22,6 @@ updates:
     registries:
       - maven-central
       - maven-snapshots
-      - creek-github-packages
     open-pull-requests-limit: 50
     schedule:
       interval: monthly
@@ -44,7 +38,6 @@ updates:
     registries:
       - maven-central
       - maven-snapshots
-      - creek-github-packages
     open-pull-requests-limit: 50
     schedule:
       interval: monthly
