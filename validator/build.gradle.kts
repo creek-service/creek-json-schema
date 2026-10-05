@@ -21,7 +21,7 @@ plugins {
 val jacksonVersion = property("jacksonVersion") as String
 
 dependencies {
-    implementation("com.networknt:json-schema-validator:3.0.7")
+    implementation("com.networknt:json-schema-validator:3.0.8")
     implementation("tools.jackson.core:jackson-databind:$jacksonVersion")
     implementation("tools.jackson.dataformat:jackson-dataformat-yaml:$jacksonVersion")
 }
