@@ -23,4 +23,3 @@ See [CreekService.org](https://www.creekservice.org) for info on Creek Service.
 ### Internal models
 
 * **[test-types](test-types)**: contains types used internally by this repo for testing.
-
